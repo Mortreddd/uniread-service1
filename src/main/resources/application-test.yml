@@ -1,0 +1,19 @@
+
+
+spring:
+  h2:
+    console:
+      enabled : true
+      path: /h2-console
+
+  datasource:
+    url: jdbc:h2:mem:sa
+    username: sa
+    password: 12345678
+
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto : update
+    database-platform : org.hibernate.dialect.H2Dialect

@@ -1,0 +1,83 @@
+package com.bsit.uniread.domain.entities.book;
+
+import com.bsit.uniread.domain.entities.chapter.Chapter;
+import com.bsit.uniread.domain.entities.user.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Table(indexes = {
+        @Index(name = "idx_title", columnList = "title"),
+        @Index(name = "idx_user_id", columnList = "user_id")
+})
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class Book {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @JoinColumn(name = "user_id", nullable = true)
+    @JsonBackReference
+    private User user;
+
+    private String title;
+    private String coverPhoto;
+    private String description;
+    private Integer readCount;
+    private Boolean matured;
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @JoinTable(name = "book_genre")
+    @JsonManagedReference
+    private List<Genre> genre;
+
+
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime updatedAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = true)
+    private LocalDateTime deletedAt;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE, mappedBy = "book")
+    @JsonManagedReference
+    private List<Chapter> chapters;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE, mappedBy = "book")
+    @JsonManagedReference
+    private List<BookComment> bookComments;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE, mappedBy = "book")
+    @JsonManagedReference
+    private List<BookLike> bookLikes;
+
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "tag_id")
+    @JsonManagedReference
+    private List<Tag> tags;
+
+    public Boolean isMatured(){
+        return matured;
+    }
+}
