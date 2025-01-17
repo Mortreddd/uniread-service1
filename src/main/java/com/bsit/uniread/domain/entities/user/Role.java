@@ -24,8 +24,7 @@ public class Role {
     @Enumerated(EnumType.STRING)
     private RoleName name;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<User> users;
 }

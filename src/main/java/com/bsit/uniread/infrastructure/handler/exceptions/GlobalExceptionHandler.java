@@ -29,20 +29,19 @@ public class GlobalExceptionHandler {
 
     }
 
-    @ExceptionHandler
-    public ResponseEntity<ErrorResponse> constrainedExceptions(
-            ConstraintViolationException exception,
-            WebRequest request
-    ) {
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> resourceNotFoundException(ConstraintViolationException exception, WebRequest request){
         ErrorResponse details = ErrorResponse.builder()
-                .code(HttpStatus.UNPROCESSABLE_ENTITY.value())
+                .code(HttpStatus.FORBIDDEN.value())
                 .date(new Date())
                 .message(exception.getMessage())
                 .description(request.getDescription(false))
                 .build();
 
         return ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .status(HttpStatus.FORBIDDEN)
                 .body(details);
+
     }
+
 }

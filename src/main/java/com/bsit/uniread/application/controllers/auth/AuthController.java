@@ -1,7 +1,6 @@
 package com.bsit.uniread.application.controllers.auth;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
-import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.auth.ForgotPasswordRequest;
 import com.bsit.uniread.application.dto.request.auth.LoginRequest;
 import com.bsit.uniread.application.dto.response.auth.LoginResponse;
@@ -28,19 +27,11 @@ public class AuthController {
      * @return LoginResponse
      */
     @PostMapping(path = "/login")
-    public ResponseEntity<SuccessResponse<LoginResponse>> verifyLogin(
+    public ResponseEntity<LoginResponse> verifyLogin(
             @Validated @RequestBody LoginRequest loginRequest
     ) {
-
-        String message = "Successfully logged in";
         LoginResponse response = authService.loginUser(loginRequest.getEmail(), loginRequest.getPassword());
-        return ResponseEntity.ok()
-                .body(SuccessResponse.<LoginResponse>builder()
-                        .data(response)
-                        .code(HttpStatus.OK.value())
-                        .message(message)
-                        .build()
-                );
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -50,18 +41,12 @@ public class AuthController {
      * @throws MessagingException
      */
     @PostMapping(path = "/forgot-password", consumes = {"application/json"})
-    public ResponseEntity<SuccessResponse<String>> sendForgotPassword(
+    public ResponseEntity<String> sendForgotPassword(
             @Validated @RequestBody ForgotPasswordRequest forgotPasswordRequest
     ) throws MessagingException {
         authService.sendForgotPassword(forgotPasswordRequest.getEmail());
-        String message = "Email Confirmation has been sent";
 
-        return ResponseEntity.ok()
-                .body(SuccessResponse.<String>builder()
-                        .code(HttpStatus.OK.value())
-                        .message(message)
-                        .build()
-                );
+        return ResponseEntity.ok().build();
 
     }
 
@@ -71,17 +56,10 @@ public class AuthController {
      * @return ResponseEntity
      */
     @GetMapping(path = "/forgot-password")
-    public ResponseEntity<SuccessResponse<String>> verifyForgotPassword(
+    public ResponseEntity<String> verifyForgotPassword(
             @RequestParam("id") UUID id
     ) {
         authService.verifyEmailByOtpId(id);
-        String message = "Successfully verified the email";
-        return ResponseEntity.ok()
-                .body(
-                        SuccessResponse.<String>builder()
-                                .code(HttpStatus.OK.value())
-                                .message(message)
-                                .build()
-                );
+        return ResponseEntity.ok().build();
     }
 }

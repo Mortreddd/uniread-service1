@@ -21,7 +21,7 @@ public class SecurityConfiguration {
             "/api/v1/books",
             "/api/v1/authors",
             "/api/v1/auth/**",
-            "/api/v1/books/**"
+            "/api/v1/books/**",
     };
 
     @Bean

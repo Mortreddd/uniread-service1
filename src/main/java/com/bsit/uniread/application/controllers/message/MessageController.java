@@ -7,11 +7,10 @@ import com.bsit.uniread.application.services.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
-@Controller
+@RestController
 public class MessageController {
 
     private final UserService userService;
@@ -20,7 +19,7 @@ public class MessageController {
     @MessageMapping("/messages/send")
     @SendTo("/topic/messages/receiver")
     public Message sendMessage(
-            @RequestBody MessageCreationRequest messageCreationRequest
+            MessageCreationRequest messageCreationRequest
     ) {
         return messageService.createMessage(messageCreationRequest);
     }

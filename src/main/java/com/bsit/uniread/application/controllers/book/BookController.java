@@ -1,6 +1,6 @@
 package com.bsit.uniread.application.controllers.book;
 
-import com.bsit.uniread.application.dto.api.SuccessResponse;
+import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.application.services.book.BookService;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-@RequestMapping(path = "/api/v1/books")
+@RequestMapping(path = ApiEndpoints.BOOKS)
 @RestController
 @RequiredArgsConstructor
 public class BookController {
@@ -20,7 +20,7 @@ public class BookController {
 
     @GetMapping
     public ResponseEntity<Page<Book>> getBooks(
-            @RequestParam(name = "pageNo", defaultValue = "1", required = false) int pageNo,
+            @RequestParam(name = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
             @RequestParam(name = "search", defaultValue = "", required = false) String bookTitle
     ) {
@@ -29,26 +29,12 @@ public class BookController {
     }
 
     @GetMapping(path = "/{bookId}")
-    public ResponseEntity<SuccessResponse<Book>> getBookById(
+    public ResponseEntity<Book> getBookById(
             @PathVariable(name = "bookId") UUID bookId
     ) {
 
         return ResponseEntity.ok()
-                .body(SuccessResponse.<Book>builder()
-                        .code(HttpStatus.OK.value())
-                        .message("Success")
-                        .build()
-                );
-    }
+                .body(bookService.getBookById(bookId));
 
-    @PostMapping(path = "/create")
-    public ResponseEntity<SuccessResponse<Book>> createBook() {
-
-        return ResponseEntity.ok()
-                .body(SuccessResponse.<Book>builder()
-                        .code(HttpStatus.OK.value())
-                        .message("Success")
-                        .build()
-                );
     }
 }

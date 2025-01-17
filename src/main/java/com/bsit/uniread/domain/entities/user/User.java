@@ -5,6 +5,7 @@ import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookComment;
 import com.bsit.uniread.domain.entities.book.BookCommentLike;
 import com.bsit.uniread.domain.entities.message.Message;
+import com.bsit.uniread.infrastructure.security.validations.constraints.UniqueEmail;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -25,10 +26,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-@Table(name = "`users`")
+@Table(name = "users")
 @Builder
 @Data
-@Entity(name = "`users`")
+@Entity(name = "users")
 @AllArgsConstructor
 @NoArgsConstructor
 
@@ -36,7 +37,7 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @Column(nullable = true)
+
     private String googleUuid;
 
     private String firstName;
@@ -48,25 +49,22 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
+    @UniqueEmail
     private String email;
 
-    @Column(nullable = true)
     @JsonIgnore
     private String password;
 
-    @Column(nullable = true)
     private String photoUrl;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "role_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", nullable = false)
     @JsonBackReference
     private Role role;
 
-    @Column(nullable = true)
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime emailVerifiedAt;
 
-    @Column(nullable = true)
     private String fcmToken;
 
     @CreationTimestamp
@@ -75,33 +73,29 @@ public class User implements UserDetails {
 
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = true)
     private LocalDateTime updatedAt;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = true)
     private LocalDateTime bannedAt;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = true)
     private LocalDateTime deletedAt;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "book_id")
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JsonManagedReference
     private List<Book> books;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "book_comment_id")
     @JsonManagedReference
     private BookComment bookComment;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "book_comment_like_id")
     @JsonManagedReference
     private BookCommentLike bookCommentLike;
 
-    @OneToMany(targetEntity = UserArchive.class, fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @OneToMany(targetEntity = UserArchive.class, fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_archive_id")
     @JsonManagedReference
     private List<UserArchive> userArchive;
@@ -113,12 +107,6 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonBackReference
     private List<Follow> followings;
-
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Message> sentMessages;
-
-    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Message> receivedMessages;
 
     public Boolean isEmailVerified() {
         return emailVerifiedAt != null;
@@ -138,7 +126,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.getName().name().toLowerCase()));
+        return List.of(new SimpleGrantedAuthority(role.getName().name()));
     }
 
     @Override

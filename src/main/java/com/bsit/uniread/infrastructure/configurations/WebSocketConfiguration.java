@@ -29,7 +29,9 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
                 "/messages",
                 "/notifications"
         };
+        registry.addEndpoint(paths)
+                .setAllowedOrigins("*")
+                .withSockJS();
 
-        registry.addEndpoint(paths);
     }
 }

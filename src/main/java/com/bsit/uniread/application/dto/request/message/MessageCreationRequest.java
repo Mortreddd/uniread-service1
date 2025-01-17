@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MessageCreationRequest {
+    private UUID conversationId;
     private UUID senderId;
-    private UUID receiverId;
     private String message;
 }

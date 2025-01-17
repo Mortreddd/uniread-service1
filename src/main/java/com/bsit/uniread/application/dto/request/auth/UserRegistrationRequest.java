@@ -28,5 +28,4 @@ public class UserRegistrationRequest {
     @Min(value = 8, message = "Password must be 8 characters long or above")
     private String password;
 
-
 }

@@ -3,6 +3,7 @@ package com.bsit.uniread.application.services.auth;
 import com.bsit.uniread.application.dto.request.auth.UserRegistrationRequest;
 import com.bsit.uniread.application.dto.response.auth.LoginResponse;
 import com.bsit.uniread.application.services.otp.OtpService;
+import com.bsit.uniread.application.services.role.RoleService;
 import com.bsit.uniread.domain.entities.auth.Otp;
 import com.bsit.uniread.domain.entities.user.Role;
 import com.bsit.uniread.domain.entities.user.RoleName;
@@ -33,6 +34,7 @@ public class AuthService {
     private final OtpService otpService;
     private final EmailService emailService;
     private final JsonWebTokenService jsonWebTokenService;
+    private final RoleService roleService;
 
     @Value("${client.url}")
     private String clientUrl;
@@ -65,6 +67,7 @@ public class AuthService {
      * @param userRegistrationRequest
      */
     public void registerUser(UserRegistrationRequest userRegistrationRequest) {
+        Role userRole = roleService.getUserRole();
         User newUser = userService.saveUser(
                 User.builder()
                     .firstName(userRegistrationRequest.getFirstName())
@@ -72,15 +75,14 @@ public class AuthService {
                     .username(userRegistrationRequest.getUsername())
                     .email(userRegistrationRequest.getEmail())
                     .gender(userRegistrationRequest.getGender())
-                    .role(Role.builder()
-                            .name(RoleName.USER)
-                            .build()
-                    )
+                    .role(userRole)
                     .password(new BCryptPasswordEncoder().encode(userRegistrationRequest.getPassword()))
+                    .emailVerifiedAt(DateUtil.now())
                     .build()
         );
 
-        userRegistrationPublisher.publishUserRegistration(newUser);
+        // Disable after passing tests cases
+        // userRegistrationPublisher.publishUserRegistration(newUser);
         userService.saveUser(newUser);
     }
 

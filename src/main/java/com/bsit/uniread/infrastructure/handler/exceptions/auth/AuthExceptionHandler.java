@@ -5,6 +5,7 @@ import com.bsit.uniread.application.dto.api.ErrorResponse;
 import com.bsit.uniread.domain.exceptions.BookNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -25,6 +26,23 @@ public class AuthExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.UNPROCESSABLE_ENTITY.value())
+                .body(details);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> constrainedExceptions(
+            MethodArgumentNotValidException exception,
+            WebRequest request
+    ) {
+        ErrorResponse details = ErrorResponse.builder()
+                .code(HttpStatus.FORBIDDEN.value())
+                .date(new Date())
+                .message(exception.getMessage())
+                .description(request.getDescription(false))
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
                 .body(details);
     }
 

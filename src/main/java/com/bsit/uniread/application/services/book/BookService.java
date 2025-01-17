@@ -31,9 +31,8 @@ public class BookService {
          *  Decrement the pageNo for the index
          * @source https://stackoverflow.com/questions/69409082/spring-boot-pagination-pagingandsortingrepository-not-returning-any-results
          */
-        int pageNumber = pageNo - 1;
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize, sort);
+        PageRequest pageRequest = PageRequest.of(pageNo, pageSize, sort);
 
         if(bookTitle != null) {
             return bookRepository.findByTitleContaining(bookTitle, pageRequest);

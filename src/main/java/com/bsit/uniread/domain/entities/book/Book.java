@@ -32,7 +32,7 @@ public class Book {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "user_id", nullable = true)
+    @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
 

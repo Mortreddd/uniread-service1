@@ -7,6 +7,8 @@ import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Array;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -26,6 +28,10 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to find user"));
     }
 
+    public List<User> getUsersById(List<UUID> userIds) {
+        return userRepository.findAllById(userIds);
+
+    }
     /**
      * Get the user based on email
      * @params email

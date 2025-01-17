@@ -1,4 +1,4 @@
-package com.bsit.uniread.application.controllers;
+package com.bsit.uniread.application.controllers.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;

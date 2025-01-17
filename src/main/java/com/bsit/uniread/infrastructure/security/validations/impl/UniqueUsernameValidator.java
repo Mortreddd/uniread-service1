@@ -4,15 +4,20 @@ import com.bsit.uniread.infrastructure.security.validations.constraints.UniqueUs
 import com.bsit.uniread.application.services.user.UserService;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UniqueUsernameValidator implements ConstraintValidator<UniqueUsername, String> {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
+    @Autowired
+    public UniqueUsernameValidator(UserService userService) {
+        this.userService = userService;
+    }
     /**
      * Verify the submitted username is unique
      * @param username
