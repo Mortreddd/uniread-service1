@@ -40,12 +40,13 @@ public class Book {
     private String coverPhoto;
     private String description;
     private Integer readCount;
+    private Boolean completed;
     private Boolean matured;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinTable(name = "book_genre")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @JoinTable(name = "book_genres")
     @JsonManagedReference
-    private List<Genre> genre;
+    private List<Genre> genres;
 
 
     @CreationTimestamp
@@ -57,7 +58,6 @@ public class Book {
     private LocalDateTime updatedAt;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = true)
     private LocalDateTime deletedAt;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE, mappedBy = "book")
@@ -72,7 +72,7 @@ public class Book {
     @JsonManagedReference
     private List<BookLike> bookLikes;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_id")
     @JsonManagedReference
     private List<Tag> tags;

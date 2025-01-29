@@ -35,37 +35,38 @@ public class UserSeeder implements CommandLineRunner {
             );
 
             roleRepository.saveAll(roles);
+        }
+
+
+        if(userRepository.count() == 0) {
             Role superAdminRole = roleService.getSuperAdminRole();
             Role userRole = roleService.getUserRole();
+            List<User> users = List.of(
+                    User.builder()
+                            .username("mortreddd".toLowerCase(Locale.ROOT))
+                            .emailVerifiedAt(DateUtil.now())
+                            .firstName("Emmanuel")
+                            .lastName("Male")
+                            .createdAt(DateUtil.now())
+                            .gender(Gender.MALE)
+                            .email("emmanmale@gmail.com")
+                            .role(superAdminRole) // SUPER_ADMIN
+                            .password(new BCryptPasswordEncoder().encode("12345678"))
+                            .build(),
+                    User.builder()
+                            .username("edlyn".toLowerCase(Locale.ROOT))
+                            .firstName("Edlyn")
+                            .lastName("Male")
+                            .createdAt(DateUtil.now())
+                            .gender(Gender.FEMALE)
+                            .email("edlynmale@gmail.com")
+                            .emailVerifiedAt(DateUtil.now())
+                            .role(userRole)
+                            .password(new BCryptPasswordEncoder().encode("12345678"))
+                            .build()
+            );
 
-            if(userRepository.count() == 0) {
-                List<User> users = List.of(
-                        User.builder()
-                                .username("mortreddd".toLowerCase(Locale.ROOT))
-                                .emailVerifiedAt(DateUtil.now())
-                                .firstName("Emmanuel")
-                                .lastName("Male")
-                                .createdAt(DateUtil.now())
-                                .gender(Gender.MALE)
-                                .email("emmanmale@gmail.com")
-                                .role(superAdminRole) // SUPER_ADMIN
-                                .password(new BCryptPasswordEncoder().encode("12345678"))
-                                .build(),
-                        User.builder()
-                                .username("edlyn".toLowerCase(Locale.ROOT))
-                                .firstName("Edlyn")
-                                .lastName("Male")
-                                .createdAt(DateUtil.now())
-                                .gender(Gender.FEMALE)
-                                .email("edlynmale@gmail.com")
-                                .emailVerifiedAt(DateUtil.now())
-                                .role(userRole)
-                                .password(new BCryptPasswordEncoder().encode("12345678"))
-                                .build()
-                );
-
-                userRepository.saveAll(users);
-            }
+            userRepository.saveAll(users);
         }
     }
 }

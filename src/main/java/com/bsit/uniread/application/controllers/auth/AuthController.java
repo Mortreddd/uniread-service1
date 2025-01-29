@@ -6,8 +6,8 @@ import com.bsit.uniread.application.dto.request.auth.LoginRequest;
 import com.bsit.uniread.application.dto.response.auth.LoginResponse;
 import com.bsit.uniread.application.services.auth.AuthService;
 import jakarta.mail.MessagingException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -28,21 +28,20 @@ public class AuthController {
      */
     @PostMapping(path = "/login")
     public ResponseEntity<LoginResponse> verifyLogin(
-            @Validated @RequestBody LoginRequest loginRequest
+            @Valid @RequestBody LoginRequest loginRequest
     ) {
         LoginResponse response = authService.loginUser(loginRequest.getEmail(), loginRequest.getPassword());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(response);
     }
 
     /**
      * Sends a forgot password based on user's email
      * @param forgotPasswordRequest
      * @return ResponseEntity
-     * @throws MessagingException
      */
     @PostMapping(path = "/forgot-password", consumes = {"application/json"})
     public ResponseEntity<String> sendForgotPassword(
-            @Validated @RequestBody ForgotPasswordRequest forgotPasswordRequest
+            @Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest
     ) throws MessagingException {
         authService.sendForgotPassword(forgotPasswordRequest.getEmail());
 

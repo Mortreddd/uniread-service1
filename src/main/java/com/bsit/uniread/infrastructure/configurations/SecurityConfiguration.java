@@ -16,12 +16,17 @@ public class SecurityConfiguration {
 
     private final ApplicationConfiguration applicationConfiguration;
     private final String[] allowedEndpoints =  new String[]{
-            "/api/v1/",
+            "/api/v1/**",
             "/api/v1/profile/:username",
             "/api/v1/books",
             "/api/v1/authors",
             "/api/v1/auth/**",
             "/api/v1/books/**",
+            "/api/v1/genres/**",
+            "/api/v1/messages/**",
+            "/api/v1/conversations/**",
+            "/messages/**",
+            "/notifications/**"
     };
 
     @Bean

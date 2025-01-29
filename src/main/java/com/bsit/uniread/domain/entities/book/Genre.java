@@ -26,6 +26,7 @@ public class Genre {
 
     private String name;
     private String description;
+    private String backgroundImage;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinTable(name = "book_genre",

@@ -36,9 +36,8 @@ public class MessageService {
      * Accepts a userId as a parameter to retrieve all the receiver messages
      *
      * @params UUID userId
-     * @return Page of Message List
+     * @return Pagination of Message
      */
-
     public Page<Message> getMessagesByConversation(Conversation conversation, int pageNo, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
@@ -49,7 +48,7 @@ public class MessageService {
     /**
      * Get the messages from a conversation
      * @param conversationId
-     * @return Page<Message>
+     * @return Page of Message
      */
     public Page<Message> getMessagesByConversationId(UUID conversationId, int pageNo, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.ASC, "createdAt");

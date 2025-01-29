@@ -5,7 +5,6 @@ import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.application.services.book.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
