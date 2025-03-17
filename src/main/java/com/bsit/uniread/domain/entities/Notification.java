@@ -25,18 +25,14 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "user_id", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.REMOVE, CascadeType.MERGE })
+    @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
 
     private String title;
 
     private String description;
-
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "sender_id")
-    private User sender;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)

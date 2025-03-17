@@ -7,7 +7,6 @@ import com.bsit.uniread.domain.entities.message.Message;
 import com.bsit.uniread.domain.entities.message.Participant;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
-import com.bsit.uniread.infrastructure.handler.publishers.message.MessagePublisher;
 import com.bsit.uniread.infrastructure.repositories.message.ConversationRepository;
 import com.bsit.uniread.infrastructure.repositories.message.MessageRepository;
 import com.bsit.uniread.application.services.user.UserService;
@@ -30,30 +29,18 @@ public class MessageService {
     private final ConversationRepository conversationRepository;
     private final ParticipantService participantService;
     private final UserService userService;
-    private final MessagePublisher messagePublisher;
 
     /**
-     * Accepts a userId as a parameter to retrieve all the receiver messages
-     *
-     * @params UUID userId
-     * @return Pagination of Message
-     */
-    public Page<Message> getMessagesByConversation(Conversation conversation, int pageNo, int pageSize) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        return messageRepository.findByConversation(conversation, pageable);
-
-    }
-
-    /**
-     * Get the messages from a conversation
+     * Get the messages from a selected conversation
      * @param conversationId
      * @return Page of Message
      */
     public Page<Message> getMessagesByConversationId(UUID conversationId, int pageNo, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.ASC, "createdAt");
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         Conversation conversation = getConversationById(conversationId);
-        return getMessagesByConversation(conversation, pageNo, pageSize);
+
+        return messageRepository.findByConversation(conversation, pageable);
     }
 
     /**
@@ -63,9 +50,20 @@ public class MessageService {
      */
     public Conversation getConversationById(UUID conversationId) {
         return conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Unable to locate conversation"));
+                .orElseThrow(() -> new ResourceNotFoundException("Unable to find conversation"));
     }
 
+    /**
+     * Get the conversation for the user associated with
+     * @param userId
+     * @return List of Conversation
+     */
+    public List<Conversation> getUserConversationsById(UUID userId) {
+
+        List<Participant> userParticipant = participantService.getParticipantByUser(userService.getUserById(userId));
+
+        return conversationRepository.findByParticipants(userParticipant);
+    }
 
     /**
      * Get all the conversations of user based on involvement of user of every conversation
@@ -81,21 +79,16 @@ public class MessageService {
         return conversationRepository.findByParticipants_User(user, pageable);
     }
 
-
     /**
      * Creates a new conversation
      * @param startConversationRequest
      * @return Conversation
      */
-    public Conversation createConversation(StartConversationRequest startConversationRequest) {
+    public Conversation createNewConversation(StartConversationRequest startConversationRequest) {
         List<User> users = userService.getUsersById(List.of(startConversationRequest.getReceiverIds()));
-        Conversation conversation = conversationRepository.save(Conversation.builder()
-                .name(startConversationRequest.getConversationName())
-                .isGroup(startConversationRequest.getIsGroup())
-                .createdAt(DateUtil.now())
-                .build()
-        );
-        List<Participant> participants = participantService.saveParticipants(conversation, users);
+        Conversation conversation = createConversation(startConversationRequest);
+
+        List<Participant> participants = participantService.createParticipants(conversation, users);
         conversation.setParticipants(participants);
         return conversationRepository.save(conversation);
     }
@@ -103,23 +96,46 @@ public class MessageService {
     /**
      * Create a new Message Object
      * @param messageCreationRequest
-     * @return Message
+     * @return created message
      */
-    public Message createMessage(MessageCreationRequest messageCreationRequest) {
+    public Message createNewMessage(MessageCreationRequest messageCreationRequest) {
         Conversation conversation = getConversationById(messageCreationRequest.getConversationId());
+
         User sender = userService.getUserById(messageCreationRequest.getSenderId());
-        Message newMessage = messageRepository.save(
-                Message.builder()
+
+        Message newMessage = Message.builder()
                     .conversation(conversation)
                     .message(messageCreationRequest.getMessage())
                     .sender(sender)
                     .createdAt(DateUtil.now())
                     .readAt(null)
-                    .build()
-        );
+                    .build();
 
-        messagePublisher.sendMessage(conversation, newMessage);
-
-        return newMessage;
+        return createMessage(newMessage);
     }
+
+    /**
+     * Save the entity of Message
+     * @param message
+     * @return Message
+     */
+    public Message createMessage(Message message) {
+        return messageRepository.save(message);
+    }
+
+    /**
+     * Create a new conversation entity and save
+     * @param request
+     * @return created conversation
+     */
+    public Conversation createConversation(StartConversationRequest request) {
+        return conversationRepository.save(Conversation.builder()
+                .name(request.getConversationName())
+                .isGroup(request.getIsGroup())
+                .createdAt(DateUtil.now())
+                .build()
+        );
+    }
+
+
 }

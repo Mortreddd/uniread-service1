@@ -2,11 +2,11 @@ package com.bsit.uniread.application.dto.request.message;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Getter;
 
 import java.util.UUID;
 
-@Data
+@Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StartConversationRequest {
 

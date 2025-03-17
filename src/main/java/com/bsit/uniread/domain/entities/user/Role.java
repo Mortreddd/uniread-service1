@@ -1,5 +1,6 @@
 package com.bsit.uniread.domain.entities.user;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,6 @@ public class Role {
     private RoleName name;
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonBackReference
     private List<User> users;
 }

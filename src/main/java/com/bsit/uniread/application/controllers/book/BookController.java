@@ -1,7 +1,7 @@
 package com.bsit.uniread.application.controllers.book;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
-import com.bsit.uniread.domain.entities.book.Book;
+import com.bsit.uniread.application.dto.response.book.BookDto;
 import com.bsit.uniread.application.services.book.BookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,22 +18,22 @@ public class BookController {
     private final BookService bookService;
 
     @GetMapping
-    public ResponseEntity<Page<Book>> getBooks(
+    public ResponseEntity<Page<BookDto>> getBooks(
             @RequestParam(name = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
-            @RequestParam(name = "search", defaultValue = "", required = false) String bookTitle
+            @RequestParam(name = "query", defaultValue = "", required = false) String query
     ) {
+        Page<BookDto> books = bookService.getBooks(pageNo, pageSize, query).map(BookDto::new);
         return ResponseEntity.ok()
-                        .body(bookService.getBooks(pageNo, pageSize, bookTitle));
+                        .body(books);
     }
 
     @GetMapping(path = "/{bookId}")
-    public ResponseEntity<Book> getBookById(
+    public ResponseEntity<BookDto> getBookById(
             @PathVariable(name = "bookId") UUID bookId
     ) {
-
+        BookDto book = new BookDto(bookService.getBookById(bookId));
         return ResponseEntity.ok()
-                .body(bookService.getBookById(bookId));
-
+                .body(book);
     }
 }

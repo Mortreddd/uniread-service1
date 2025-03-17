@@ -4,7 +4,6 @@ import com.bsit.uniread.domain.entities.Follow;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookComment;
 import com.bsit.uniread.domain.entities.book.BookCommentLike;
-import com.bsit.uniread.domain.entities.message.Message;
 import com.bsit.uniread.infrastructure.security.validations.constraints.UniqueEmail;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -57,9 +56,9 @@ public class User implements UserDetails {
 
     private String photoUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
-    @JsonBackReference
+    @JsonManagedReference
     private Role role;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -81,46 +80,80 @@ public class User implements UserDetails {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime deletedAt;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @Transient
+    private Boolean isEmailVerified;
+    @Transient
+    private Boolean isUser;
+    @Transient
+    private Boolean isSuperAdmin;
+    @Transient
+    private Boolean isAdmin;
+    @Transient
+    private Boolean isBanned;
+    @Transient
+    private Long followersCount;
+    @Transient
+    private Long followingsCount;
+    @Transient
+    private Long storiesCount;
+
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Book> books;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_comment_id")
     @JsonManagedReference
     private BookComment bookComment;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_comment_like_id")
     @JsonManagedReference
     private BookCommentLike bookCommentLike;
 
-    @OneToMany(targetEntity = UserArchive.class, fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @OneToMany(targetEntity = UserArchive.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_archive_id")
     @JsonManagedReference
     private List<UserArchive> userArchive;
 
-    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "following", fetch = FetchType.LAZY)
     @JsonBackReference
     private List<Follow> followers;
 
-    @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "follower", fetch = FetchType.LAZY)
     @JsonBackReference
     private List<Follow> followings;
 
-    public Boolean isEmailVerified() {
+    public Long getFollowersCount() {
+        return (long) followers.size();
+    }
+
+    public Long getFollowingsCount() {
+        return (long) followings.size();
+    }
+
+    public Long getStoriesCount() {
+        return (long) books.size();
+    }
+
+    public Boolean getIsEmailVerified() {
         return emailVerifiedAt != null;
     }
 
-    public Boolean isSuperAdmin() {
+    public Boolean getIsUser() {
+        return role.getName() == RoleName.USER;
+    }
+
+    public Boolean getIsSuperAdmin() {
         return role.getName() == RoleName.SUPER_ADMIN;
     }
 
-    public Boolean isAdmin() {
+    public Boolean getIsAdmin() {
         return role.getName() == RoleName.ADMIN;
     }
 
-    public Boolean isBanned() {
+    public Boolean getIsBanned() {
         return bannedAt != null;
     }
 
@@ -131,21 +164,21 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return false;
+        return true;
     }
 }

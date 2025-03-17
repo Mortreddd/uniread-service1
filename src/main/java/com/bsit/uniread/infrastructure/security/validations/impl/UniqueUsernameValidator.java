@@ -4,8 +4,6 @@ import com.bsit.uniread.infrastructure.security.validations.constraints.UniqueUs
 import com.bsit.uniread.application.services.user.UserService;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -13,5 +13,5 @@ import java.util.UUID;
 public interface ParticipantRepository extends CrudRepository<Participant, UUID> {
 
     List<Participant> findByUserIn(List<User> users);
-    Optional<Participant> findByUser(User user);
+    List<Participant> findByUser(User user);
 }

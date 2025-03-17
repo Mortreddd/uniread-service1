@@ -4,10 +4,14 @@ import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.repositories.user.UserRepository;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
+import io.netty.util.internal.StringUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Array;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +20,23 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    /**
+     * Get the users with pagination
+     * @param pageNo
+     * @param pageSize
+     * @param query
+     * @return Pagination of User or Filtered By name of User
+     */
+    public Page<User> getUsers(int pageNo, int pageSize, String query) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+        if(!StringUtil.isNullOrEmpty(query)) {
+            return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrUsernameIgnoreCase(query, query, query, pageable);
+        }
+        return userRepository.findAll(pageable);
+    }
+
 
     /**
      * Get the user based on provided id
@@ -41,6 +62,16 @@ public class UserService {
     public User getUserByEmail(final String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to find user"));
+    }
+
+    /**
+     * Get the user by using username
+     * @param username
+     * @return user
+     */
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsernameContainingIgnoreCase(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Unable to find " + username));
     }
 
     /**
@@ -83,7 +114,7 @@ public class UserService {
      * @return Boolean
      */
     public Boolean usernameExists(String username) {
-        return userRepository.findByUsername(username)
+        return userRepository.findByUsernameContainingIgnoreCase(username)
                 .isPresent();
     }
 

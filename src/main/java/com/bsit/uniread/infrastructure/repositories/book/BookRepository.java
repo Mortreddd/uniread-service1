@@ -14,8 +14,8 @@ import java.util.UUID;
 @Repository
 public interface BookRepository
         extends JpaRepository<Book, UUID>, CrudRepository<Book, UUID> {
-
-    Page<Book> findByTitleContaining(String title, Pageable pageable);
+    Page<Book> findByTitleContainingIgnoreCase(String title, Pageable pageable);
     Page<Book> findByGenresIn(List<Genre> genres, Pageable pageable);
     List<Book> findByGenresIn(List<Genre> genres);
+
 }

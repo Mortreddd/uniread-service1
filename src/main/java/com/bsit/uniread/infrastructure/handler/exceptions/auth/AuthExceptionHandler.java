@@ -2,7 +2,6 @@ package com.bsit.uniread.infrastructure.handler.exceptions.auth;
 
 
 import com.bsit.uniread.application.dto.api.ErrorResponse;
-import com.bsit.uniread.domain.exceptions.BookNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

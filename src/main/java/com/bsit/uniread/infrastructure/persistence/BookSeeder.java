@@ -32,6 +32,9 @@ public class BookSeeder implements CommandLineRunner {
     public void run(String... args) throws Exception {
         if(genreRepository.count() != 0 && bookRepository.count() == 0) {
             List<User> users = userRepository.findAll();
+            if(users.isEmpty()) {
+                throw new IllegalStateException("No existing users");
+            }
             ObjectMapper mapper = new ObjectMapper();
             try {
                 var resource = resourceLoader.getResource("classpath:migrate.json");

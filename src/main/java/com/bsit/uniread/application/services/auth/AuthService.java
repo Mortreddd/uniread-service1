@@ -14,6 +14,7 @@ import com.bsit.uniread.infrastructure.handler.publishers.auth.UserRegistrationP
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -39,7 +41,9 @@ public class AuthService {
     @Value("${client.url}")
     private String clientUrl;
 
-    public LoginResponse loginUser(final String email, final String password) {
+    public LoginResponse loginUser(String email, String password) {
+        log.info("Email received {}", email);
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         email,

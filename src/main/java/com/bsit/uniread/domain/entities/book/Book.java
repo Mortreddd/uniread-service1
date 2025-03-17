@@ -43,11 +43,10 @@ public class Book {
     private Boolean completed;
     private Boolean matured;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "book_genres")
     @JsonManagedReference
     private List<Genre> genres;
-
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
@@ -60,15 +59,15 @@ public class Book {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime deletedAt;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE, mappedBy = "book")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
     @JsonManagedReference
     private List<Chapter> chapters;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE, mappedBy = "book")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
     @JsonManagedReference
     private List<BookComment> bookComments;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE, mappedBy = "book")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
     @JsonManagedReference
     private List<BookLike> bookLikes;
 

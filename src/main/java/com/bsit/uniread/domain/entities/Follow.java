@@ -1,6 +1,9 @@
 package com.bsit.uniread.domain.entities;
 
 import com.bsit.uniread.domain.entities.user.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,10 +29,14 @@ public class Follow {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "follower_id", nullable = false)
+    @JsonManagedReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User follower;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "following_id", nullable = false)
+    @JsonManagedReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User following;
 
     @CreationTimestamp
@@ -39,4 +46,11 @@ public class Follow {
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
+
+    @Transient
+    private Boolean isMutualFollow;
+
+    public Boolean getIsMutualFollow() {
+        return follower.getFollowings().contains(this);
+    }
 }

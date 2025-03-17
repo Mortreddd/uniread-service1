@@ -10,7 +10,7 @@ import java.time.ZoneId;
  */
 public class DateUtil {
 
-    public static final Long JSON_WEB_TOKEN_EXPIRATION = 1_209_600L;
+    public static final Long JSON_WEB_TOKEN_EXPIRATION = 604800L;
 
     /**
      * Returns the current LocalDateTime in UTC.

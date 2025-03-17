@@ -14,26 +14,14 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
-    public void notifyUser(String title, String description, User user) {
-        Notification notification = Notification.builder()
-                .title(title)
-                .description(description)
-                .user(user)
-                .sender(null)
-                .build();
-
-        notificationRepository.save(notification);
-    }
-
-    public void notifyUser(String title, String description, User user, User sender) {
-        Notification notification = Notification.builder()
-                .title(title)
-                .description(description)
-                .user(user)
-                .sender(null)
-                .build();
-
-        notificationRepository.save(notification);
+    public Notification createNotification(User receiver, String title, String description) {
+        return notificationRepository.save(
+                Notification.builder()
+                        .title(title)
+                        .description(description)
+                        .user(receiver)
+                        .build()
+        );
     }
 
     public void notifyUsers(String title, String description, List<User> users) {
@@ -43,24 +31,8 @@ public class NotificationService {
                             .title(title)
                             .description(description)
                             .user(user)
-                            .sender(null)
                             .build()
                         )
-                .toList();
-
-        notificationRepository.saveAll(notifications);
-    }
-
-    public void notifyUsers(String title, String description, List<User> users, User sender) {
-        List<Notification> notifications = users.stream()
-                .map(user ->
-                        Notification.builder()
-                                .title(title)
-                                .description(description)
-                                .user(user)
-                                .sender(sender)
-                                .build()
-                )
                 .toList();
 
         notificationRepository.saveAll(notifications);

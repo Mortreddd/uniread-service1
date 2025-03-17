@@ -1,7 +1,7 @@
 package com.bsit.uniread.infrastructure.handler.exceptions;
 
 import com.bsit.uniread.application.dto.api.ErrorResponse;
-import com.bsit.uniread.domain.exceptions.BookNotFoundException;
+import com.bsit.uniread.infrastructure.handler.exceptions.book.BookNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

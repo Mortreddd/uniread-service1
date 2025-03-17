@@ -1,5 +1,7 @@
 package com.bsit.uniread.application.services.auth;
 
+import com.bsit.uniread.application.services.user.UserService;
+import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -24,10 +26,16 @@ public class JsonWebTokenService {
 
     @Value("${security.jwt.secret-key}")
     private String secretKey;
+    private final UserService userService;
 
     public String generateToken(String emailAddress){
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, emailAddress);
+    }
+
+    public User getUser(String token) {
+        String email = extractEmailAddress(token);
+        return userService.getUserByEmail(email);
     }
 
     private String createToken(Map<String, Object> claims, String emailAddress){
@@ -37,7 +45,7 @@ public class JsonWebTokenService {
                 .claims(claims)
                 .subject(emailAddress)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expirationTime))
+                .expiration(new Date(System.currentTimeMillis() * expirationTime))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

@@ -1,0 +1,47 @@
+# ---------- Example of Multistage build -------------- #
+# The maven is from docker hub which supports by Maven
+# 3.9.6 is the current version of maven
+# eclipse-temurin-22 is a Eclipse Temurin which uses OpenJDK 22 which specified by version
+# alpine is a alpine linux, a lightweight Linux distribution.
+# alpine uses apk add for installing libraries unlike for debian or ubuntu which uses apt-get or apt
+# --------- First Stage of the Build (Base) ----------- #
+FROM maven:3.9.6-eclipse-temurin-22-alpine AS build
+
+# WORKDIR will set the current directory in docker
+WORKDIR /usr/src/uniread
+
+# COPY is a process where it copy and paste the specified folder or file into specied directory in docker
+COPY pom.xml ./
+
+# RUN will execute a command according to arguments
+# Using mvn dependency:go-offline -B will prevent the repeatable download of image
+# It pre-download the dependencies which improve caching efficiency and -B is for Batch mode means without interactive prompts
+# It will only redownload when something in dependencies is changed.
+# Unlike in mvn clean package -DskipTests, it will redownload all the dependencies every time the building the image
+RUN mvn dependency:go-offline -B
+
+# COPY will process all the generated files and move then based on the second argument directory
+COPY . .
+
+# RUN will build the application without running tests cases
+RUN mvn clean package -DskipTests
+
+# --------- Second Stage of the Build ----------------- #
+# eclipse-temurin which doesn't include maven where the only purpose is runtime
+# 22-jdk is for executing the application for runtime only which is java version 22
+# Similarly for alpine Linux the lightweight openjdk
+FROM eclipse-temurin:22-jdk-alpine
+
+# WORKDIR sets the current directory again since it was a second stage build
+WORKDIR /usr/src/uniread
+
+# COPY using the base, the generated file can be copied and paste into base directory
+# Which simplifies the executable file
+COPY --from=build /usr/src/uniread/target/uniread-0.0.1-SNAPSHOT.jar app.jar
+
+
+# EXPOSE will set the port of the application based on argument
+EXPOSE 8000
+
+# CMD which finally executes the executeable file to run the application
+CMD ["java", "-jar", "app.jar"]
