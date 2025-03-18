@@ -63,7 +63,7 @@ public class Book {
     @JsonManagedReference
     private List<Chapter> chapters;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book", cascade = CascadeType.REMOVE)
     @JsonManagedReference
     private List<BookComment> bookComments;
 
@@ -78,5 +78,39 @@ public class Book {
 
     public Boolean isMatured(){
         return matured;
+    }
+
+    @Transient
+    private Integer totalChaptersCount;
+
+    @Transient
+    private Long totalLikesCount;
+
+    @Transient
+    private Long totalReadsCount;
+
+    @Transient
+    private Long totalRatingsCount;
+
+    public Integer getTotalChaptersCount() {
+        return chapters.size();
+    }
+
+    public Long getTotalLikesCount() {
+        return (long) bookLikes.size();
+    }
+
+    public Long getTotalRatingsCount() {
+        return bookComments
+                .stream()
+                .mapToLong(BookComment::getRating)
+                .sum();
+    }
+
+    public Long getTotalReadsCount() {
+        return chapters
+                .stream()
+                .mapToLong(Chapter::getReadCount)
+                .sum();
     }
 }

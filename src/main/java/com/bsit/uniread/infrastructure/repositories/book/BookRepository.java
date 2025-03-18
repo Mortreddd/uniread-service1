@@ -14,8 +14,17 @@ import java.util.UUID;
 @Repository
 public interface BookRepository
         extends JpaRepository<Book, UUID>, CrudRepository<Book, UUID> {
+
     Page<Book> findByTitleContainingIgnoreCase(String title, Pageable pageable);
     Page<Book> findByGenresIn(List<Genre> genres, Pageable pageable);
+
+    /**
+     * Search for books containing title, genre, user's firstName, user's lastName, user's username in any case using given parameter
+     * @params title, userUsername, userFirstName, userLastName
+     * @return Pageable of book
+     */
+    Page<Book> findByUserUsernameContainingIgnoreCaseOrTitleContainingIgnoreCaseOrUserFirstNameContainingIgnoreCaseOrUserLastNameContainingIgnoreCase(String title, String username, String firstName, String lastName, Pageable pageable);
     List<Book> findByGenresIn(List<Genre> genres);
+
 
 }

@@ -15,7 +15,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,7 +24,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "idx_first_name", columnList = "first_name"),
+        @Index(name = "idx_last_name", columnList = "last_name"),
+        @Index(name = "idx_username", columnList = "username")
+})
 @Builder
 @Data
 @Entity(name = "users")

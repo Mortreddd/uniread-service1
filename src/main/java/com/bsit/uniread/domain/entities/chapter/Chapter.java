@@ -28,16 +28,16 @@ public class Chapter {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(targetEntity = Book.class, fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "book_id", nullable = true)
+    @ManyToOne(targetEntity = Book.class, fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @JoinColumn(name = "book_id")
     @JsonBackReference
     private Book book;
 
     private String title;
     private String content;
 
-    private Integer chapterNumber;
-    private Integer readCount;
+    private Long chapterNumber;
+    private Long readCount;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
@@ -47,16 +47,14 @@ public class Chapter {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 
-    @OneToMany(targetEntity = ChapterComment.class, fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @OneToMany(targetEntity = ChapterComment.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "chapter_comment_id")
     @JsonManagedReference
     private List<ChapterComment> chapterComments;
 
-    @OneToMany(targetEntity = ChapterComment.class, fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @OneToMany(targetEntity = ChapterComment.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "chapter_like_id")
     @JsonManagedReference
     private List<ChapterLike> chapterLikes;
-
-
 
 }

@@ -26,7 +26,7 @@ public class BookService {
      * Get the books based on pageNumber, pageSize, and query if not empty or null.
      * The books queried that matches the query
      * @param pageNo
-     * @param pageSize
+     * @param pageSize:
      * @param query
      * @return Pagination of Books
      */
@@ -39,7 +39,8 @@ public class BookService {
         PageRequest pageRequest = PageRequest.of(pageNo, pageSize, sort);
 
         if(!StringUtil.isNullOrEmpty(query)) {
-            return bookRepository.findByTitleContainingIgnoreCase(query, pageRequest);
+            // @source https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
+            return bookRepository.findByUserUsernameContainingIgnoreCaseOrTitleContainingIgnoreCaseOrUserFirstNameContainingIgnoreCaseOrUserLastNameContainingIgnoreCase(query, query, query, query, pageRequest);
         }
 
         return bookRepository.findAll(pageRequest);
