@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -46,4 +47,14 @@ public class GenreService {
         Genre genre = getGenre(genreId);
         return bookService.getBooksByGenre(genre, pageNo, pageSize);
     }
+
+    public Page<Book> getBooksByMultipleGenreById(List<Integer> genreIds, int pageNo, int pageSize) {
+        boolean isNullOrEmpty = Optional.ofNullable(genreIds).map(List::isEmpty).orElse(true);
+        if(isNullOrEmpty) {
+            return bookService.getBooks(pageNo, pageSize, null);
+        }
+        List<Genre> genres = genreRepository.findAllById(genreIds);
+        return bookService.getBooksByMultipleGenre(genres, pageNo, pageSize);
+    }
+
 }
