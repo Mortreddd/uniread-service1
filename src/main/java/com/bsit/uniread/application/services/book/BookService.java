@@ -57,12 +57,16 @@ public class BookService {
     }
 
     /**
-     * Get all the books by genre
-     * @param genre
-     * @return List of books
+     * Get all the books based on matching genres
+     * @param genres
+     * @param pageNo
+     * @param pageSize
+     * @return Pagination of Books
      */
-    public List<Book> getBooksByGenre(Genre genre) {
-        return bookRepository.findByGenresIn(List.of(genre));
+    public Page<Book> getBooksByMultipleGenre(List<Genre> genres, int pageNo, int pageSize) {
+        Sort sort = Sort.by(Sort.Direction.ASC, "createdAt");
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        return bookRepository.findByGenresIn(genres, pageable);
     }
 
     /**
@@ -76,5 +80,7 @@ public class BookService {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         return bookRepository.findByGenresIn(List.of(genre), pageable);
     }
+
+
 
 }

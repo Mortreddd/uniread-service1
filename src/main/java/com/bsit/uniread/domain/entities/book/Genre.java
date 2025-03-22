@@ -28,9 +28,9 @@ public class Genre {
     private String description;
     private String backgroundImage;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinTable(name = "book_genre",
-            joinColumns = { @JoinColumn(name = "genre_id")},
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @JoinTable(name = "book_genres",
+            joinColumns = { @JoinColumn(name = "genres_id")},
             inverseJoinColumns = { @JoinColumn(name = "book_id")})
     @JsonBackReference
     public List<Book> books;
