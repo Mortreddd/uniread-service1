@@ -40,18 +40,18 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    private String facebookUuid;
     private String googleUuid;
 
     private String firstName;
     private String lastName;
 
-    @Column(unique = true)
     private String username;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @UniqueEmail
+    @Column(unique = true)
     private String email;
 
     @JsonIgnore

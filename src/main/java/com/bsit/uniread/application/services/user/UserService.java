@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -37,6 +38,14 @@ public class UserService {
         return userRepository.findAll(pageable);
     }
 
+    /**
+     * Get the user based on googleUuid
+     * @param googleUuid
+     * @return user or null
+     */
+    public Optional<User> getUserByGoogleUuid(String googleUuid) {
+        return userRepository.findByGoogleUuid(googleUuid);
+    }
 
     /**
      * Get the user based on provided id
@@ -49,9 +58,19 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to find user"));
     }
 
+    /**
+     * Get the users based on list of ids
+     * @param userIds
+     * @return list of users
+     */
     public List<User> getUsersById(List<UUID> userIds) {
         return userRepository.findAllById(userIds);
 
+    }
+
+    public User saveIfExistsByEmail(User user) {
+        return userRepository.findByEmail(user.getEmail())
+                .orElse(userRepository.save(user));
     }
     /**
      * Get the user based on email
@@ -79,14 +98,14 @@ public class UserService {
      * @param user
      * @return User
      */
-    public User saveUser(User user) {
+    public User save(User user) {
         return userRepository.save(user);
     }
 
     public User verifyUserEmail(User user) {
         user.setEmailVerifiedAt(DateUtil.now());
         user.setUpdatedAt(DateUtil.now());
-        return saveUser(user);
+        return save(user);
     }
 
     /**

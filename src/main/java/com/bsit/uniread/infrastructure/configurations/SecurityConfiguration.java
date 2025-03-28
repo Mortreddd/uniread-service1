@@ -21,6 +21,7 @@ public class SecurityConfiguration {
             "/api/v1/books",
             "/api/v1/authors",
             "/api/v1/auth/**",
+            "/oauth2/**",
             "/api/v1/books/**",
             "/api/v1/genres/**",
             "/api/v1/genres/{genreId}/books",
@@ -34,6 +35,7 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+
 
 
         return httpSecurity
@@ -51,6 +53,4 @@ public class SecurityConfiguration {
                 .authenticationProvider(applicationConfiguration.authenticationProvider())
                 .build();
     }
-
-
 }

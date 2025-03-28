@@ -6,7 +6,6 @@ import com.bsit.uniread.application.services.otp.OtpService;
 import com.bsit.uniread.application.services.role.RoleService;
 import com.bsit.uniread.domain.entities.auth.Otp;
 import com.bsit.uniread.domain.entities.user.Role;
-import com.bsit.uniread.domain.entities.user.RoleName;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.infrastructure.handler.exceptions.auth.InvalidCredentialsException;
@@ -72,7 +71,7 @@ public class AuthService {
      */
     public void registerUser(UserRegistrationRequest userRegistrationRequest) {
         Role userRole = roleService.getUserRole();
-        User newUser = userService.saveUser(
+        User newUser = userService.save(
                 User.builder()
                     .firstName(userRegistrationRequest.getFirstName())
                     .lastName(userRegistrationRequest.getLastName())
@@ -87,7 +86,7 @@ public class AuthService {
 
         // Disable after passing tests cases
         // userRegistrationPublisher.publishUserRegistration(newUser);
-        userService.saveUser(newUser);
+        userService.save(newUser);
     }
 
     /**

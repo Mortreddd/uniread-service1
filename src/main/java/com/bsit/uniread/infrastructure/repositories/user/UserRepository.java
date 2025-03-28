@@ -17,6 +17,7 @@ import java.util.UUID;
 public interface UserRepository
         extends JpaRepository<User, UUID>, CrudRepository<User, UUID> {
 
+    Optional<User> findByGoogleUuid(String googleUuid);
     // Search the users based on given email
     Optional<User> findByEmail(String email);
     // Search the users based on given username
