@@ -9,7 +9,6 @@ import com.bsit.uniread.infrastructure.handler.publishers.follower.FollowPublish
 import com.bsit.uniread.infrastructure.repositories.FollowRepository;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import io.netty.util.internal.StringUtil;
-import jakarta.annotation.Nullable;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +37,7 @@ public class FollowService {
      * @param query
      * @return Pagination of Follow
      */
-    public Page<Follow> getFollowersByUserId(int pageNo, int pageSize, UUID userId, @Nullable String query) {
+    public Page<Follow> getFollowersByUserId(int pageNo, int pageSize, UUID userId, String query) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         User user = userService.getUserById(userId);
@@ -58,7 +57,7 @@ public class FollowService {
      * @param query
      * @return Pagination of Follow
      */
-    public Page<Follow> getFollowingsByUserId(int pageNo, int pageSize, UUID userId, @Nullable String query) {
+    public Page<Follow> getFollowingsByUserId(int pageNo, int pageSize, UUID userId, String query) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         User user = userService.getUserById(userId);
@@ -99,20 +98,20 @@ public class FollowService {
 
     /**
      * Delete the follow and create an unfollow transaction for userRequester to followedUser
-     * @param userFollowedId
-     * @param userRequesterId
+     * @param currentUserId
+     * @param unfollowedUserId
      */
     @Transactional
-    public void unfollowUser(UUID userFollowedId, UUID userRequesterId) {
-        User followedUser = userService.getUserById(userFollowedId);
-        User userRequester = userService.getUserById(userRequesterId);
+    public void unfollowUser(UUID currentUserId, UUID unfollowedUserId) {
+        User userRequester = userService.getUserById(currentUserId);
+        User unfollowedUser = userService.getUserById(unfollowedUserId);
 
         // Throws an exception if requester is not followed
-        if(!isFollowingUser(userRequester, followedUser)) {
+        if(!isFollowingUser(userRequester, unfollowedUser)) {
             throw new UserNotFollowedException("User is not followed");
         }
 
-        int rowsAffected = followRepository.deleteByFollowingAndFollower(followedUser, userRequester);
+        int rowsAffected = followRepository.deleteByFollowerAndFollowing(userRequester, unfollowedUser);
         log.info("Rows affected {}", rowsAffected);
     }
 

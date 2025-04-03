@@ -1,11 +1,28 @@
 package com.bsit.uniread.application.constants;
 
+/**
+ * An object holds all api endpoints for controllers
+ */
 public class ApiEndpoints {
+    // Authentication prefix
     public static final String AUTH = "/api/v1/auth";
+    // Authors prefix
     public static final String AUTHORS = "/api/v1/authors";
+    // Books prefix
     public static final String BOOKS = "/api/v1/books";
+    // Users prefix
     public static final String USERS = "/api/v1/users";
+    // User's Conversation prefix
     public static final String CONVERSATIONS = "/api/v1/users/{userId}/conversations";
+    // Genres prefix
     public static final String GENRES = "/api/v1/genres";
-    public static final String FOLLOW = "/api/v1/users/{userId}/follow";
+    // User following or follower activity prefix
+    public static final String FOLLOW = "/api/v1/users/{currentUserId}/follow";
+    // Book Chapters prefix
+    public static final String BOOK_CHAPTERS = "/api/v1/books/{bookId}/chapters";
+    // Book Comments prefix
+    public static final String BOOK_COMMENTS = "/api/v1/books/{bookId}/comments";
+    // User notifications prefix
+    public static final String USER_NOTIFICATION = "/api/v1/users/{userId}/notifications";
+
 }

@@ -2,11 +2,8 @@ package com.bsit.uniread.application.controllers.user;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
-import com.bsit.uniread.application.dto.request.follow.NewFollowerRequest;
 import com.bsit.uniread.application.dto.response.follow.FollowDto;
 import com.bsit.uniread.application.services.FollowService;
-import com.bsit.uniread.domain.entities.Follow;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -16,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 /**
- * Api Endpoint - /api/v1/users/{userId}/follow
+ * Api Endpoint - /api/v1/users/{currentUserId}/follow
  */
 @RestController
 @RequestMapping(path = ApiEndpoints.FOLLOW)
@@ -25,6 +22,14 @@ public class FollowController {
 
     private final FollowService followService;
 
+    /**
+     * Get the followings of user
+     * @param userId
+     * @param pageNo
+     * @param pageSize
+     * @param query
+     * @return page of followings
+     */
     @GetMapping(path = "/followings")
     public ResponseEntity<Page<FollowDto>> getUserFollowings(
             @PathVariable(name = "userId") UUID userId,
@@ -37,31 +42,14 @@ public class FollowController {
                 .body(follows);
     }
 
-    @PostMapping(path = "/new")
-    public ResponseEntity<FollowDto> createNewFollowing(
-            @PathVariable(name = "userId") UUID userId,
-            @Valid @RequestBody NewFollowerRequest newFollowerRequest
-    ) {
-        FollowDto newFollow = new FollowDto(followService.createFollow(newFollowerRequest.getRequesterId(), userId));
-        return ResponseEntity.ok()
-                .body(newFollow);   
-    }
-
-    @DeleteMapping(path = "/unfollow/{requesterId}")
-    public ResponseEntity<SuccessResponse> unfollowUser(
-            @PathVariable(name = "userId") UUID userId,
-            @PathVariable(name = "requesterId") UUID requesterId
-    ) {
-
-        followService.unfollowUser(userId, requesterId);
-        SuccessResponse response = SuccessResponse.builder()
-                .code(HttpStatus.OK.value())
-                .message("Successfully unfollowed the user")
-                .build();
-
-        return ResponseEntity.ok().body(response);
-    }
-
+    /**
+     * Get the followers of user
+     * @param userId
+     * @param pageNo
+     * @param pageSize
+     * @param query
+     * @return page of followers
+     */
     @GetMapping(path = "/followers")
     public ResponseEntity<Page<FollowDto>> getUserFollowers(
             @PathVariable(name = "userId") UUID userId,
@@ -73,6 +61,44 @@ public class FollowController {
                 .map(FollowDto::new);
         return ResponseEntity.ok()
                 .body(follows);
+    }
+
+    /**
+     * Create a new follow transaction
+     * @param currentUserId
+     * @param followedUserId
+     * @return new follow
+     */
+    @PostMapping(path = "/{followedUserId}")
+    public ResponseEntity<FollowDto> createNewFollowing(
+            @PathVariable(name = "currentUserId") UUID currentUserId,
+            @PathVariable(name = "followedUserId") UUID followedUserId
+    ) {
+
+        FollowDto newFollow = new FollowDto(followService.createFollow(currentUserId, followedUserId));
+        return ResponseEntity.ok()
+                .body(newFollow);
+    }
+
+    /**
+     * Delete the record of currentUser following unfollowedUser
+     * @param currentUserId
+     * @param unfollowedUserId
+     * @return SuccessResponse
+     */
+    @DeleteMapping(path = "/{unfollowedUserId}/delete")
+    public ResponseEntity<SuccessResponse> unfollowUser(
+            @PathVariable(name = "currentUserId") UUID currentUserId,
+            @PathVariable(name = "unfollowedUserId") UUID unfollowedUserId
+    ) {
+
+        followService.unfollowUser(currentUserId, unfollowedUserId);
+        SuccessResponse response = SuccessResponse.builder()
+                .code(HttpStatus.OK.value())
+                .message("Successfully unfollowed the user")
+                .build();
+
+        return ResponseEntity.ok().body(response);
     }
 
 }

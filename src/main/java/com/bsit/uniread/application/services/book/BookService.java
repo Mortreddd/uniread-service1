@@ -2,6 +2,7 @@ package com.bsit.uniread.application.services.book;
 
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.Genre;
+import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.repositories.book.BookRepository;
 import io.netty.util.internal.StringUtil;
@@ -44,6 +45,23 @@ public class BookService {
         }
 
         return bookRepository.findAll(pageRequest);
+    }
+
+    /**
+     * Get the user books based on given userId
+     * @param user
+     * @param pageNo
+     * @param pageSize
+     * @param query
+     * @return Pageable of books
+     */
+    public Page<Book> getUserBooks(User user, int pageNo, int pageSize, String query) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+        if(StringUtil.isNullOrEmpty(query)) {
+            return bookRepository.findByUser(user, pageable);
+        }
+        return bookRepository.findByUserAndTitleContainingIgnoreCase(user, query, pageable);
     }
 
     /**

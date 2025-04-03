@@ -18,6 +18,8 @@ public class NotificationDto {
 
     private String description;
 
+    private Boolean isRead;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
@@ -27,6 +29,7 @@ public class NotificationDto {
         this.user = new AuthorDto(notification.getUser());
         this.title = notification.getTitle();
         this.description = notification.getDescription();
+        this.isRead = notification.getIsRead();
         this.createdAt = notification.getCreatedAt();
         this.updatedAt = notification.getUpdatedAt();
     }

@@ -99,7 +99,8 @@ public class User implements UserDetails {
     private Long followingsCount;
     @Transient
     private Long storiesCount;
-
+    @Transient
+    private String fullName;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -158,6 +159,10 @@ public class User implements UserDetails {
 
     public Boolean getIsBanned() {
         return bannedAt != null;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
     }
 
     @Override

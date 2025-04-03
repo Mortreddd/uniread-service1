@@ -22,11 +22,11 @@ public class NewFollowerListener implements ApplicationListener<NewFollowerEvent
     public void onApplicationEvent(NewFollowerEvent event) {
         // The sender of the notification
         User sender = event.getFollow().getFollower();
-
+        User receiver = event.getFollow().getFollowing();
         String title = "New Follower";
         String description = String.format("%s follows you.", sender.getUsername());
         // Create notification and send notification email
-        NotificationDto newNotification = new NotificationDto(notificationService.createNotification(sender, title, description));
+        NotificationDto newNotification = new NotificationDto(notificationService.createNotification(receiver, title, description));
         simpMessagingTemplate.convertAndSend("/topic/notifications", newNotification);
     }
 }

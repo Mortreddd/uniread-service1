@@ -1,14 +1,19 @@
 package com.bsit.uniread.application.controllers.user;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
+import com.bsit.uniread.application.dto.api.SuccessResponse;
+import com.bsit.uniread.application.dto.request.user.SetupUsernameRequest;
 import com.bsit.uniread.application.dto.response.user.UserDto;
 import com.bsit.uniread.application.services.auth.JsonWebTokenService;
 import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.domain.entities.user.User;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping(path = ApiEndpoints.USERS)
@@ -31,6 +36,36 @@ public class UserController {
     }
 
     /**
+     * Get the user info based in given id
+     * @param userId
+     * @return user
+     */
+    @GetMapping(path = "/{userId}")
+    public ResponseEntity<UserDto> getUserById(
+            @PathVariable(name = "userId") UUID userId
+    ) {
+        UserDto user = new UserDto(userService.getUserById(userId));
+
+        return ResponseEntity.ok()
+                .body(user);
+    }
+
+    /**
+     * Update the username of the user
+     * @param request
+     * @return SuccessResponse
+     */
+    @PutMapping(path = "/{userId}/setup/username")
+    public ResponseEntity<SuccessResponse> setupUsername(
+            @PathVariable(name = "userId") UUID userId,
+            @Valid @RequestBody SetupUsernameRequest request
+    ) {
+        SuccessResponse response = userService.updateUsername(userId, request.getUsername());
+        return ResponseEntity.ok()
+                .body(response);
+    }
+
+    /**
      * Extract the user based on access token or jwt token of the user
      * @param authorizationHeader extracts the jwt token
      * @return User
@@ -44,6 +79,5 @@ public class UserController {
         UserDto currentUser = new UserDto(user);
         return ResponseEntity.ok()
                 .body(currentUser);
-
     }
 }

@@ -34,6 +34,8 @@ public class Notification {
 
     private String description;
 
+    private Boolean isRead;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;

@@ -1,5 +1,6 @@
 package com.bsit.uniread.application.services.auth;
 
+import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.auth.UserRegistrationRequest;
 import com.bsit.uniread.application.dto.response.auth.LoginResponse;
 import com.bsit.uniread.application.services.otp.OtpService;
@@ -15,6 +16,7 @@ import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -40,6 +42,12 @@ public class AuthService {
     @Value("${client.url}")
     private String clientUrl;
 
+    /**
+     * Authenticate the user using email and password
+     * @param email
+     * @param password
+     * @return
+     */
     public LoginResponse loginUser(String email, String password) {
         log.info("Email received {}", email);
 
@@ -84,7 +92,6 @@ public class AuthService {
                     .build()
         );
 
-        // Disable after passing tests cases
         // userRegistrationPublisher.publishUserRegistration(newUser);
         userService.save(newUser);
     }
@@ -109,6 +116,20 @@ public class AuthService {
         User user = userService.getUserByEmail(otp.getEmail());
 
         userService.verifyUserEmail(user);
+    }
+
+    /**
+     * Update username of the user
+     * @param userId
+     * @param username
+     * @return SuccessResponse
+     */
+    public SuccessResponse setupUsername(UUID userId, String username) {
+        userService.updateUsername(userId, username);
+        return SuccessResponse.builder()
+                .code(HttpStatus.OK.value())
+                .message("Username updated")
+                .build();
     }
 
 }

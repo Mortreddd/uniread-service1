@@ -14,5 +14,5 @@ import java.util.UUID;
 public interface BookCommentRepository
         extends JpaRepository<BookComment, UUID>, CrudRepository<BookComment, UUID> {
 
-    Page<BookComment> findByBookAndParentBookCommentIsNotNullOrderByCreatedAtAsc(Book book, Pageable pageable);
+    Page<BookComment> findByBookAndParentBookCommentIsNotNullOrderByCreatedAtAsc(Book book, BookComment bookComment, Pageable pageable);
 }

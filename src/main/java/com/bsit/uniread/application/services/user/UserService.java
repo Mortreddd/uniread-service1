@@ -1,5 +1,7 @@
 package com.bsit.uniread.application.services.user;
 
+import com.bsit.uniread.application.dto.api.SuccessResponse;
+import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.repositories.user.UserRepository;
@@ -10,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +40,7 @@ public class UserService {
         }
         return userRepository.findAll(pageable);
     }
+
 
     /**
      * Get the user based on googleUuid
@@ -102,12 +106,26 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    /**
+     * Verify the user's email
+     * @param user
+     * @return User
+     */
     public User verifyUserEmail(User user) {
         user.setEmailVerifiedAt(DateUtil.now());
         user.setUpdatedAt(DateUtil.now());
         return save(user);
     }
 
+    public SuccessResponse updateUsername(UUID userId, String username) {
+        User user = getUserById(userId);
+        user.setUsername(username);
+        save(user);
+        return SuccessResponse.builder()
+                .code(HttpStatus.OK.value())
+                .message("Username has been updated")
+                .build();
+    }
     /**
      * Check the email if already exists
      * @param email

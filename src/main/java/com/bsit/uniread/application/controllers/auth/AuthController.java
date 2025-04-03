@@ -1,8 +1,10 @@
 package com.bsit.uniread.application.controllers.auth;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
+import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.auth.ForgotPasswordRequest;
 import com.bsit.uniread.application.dto.request.auth.LoginRequest;
+import com.bsit.uniread.application.dto.request.user.SetupUsernameRequest;
 import com.bsit.uniread.application.dto.response.auth.LoginResponse;
 import com.bsit.uniread.application.services.auth.AuthService;
 import jakarta.mail.MessagingException;
@@ -46,7 +48,6 @@ public class AuthController {
             @Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest
     ) throws MessagingException {
         authService.sendForgotPassword(forgotPasswordRequest.getEmail());
-
         return ResponseEntity.ok().build();
 
     }

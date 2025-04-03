@@ -17,7 +17,7 @@ import java.util.UUID;
 public class UserDto {
     private UUID id;
     private String googleUuid;
-    private  String firstName;
+    private String firstName;
     private String lastName;
     private String username;
     private Gender gender;
@@ -37,6 +37,7 @@ public class UserDto {
     private Boolean isSuperAdmin;
     private Boolean isAdmin;
     private Boolean isBanned;
+    private String fullName;
     private Long followersCount;
     private Long followingsCount;
     private Long storiesCount;
@@ -57,12 +58,13 @@ public class UserDto {
         this.updatedAt = user.getUpdatedAt();
         this.deletedAt = user.getDeletedAt();
         this.followers = user.getFollowers().stream().map(FollowDto::new).toList();
-        this.followers = user.getFollowings().stream().map(FollowDto::new).toList();
+        this.followings = user.getFollowings().stream().map(FollowDto::new).toList();
         this.isEmailVerified = user.getIsEmailVerified();
         this.isUser = user.getIsUser();
         this.isSuperAdmin = user.getIsSuperAdmin();
         this.isAdmin = user.getIsAdmin();
         this.isBanned = user.getIsBanned();
+        this.fullName = user.getFullName();
         this.followersCount = user.getFollowersCount();
         this.followingsCount = user.getFollowingsCount();
         this.storiesCount = user.getStoriesCount();

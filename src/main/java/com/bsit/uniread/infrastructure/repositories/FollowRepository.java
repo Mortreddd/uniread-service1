@@ -15,10 +15,30 @@ public interface FollowRepository extends JpaRepository<Follow, UUID>, CrudRepos
 
     Page<Follow> findByFollower(User user, Pageable pageable);
     Page<Follow> findByFollowing(User user, Pageable pageable);
+
+    /**
+     * Get the followings and search for the followings
+     * @param user
+     * @param firstName
+     * @param lastName
+     * @param username
+     * @param pageable
+     * @return page of followings
+     */
     Page<Follow> findByFollowerAndFollowingFirstNameContainingIgnoreCaseOrFollowingLastNameContainingIgnoreCaseOrFollowingUsernameContainingIgnoreCase(User user, String firstName, String lastName, String username, Pageable pageable);
+
+    /**
+     * Get the followers and search the followers
+     * @param user
+     * @param firstName
+     * @param lastName
+     * @param username
+     * @param pageable
+     * @return page of followers
+     */
     Page<Follow> findByFollowingAndFollowerFirstNameContainingIgnoreCaseOrFollowerLastNameContainingIgnoreCaseOrFollowerUsernameContainingIgnoreCase(User user, String firstName, String lastName, String username, Pageable pageable);
 
-    // Delete the following from follower
-    Integer deleteByFollowingAndFollower(User followedUser, User userRequester);
+    // Create an unfollow transaction
+    Integer deleteByFollowerAndFollowing(User currentUser, User unfollowedUser);
 
 }

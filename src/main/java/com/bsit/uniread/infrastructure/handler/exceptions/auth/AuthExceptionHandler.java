@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.util.Date;
+import java.util.List;
 
 @RestControllerAdvice
 public class AuthExceptionHandler {
@@ -28,20 +29,27 @@ public class AuthExceptionHandler {
                 .body(details);
     }
 
+    /**
+     * Handles the validation exceptions
+     * @param exception
+     * @param request
+     * @return Unprocessable Entity response
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> constrainedExceptions(
             MethodArgumentNotValidException exception,
             WebRequest request
     ) {
+        String message = exception.getFieldError().getDefaultMessage();
         ErrorResponse details = ErrorResponse.builder()
-                .code(HttpStatus.FORBIDDEN.value())
+                .code(HttpStatus.UNPROCESSABLE_ENTITY.value())
                 .date(new Date())
-                .message(exception.getMessage())
+                .message(message)
                 .description(request.getDescription(false))
                 .build();
 
         return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(details);
     }
 

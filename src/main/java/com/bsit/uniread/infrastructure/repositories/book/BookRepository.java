@@ -2,6 +2,7 @@ package com.bsit.uniread.infrastructure.repositories.book;
 
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.Genre;
+import com.bsit.uniread.domain.entities.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,4 +29,9 @@ public interface BookRepository
      * @return Pageable of book
      */
     Page<Book> findByUserUsernameContainingIgnoreCaseOrTitleContainingIgnoreCaseOrUserFirstNameContainingIgnoreCaseOrUserLastNameContainingIgnoreCase(String title, String username, String firstName, String lastName, Pageable pageable);
+
+    Page<Book> findByUser(User user, Pageable pageable);
+
+
+    Page<Book> findByUserAndTitleContainingIgnoreCase(User user, String title, Pageable pageable);
 }
