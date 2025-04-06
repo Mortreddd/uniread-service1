@@ -17,6 +17,13 @@ public class BookController {
 
     private final BookService bookService;
 
+    /**
+     * Get the books
+     * @param pageNo
+     * @param pageSize
+     * @param query
+     * @return page of books
+     */
     @GetMapping
     public ResponseEntity<Page<BookDto>> getBooks(
             @RequestParam(name = "pageNo", defaultValue = "0", required = false) int pageNo,
@@ -28,6 +35,11 @@ public class BookController {
                         .body(books);
     }
 
+    /**
+     * Get the specified book
+     * @param bookId
+     * @return book
+     */
     @GetMapping(path = "/{bookId}")
     public ResponseEntity<BookDto> getBookById(
             @PathVariable(name = "bookId") UUID bookId

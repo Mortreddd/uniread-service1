@@ -40,7 +40,6 @@ public class BookService {
         PageRequest pageRequest = PageRequest.of(pageNo, pageSize, sort);
 
         if(!StringUtil.isNullOrEmpty(query)) {
-            // @source https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
             return bookRepository.findByUserUsernameContainingIgnoreCaseOrTitleContainingIgnoreCaseOrUserFirstNameContainingIgnoreCaseOrUserLastNameContainingIgnoreCase(query, query, query, query, pageRequest);
         }
 

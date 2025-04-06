@@ -61,4 +61,12 @@ public class BookComment {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+
+    @Transient
+    private Long totalLikes;
+
+    public Long getTotalLikes() {
+        return (long) bookCommentLikes.size();
+    }
+
 }

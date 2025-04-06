@@ -1,6 +1,5 @@
 package com.bsit.uniread.infrastructure.repositories.user;
 
-import com.bsit.uniread.application.dto.response.follow.FollowCountDto;
 import com.bsit.uniread.domain.entities.Follow;
 import com.bsit.uniread.domain.entities.user.User;
 import org.springframework.data.domain.Page;
@@ -9,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,6 +26,7 @@ public interface UserRepository
      * @param lastName
      * @param username
      * @param pageable
+     * @source https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
      * @return pagination of users
      */
     Page<User> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrUsernameIgnoreCase(String firstName, String lastName, String username, Pageable pageable);
