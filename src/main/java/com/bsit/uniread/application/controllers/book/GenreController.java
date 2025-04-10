@@ -3,8 +3,9 @@ package com.bsit.uniread.application.controllers.book;
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.response.book.BookDto;
 import com.bsit.uniread.application.dto.response.book.GenreDto;
+import com.bsit.uniread.application.services.book.BookGenreService;
+import com.bsit.uniread.application.services.book.BookService;
 import com.bsit.uniread.application.services.book.GenreService;
-import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.Genre;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,7 @@ import java.util.List;
 public class GenreController {
 
     private final GenreService genreService;
+    private final BookGenreService bookGenreService;
 
     @GetMapping
     public ResponseEntity<List<GenreDto>> getGenres() {
@@ -33,7 +35,7 @@ public class GenreController {
             @RequestParam(name = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize
     ) {
-        Page<BookDto> books = genreService.getBooksByMultipleGenreById(genres, pageNo, pageSize).map(BookDto::new);
+        Page<BookDto> books = bookGenreService.getBooksByMultipleGenreById(genres, pageNo, pageSize).map(BookDto::new);
         return ResponseEntity.ok().body(books);
     }
 
@@ -44,7 +46,7 @@ public class GenreController {
             @RequestParam(name = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize
     ) {
-        Page<BookDto> books = genreService.getBooksByGenre(genreId, pageNo, pageSize).map(BookDto::new);
+        Page<BookDto> books = bookGenreService.getBooksByGenre(genreId, pageNo, pageSize).map(BookDto::new);
         return ResponseEntity.ok()
                 .body(books);
     }

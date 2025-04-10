@@ -29,6 +29,7 @@ public interface BookRepository
      * @source https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
      * @return Pageable of book
      */
+
     Page<Book> findByUserUsernameContainingIgnoreCaseOrTitleContainingIgnoreCaseOrUserFirstNameContainingIgnoreCaseOrUserLastNameContainingIgnoreCase(String title, String username, String firstName, String lastName, Pageable pageable);
 
     Page<Book> findByUser(User user, Pageable pageable);

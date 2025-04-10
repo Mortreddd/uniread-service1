@@ -1,13 +1,17 @@
 package com.bsit.uniread.application.controllers.book;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
+import com.bsit.uniread.application.dto.request.book.BookCreationRequest;
 import com.bsit.uniread.application.dto.response.book.BookDto;
 import com.bsit.uniread.application.services.book.BookService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @RequestMapping(path = ApiEndpoints.BOOKS)
@@ -47,5 +51,19 @@ public class BookController {
         BookDto book = new BookDto(bookService.getBookById(bookId));
         return ResponseEntity.ok()
                 .body(book);
+    }
+
+    /**
+     * Create a new book
+     * @param request
+     * @return
+     * @throws IOException
+     */
+    @PostMapping(path = "/create")
+    public ResponseEntity<BookDto> createBook(
+            @Valid @ModelAttribute BookCreationRequest request
+    ) throws IOException {
+        BookDto book = new BookDto(bookService.createBook(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(book);
     }
 }

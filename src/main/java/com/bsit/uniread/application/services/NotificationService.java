@@ -71,6 +71,10 @@ public class NotificationService {
                         )
                 .toList();
 
+        saveNotifications(notifications);
+    }
+
+    public void saveNotifications(List<Notification> notifications) {
         notificationRepository.saveAll(notifications);
     }
 }

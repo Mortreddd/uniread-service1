@@ -17,7 +17,9 @@ import java.util.UUID;
 
 
 @Entity
-@Table
+@Table(indexes = {
+        @Index(name = "idx_book_id", columnList = "book_id")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,7 +36,6 @@ public class Chapter {
     private Book book;
 
     private String title;
-    private String content;
 
     private Long readCount;
 
@@ -45,6 +46,11 @@ public class Chapter {
     @UpdateTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
+
+    @OneToMany(targetEntity = Paragraph.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "paragraph_id")
+    @JsonManagedReference
+    private List<Paragraph> paragraphs;
 
     @OneToMany(targetEntity = ChapterComment.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "chapter_comment_id")

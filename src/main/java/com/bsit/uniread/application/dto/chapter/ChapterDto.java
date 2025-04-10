@@ -2,9 +2,11 @@ package com.bsit.uniread.application.dto.chapter;
 
 import com.bsit.uniread.application.dto.response.book.BookDto;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
+import com.bsit.uniread.domain.entities.chapter.Paragraph;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -13,7 +15,7 @@ public class ChapterDto {
     private UUID id;
     private BookDto book;
     private String title;
-    private String content;
+    private List<Paragraph> paragraphs;
 
     private Long readCount;
     private LocalDateTime createdAt;
@@ -23,7 +25,7 @@ public class ChapterDto {
         this.id = chapter.getId();
         this.book = new BookDto(chapter.getBook());
         this.title = chapter.getTitle();
-        this.content = chapter.getContent();
+        this.paragraphs = chapter.getParagraphs();
         this.readCount = chapter.getReadCount();
         this.createdAt = chapter.getCreatedAt();
         this.updatedAt = chapter.getUpdatedAt();

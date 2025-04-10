@@ -33,3 +33,4 @@ build/
 .vscode/
 
 Dockerfile.prod
+uploads/

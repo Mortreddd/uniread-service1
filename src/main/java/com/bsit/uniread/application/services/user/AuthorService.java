@@ -35,4 +35,8 @@ public class AuthorService {
         User user = userService.getUserById(userId);
         return bookService.getUserBooks(user, pageNo, pageSize, query);
     }
+
+    public User getAuthorById(UUID authorId) {
+        return userService.getUserById(authorId);
+    }
 }
