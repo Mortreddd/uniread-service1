@@ -12,6 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,10 +49,10 @@ public class BookComment {
     private Integer rating;
     private String content;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "book_comment_like_id")
+    @Builder.Default
+    @OneToMany(mappedBy = "bookComment", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonBackReference
-    private List<BookCommentLike> bookCommentLikes;
+    private List<BookCommentLike> bookCommentLikes = new ArrayList<>();
 
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp

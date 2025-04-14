@@ -1,5 +1,6 @@
 package com.bsit.uniread.domain.entities.book;
 
+import com.bsit.uniread.domain.entities.Reaction;
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
@@ -32,10 +33,13 @@ public class BookCommentLike {
     @JsonBackReference
     private BookComment bookComment;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
+
+    @Enumerated(EnumType.STRING)
+    private Reaction reaction;
 
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp

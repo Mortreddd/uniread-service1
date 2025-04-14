@@ -21,9 +21,12 @@ public class BookDto {
     private String title;
     private String coverPhoto;
     private String description;
+    private BookStatus status;
     private Integer readCount;
     private Boolean completed;
     private Boolean matured;
+    private Integer totalChapterPublishedCount;
+    private Integer totalChapterDraftsCount;
     private Integer totalChaptersCount;
     private Long totalRatingsCount;
     private Long totalLikesCount;
@@ -52,6 +55,7 @@ public class BookDto {
         this.coverPhoto = book.getCoverPhoto();
         this.description = book.getDescription();
         this.readCount = book.getReadCount();
+        this.status = book.getStatus();
         this.completed = book.getCompleted();
         this.matured = book.getMatured();
         this.genres = book.getGenres().stream().map(GenreDto::new).toList();
@@ -62,6 +66,8 @@ public class BookDto {
         this.bookComments = book.getBookComments().stream().map(BookCommentDto::new).toList();
         this.bookLikes = book.getBookLikes();
         this.tags = book.getTags();
+        this.totalChapterPublishedCount = book.getTotalChapterPublishedCount();
+        this.totalChapterDraftsCount = book.getTotalChapterDraftsCount();
         this.totalChaptersCount = book.getTotalChaptersCount();
         this.totalLikesCount = book.getTotalLikesCount();
         this.totalRatingsCount = book.getTotalRatingsCount();

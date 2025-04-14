@@ -1,6 +1,8 @@
 package com.bsit.uniread.domain.entities.chapter;
 
+import com.bsit.uniread.domain.entities.Reaction;
 import com.bsit.uniread.domain.entities.book.Book;
+import com.bsit.uniread.domain.entities.paragraph.Paragraph;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -12,6 +14,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,6 +40,9 @@ public class Chapter {
 
     private String title;
 
+    @Enumerated(EnumType.STRING)
+    private ChapterStatus status;
+
     private Long readCount;
 
     @CreationTimestamp
@@ -47,19 +53,22 @@ public class Chapter {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @OneToMany(targetEntity = Paragraph.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "paragraph_id")
     @JsonManagedReference
-    private List<Paragraph> paragraphs;
+    private List<Paragraph> paragraphs = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(targetEntity = ChapterComment.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "chapter_comment_id")
     @JsonManagedReference
-    private List<ChapterComment> chapterComments;
+    private List<ChapterComment> chapterComments = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(targetEntity = ChapterComment.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "chapter_like_id")
     @JsonManagedReference
-    private List<ChapterLike> chapterLikes;
+    private List<ChapterLike> chapterLikes = new ArrayList<>();
 
 }

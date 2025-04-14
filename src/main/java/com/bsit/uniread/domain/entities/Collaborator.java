@@ -12,6 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,9 +33,10 @@ public class Collaborator {
     @JsonBackReference
     private Book book;
 
+    @Builder.Default
     @OneToMany(targetEntity = User.class, fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id")
-    private List<User> users;
+    private List<User> users = new ArrayList<>();
 
     private String collaboratorTitle;
 

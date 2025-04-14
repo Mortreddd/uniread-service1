@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -25,7 +26,8 @@ public class Role {
     @Enumerated(EnumType.STRING)
     private RoleName name;
 
+    @Builder.Default
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     @JsonBackReference
-    private List<User> users;
+    private List<User> users = new ArrayList<>();
 }

@@ -1,6 +1,7 @@
 package com.bsit.uniread.domain.entities.user;
 
 import com.bsit.uniread.domain.entities.Follow;
+import com.bsit.uniread.domain.entities.Notification;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookComment;
 import com.bsit.uniread.domain.entities.book.BookCommentLike;
@@ -20,6 +21,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -102,9 +104,10 @@ public class User implements UserDetails {
     @Transient
     private String fullName;
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<Book> books;
+    private List<Book> books = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_comment_id")
@@ -116,18 +119,26 @@ public class User implements UserDetails {
     @JsonManagedReference
     private BookCommentLike bookCommentLike;
 
+    @Builder.Default
     @OneToMany(targetEntity = UserArchive.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_archive_id")
     @JsonManagedReference
-    private List<UserArchive> userArchive;
+    private List<UserArchive> userArchive = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "following", fetch = FetchType.LAZY)
     @JsonBackReference
-    private List<Follow> followers;
+    private List<Follow> followers = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "follower", fetch = FetchType.LAZY)
     @JsonBackReference
-    private List<Follow> followings;
+    private List<Follow> followings = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<Notification> notifications = new ArrayList<>();
 
     public Long getFollowersCount() {
         return (long) followers.size();

@@ -2,7 +2,7 @@ package com.bsit.uniread.application.dto.chapter;
 
 import com.bsit.uniread.application.dto.response.book.BookDto;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
-import com.bsit.uniread.domain.entities.chapter.Paragraph;
+import com.bsit.uniread.domain.entities.paragraph.Paragraph;
 import lombok.Data;
 
 import java.time.LocalDateTime;

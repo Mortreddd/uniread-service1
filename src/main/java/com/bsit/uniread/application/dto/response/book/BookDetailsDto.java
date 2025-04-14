@@ -21,6 +21,8 @@ public class BookDetailsDto {
     private String title;
     private String coverPhoto;
     private String description;
+    private Integer totalChapterPublishedCount;
+    private Integer totalChapterDraftsCount;
     private Integer totalChaptersCount;
     private Long totalLikesCount;
     private Long totalReadsCount;
@@ -35,6 +37,8 @@ public class BookDetailsDto {
         this.title = book.getTitle();
         this.coverPhoto = book.getCoverPhoto();
         this.description = book.getDescription();
+        this.totalChapterPublishedCount = book.getTotalChapterPublishedCount();
+        this.totalChapterDraftsCount = book.getTotalChapterDraftsCount();
         this.totalChaptersCount = book.getTotalChaptersCount();
         this.totalLikesCount = book.getTotalLikesCount();
         this.totalReadsCount = book.getTotalReadsCount();

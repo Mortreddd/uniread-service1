@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,13 +30,15 @@ public class Conversation {
 
     private String name;
 
+    @Builder.Default
     @OneToMany(mappedBy = "conversation", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonManagedReference
-    private List<Participant> participants;
+    private List<Participant> participants = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "conversation", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonManagedReference
-    private List<Message> messages;
+    private List<Message> messages = new ArrayList<>();
 
     @CreationTimestamp
     private LocalDateTime createdAt;

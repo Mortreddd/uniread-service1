@@ -1,5 +1,6 @@
 package com.bsit.uniread.domain.entities.chapter;
 
+import com.bsit.uniread.domain.entities.Reaction;
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
@@ -11,7 +12,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -26,14 +26,17 @@ public class ChapterLike {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(targetEntity = Chapter.class, fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToOne(targetEntity = Chapter.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "chapter_id", unique = true)
     private Chapter chapter;
 
-    @OneToMany(targetEntity = User.class, fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonBackReference
-    private List<User> users;
+    private User user;
+
+    @Enumerated(EnumType.STRING)
+    private Reaction reaction;
 
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
@@ -43,8 +46,4 @@ public class ChapterLike {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "chapter_comment_id")
-    @JsonBackReference
-    private ChapterComment chapterComment;
 }

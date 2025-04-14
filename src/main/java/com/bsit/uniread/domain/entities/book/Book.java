@@ -1,7 +1,9 @@
 package com.bsit.uniread.domain.entities.book;
 
 import com.bsit.uniread.domain.entities.chapter.Chapter;
+import com.bsit.uniread.domain.entities.chapter.ChapterStatus;
 import com.bsit.uniread.domain.entities.user.User;
+import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -13,6 +15,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,6 +46,9 @@ public class Book {
     private Boolean completed;
     private Boolean matured;
 
+    @Enumerated(EnumType.STRING)
+    private BookStatus status;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "book_genres")
     @JsonManagedReference
@@ -59,26 +65,36 @@ public class Book {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime deletedAt;
 
+    @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
     @JsonManagedReference
-    private List<Chapter> chapters;
+    private List<Chapter> chapters = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "book", cascade = CascadeType.REMOVE)
     @JsonManagedReference
-    private List<BookComment> bookComments;
+    private List<BookComment> bookComments = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book", cascade = CascadeType.REMOVE)
     @JsonManagedReference
-    private List<BookLike> bookLikes;
+    private List<BookLike> bookLikes = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_id")
     @JsonManagedReference
-    private List<Tag> tags;
+    private List<Tag> tags = new ArrayList<>();
 
     public Boolean isMatured(){
         return matured;
     }
+
+    @Transient
+    private Integer totalChapterPublishedCount;
+
+    @Transient
+    private Integer totalChapterDraftsCount;
 
     @Transient
     private Integer totalChaptersCount;
@@ -112,5 +128,19 @@ public class Book {
                 .stream()
                 .mapToLong(Chapter::getReadCount)
                 .sum();
+    }
+
+    public Integer getTotalChapterPublishedCount() {
+        return Math.toIntExact(chapters
+                .stream()
+                .filter((chapter) -> chapter.getStatus() == ChapterStatus.PUBLISHED)
+                .count());
+    }
+
+    public Integer getTotalChapterDraftsCount() {
+        return Math.toIntExact(chapters
+                .stream()
+                .filter((chapter) -> chapter.getStatus() == ChapterStatus.DRAFT)
+                .count());
     }
 }

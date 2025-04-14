@@ -2,6 +2,7 @@ package com.bsit.uniread.domain.entities.book;
 
 
 import com.bsit.uniread.domain.entities.user.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,15 +28,15 @@ public class BookLike {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id")
-    @JsonManagedReference
+    @JsonBackReference
     private Book book;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    @JsonManagedReference
-    private List<User> users;
+    @JsonBackReference
+    private User user;
 
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp

@@ -1,4 +1,4 @@
-package com.bsit.uniread.domain.entities.chapter;
+package com.bsit.uniread.domain.entities.paragraph;
 
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -16,47 +16,39 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Builder
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Table
 @Entity
-@Builder
-public class ChapterComment {
+public class ParagraphComment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(targetEntity = Chapter.class, fetch = FetchType.LAZY)
-    @JoinColumn(name = "chapter_id")
-    @JsonBackReference
-    private Chapter chapter;
-
-    @OneToOne(targetEntity = User.class, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_chapter_comment_id")
-    @JsonManagedReference
-    private ChapterComment parentChapterComment;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "paragraph_id")
+    @JsonBackReference
+    private Paragraph paragraph;
 
     private String content;
-    private Integer rating;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     @Builder.Default
-    @OneToMany(mappedBy = "chapterComment", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "paragraphComment", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonManagedReference
-    private List<ChapterCommentLike> chapterCommentLikes = new ArrayList<>();
+    private List<ParagraphCommentLike> paragraphCommentLikes = new ArrayList<>();
 
 }

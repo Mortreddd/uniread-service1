@@ -3,6 +3,7 @@ package com.bsit.uniread.application.services.book;
 import com.bsit.uniread.application.dto.request.book.BookCreationRequest;
 import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.domain.entities.book.Book;
+import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.book.Genre;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
@@ -19,7 +20,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
@@ -137,10 +140,18 @@ public class BookService {
         return bookRepository.findByGenresIn(List.of(genre), pageable);
     }
 
+    /**
+     * Create a book
+     * @description if any exception occurs, all the created will be deleted
+     * @param request
+     * @return book
+     * @throws IOException
+     */
+    @Transactional
     public Book createBook(BookCreationRequest request) throws IOException {
-        String fileUrl = imageUtils.saveImage(ImageDirectory.COVER, request.getCoverPhoto());
+        String fileUrl = imageUtils.saveImage(ImageDirectory.COVER, request.getPhoto());
         User author = userService.getUserById(request.getAuthorId());
-        List<Genre> genres = genreService.getGenresByIds(Arrays.asList(request.getGenreIds()));
+        List<Genre> genres = genreService.getGenresByIds(request.getGenreIds());
         Book book = bookRepository.save(Book.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -148,6 +159,7 @@ public class BookService {
                 .genres(genres)
                 .user(author)
                 .coverPhoto(fileUrl)
+                .status(BookStatus.DRAFT)
                 .readCount(0)
                 .completed(false)
                 .createdAt(DateUtil.now())
@@ -159,5 +171,19 @@ public class BookService {
         return book;
     }
 
+    @Transactional
+    public void deleteBookById(UUID bookId) throws IOException {
+        Book book = getBookById(bookId);
+
+        try {
+            if(imageUtils.deleteImage(book.getCoverPhoto())) {
+                bookRepository.deleteById(bookId);
+            }
+        } catch (Exception e) {
+
+            throw new FileNotFoundException("Unable to find cover photo of the book");
+        }
+
+    }
 
 }
