@@ -3,6 +3,7 @@ package com.bsit.uniread.application.services.user;
 import com.bsit.uniread.application.dto.response.user.UserDto;
 import com.bsit.uniread.application.services.book.BookService;
 import com.bsit.uniread.domain.entities.book.Book;
+import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.repositories.book.BookRepository;
 import com.bsit.uniread.infrastructure.repositories.user.UserRepository;
@@ -31,9 +32,9 @@ public class AuthorService {
      * @param query
      * @return Pageable of books
      */
-    public Page<Book> getAuthorBooksById(UUID userId, int pageNo, int pageSize, String query) {
+    public Page<Book> getAuthorBooksById(UUID userId, int pageNo, int pageSize, String query, BookStatus status) {
         User user = userService.getUserById(userId);
-        return bookService.getUserBooks(user, pageNo, pageSize, query);
+        return bookService.getUserBooks(user, pageNo, pageSize, query, status);
     }
 
     public User getAuthorById(UUID authorId) {

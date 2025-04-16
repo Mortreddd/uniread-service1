@@ -53,6 +53,8 @@ public class Chapter {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 
+    private LocalDateTime publishedAt;
+
     @Builder.Default
     @OneToMany(targetEntity = Paragraph.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "paragraph_id")

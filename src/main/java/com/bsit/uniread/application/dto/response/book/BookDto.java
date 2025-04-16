@@ -40,6 +40,8 @@ public class BookDto {
 
     private LocalDateTime deletedAt;
 
+    private LocalDateTime publishedAt;
+
     private List<Chapter> chapters;
 
     private List<BookCommentDto> bookComments;
@@ -62,6 +64,7 @@ public class BookDto {
         this.createdAt = book.getCreatedAt();
         this.updatedAt = book.getUpdatedAt();
         this.deletedAt = book.getDeletedAt();
+        this.publishedAt = book.getPublishedAt();
         this.chapters = book.getChapters();
         this.bookComments = book.getBookComments().stream().map(BookCommentDto::new).toList();
         this.bookLikes = book.getBookLikes();

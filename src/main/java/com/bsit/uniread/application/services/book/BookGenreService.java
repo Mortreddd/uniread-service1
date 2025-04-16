@@ -1,6 +1,7 @@
 package com.bsit.uniread.application.services.book;
 
 import com.bsit.uniread.domain.entities.book.Book;
+import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.book.Genre;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,9 +22,9 @@ public class BookGenreService {
      * @param pageSize
      * @return Pagination of Books
      */
-    public Page<Book> getBooksByGenre(int genreId, int pageNo, int pageSize) {
+    public Page<Book> getBooksByGenre(int genreId, int pageNo, int pageSize, String query, BookStatus status) {
         Genre genre = genreService.getGenreById(genreId);
-        return getBooksByGenre(genre, pageNo, pageSize);
+        return getBooksByGenre(genre, pageNo, pageSize, query, status);
     }
 
     /**
@@ -33,8 +34,8 @@ public class BookGenreService {
      * @param pageSize
      * @return page of books
      */
-    public Page<Book> getBooksByMultipleGenreById(List<Integer> genreIds, int pageNo, int pageSize) {
-        return bookService.getBooksByMultipleGenreById(genreIds, pageNo, pageSize);
+    public Page<Book> getBooksByMultipleGenreById(List<Integer> genreIds, int pageNo, int pageSize, String query, BookStatus status) {
+        return bookService.getBooksByMultipleGenreById(genreIds, pageNo, pageSize, query, status);
     }
     /**
      * Get all the books by genre
@@ -43,7 +44,7 @@ public class BookGenreService {
      * @param pageSize
      * @return Pagination of Books
      */
-    public Page<Book> getBooksByGenre(Genre genre, int pageNo, int pageSize) {
-        return bookService.getBooksByGenre(genre, pageNo, pageSize);
+    public Page<Book> getBooksByGenre(Genre genre, int pageNo, int pageSize, String query, BookStatus status) {
+        return bookService.getBooksByGenre(genre, pageNo, pageSize, query, status);
     }
 }

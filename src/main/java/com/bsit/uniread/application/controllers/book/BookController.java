@@ -5,6 +5,7 @@ import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.book.BookCreationRequest;
 import com.bsit.uniread.application.dto.response.book.BookDto;
 import com.bsit.uniread.application.services.book.BookService;
+import com.bsit.uniread.domain.entities.book.BookStatus;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,9 +38,10 @@ public class BookController {
     public ResponseEntity<Page<BookDto>> getBooks(
             @RequestParam(name = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
-            @RequestParam(name = "query", defaultValue = "", required = false) String query
+            @RequestParam(name = "query", defaultValue = "", required = false) String query,
+            @RequestParam(name = "status", required = false) BookStatus status
     ) {
-        Page<BookDto> books = bookService.getBooks(pageNo, pageSize, query).map(BookDto::new);
+        Page<BookDto> books = bookService.getBooks(pageNo, pageSize, query, status).map(BookDto::new);
         return ResponseEntity.ok()
                         .body(books);
     }
@@ -51,9 +53,10 @@ public class BookController {
      */
     @GetMapping(path = "/{bookId}")
     public ResponseEntity<BookDto> getBookById(
-            @PathVariable(name = "bookId") UUID bookId
+            @PathVariable(name = "bookId") UUID bookId,
+            @RequestParam(name = "status", required = false) BookStatus status
     ) {
-        BookDto book = new BookDto(bookService.getBookById(bookId));
+        BookDto book = new BookDto(bookService.getBookById(bookId, status));
         return ResponseEntity.ok()
                 .body(book);
     }
@@ -83,4 +86,5 @@ public class BookController {
                 .build();
         return ResponseEntity.ok(response);
     }
+
 }

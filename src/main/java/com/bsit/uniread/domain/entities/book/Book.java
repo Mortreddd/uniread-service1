@@ -65,6 +65,8 @@ public class Book {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime deletedAt;
 
+    private LocalDateTime publishedAt;
+
     @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
     @JsonManagedReference

@@ -6,6 +6,7 @@ import com.bsit.uniread.application.dto.response.book.GenreDto;
 import com.bsit.uniread.application.services.book.BookGenreService;
 import com.bsit.uniread.application.services.book.BookService;
 import com.bsit.uniread.application.services.book.GenreService;
+import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.book.Genre;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,9 +34,11 @@ public class GenreController {
     public ResponseEntity<Page<BookDto>> getBooksByMultipleGenre(
             @RequestParam(name = "genres", required = false) List<Integer> genres,
             @RequestParam(name = "pageNo", defaultValue = "0", required = false) int pageNo,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize
+            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(name = "query", required = false) String query,
+            @RequestParam(name = "status", required = false) BookStatus status
     ) {
-        Page<BookDto> books = bookGenreService.getBooksByMultipleGenreById(genres, pageNo, pageSize).map(BookDto::new);
+        Page<BookDto> books = bookGenreService.getBooksByMultipleGenreById(genres, pageNo, pageSize, query, status).map(BookDto::new);
         return ResponseEntity.ok().body(books);
     }
 
@@ -44,9 +47,11 @@ public class GenreController {
     public ResponseEntity<Page<BookDto>> getBooksByGenre(
             @PathVariable(name = "genreId") int genreId,
             @RequestParam(name = "pageNo", defaultValue = "0", required = false) int pageNo,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize
+            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(name = "query", required = false) String query,
+            @RequestParam(name = "status", required = false) BookStatus status
     ) {
-        Page<BookDto> books = bookGenreService.getBooksByGenre(genreId, pageNo, pageSize).map(BookDto::new);
+        Page<BookDto> books = bookGenreService.getBooksByGenre(genreId, pageNo, pageSize, query, status).map(BookDto::new);
         return ResponseEntity.ok()
                 .body(books);
     }
