@@ -32,7 +32,7 @@ public class FollowController {
      */
     @GetMapping(path = "/followings")
     public ResponseEntity<Page<FollowDto>> getUserFollowings(
-            @PathVariable(name = "userId") UUID userId,
+            @PathVariable(name = "currentUserId") UUID userId,
             @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
             @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
             @RequestParam(name = "query", required = false) String query
@@ -52,7 +52,7 @@ public class FollowController {
      */
     @GetMapping(path = "/followers")
     public ResponseEntity<Page<FollowDto>> getUserFollowers(
-            @PathVariable(name = "userId") UUID userId,
+            @PathVariable(name = "currentUserId") UUID userId,
             @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
             @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
             @RequestParam(name = "query", required = false) String query

@@ -91,6 +91,7 @@ public class Book {
     public Boolean isMatured(){
         return matured;
     }
+    public Boolean isPublished() { return status == BookStatus.PUBLISHED; }
 
     @Transient
     private Integer totalChapterPublishedCount;

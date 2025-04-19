@@ -7,6 +7,7 @@ import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.book.Genre;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
+import com.bsit.uniread.infrastructure.handler.exceptions.book.AlreadyPublishedBookException;
 import com.bsit.uniread.infrastructure.handler.publishers.book.BookEventPublisher;
 import com.bsit.uniread.infrastructure.repositories.book.BookRepository;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
@@ -193,6 +194,13 @@ public class BookService {
         return bookRepository.findByGenresIn(List.of(genre), pageable);
     }
 
+    /**
+     * Get the books by status
+     * @param status
+     * @param pageNo
+     * @param pageSize
+     * @return page of books
+     */
     public Page<Book> getBooksByStatus(BookStatus status, int pageNo, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable =  PageRequest.of(pageNo, pageSize, sort);
@@ -235,6 +243,10 @@ public class BookService {
     @Transactional
     public Book publishedBookById(UUID bookId) {
         Book book = getBookById(bookId);
+
+        if(book.isPublished()) {
+            throw new AlreadyPublishedBookException("This book is already published");
+        }
 
         book.setStatus(BookStatus.PUBLISHED);
         book.setUpdatedAt(DateUtil.now());
