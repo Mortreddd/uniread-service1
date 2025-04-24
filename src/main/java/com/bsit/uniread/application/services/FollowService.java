@@ -29,6 +29,17 @@ public class FollowService {
     private final UserService userService;
     private final FollowPublisher followPublisher;
 
+    public Page<Follow> getFollowsByUserId(int pageNo, int pageSize, UUID userId, String query) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+        User user = userService.getUserById(userId);
+
+        if(StringUtil.isNullOrEmpty(query)) {
+            return followRepository.findByFollowingOrFollowerOrFollowerFirstNameContainingIgnoreCaseOrFollowerLastNameContainingIgnoreCaseOrFollowerUsernameContainingIgnoreCaseOrFollowingFirstNameContainingIgnoreCaseOrFollowingLastNameContainingIgnoreCaseOrFollowingUsernameContainingIgnoreCase(user, user, query, query, query, query, query, query, pageable);
+        }
+
+        return followRepository.findByFollowingOrFollower(user, user, pageable);
+    }
     /**
      * Get the followers of the user or get the users matching query
      * @param pageNo

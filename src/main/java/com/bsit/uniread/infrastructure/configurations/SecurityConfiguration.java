@@ -1,5 +1,6 @@
 package com.bsit.uniread.infrastructure.configurations;
 
+import com.bsit.uniread.infrastructure.security.JsonWebTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,12 +9,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
+    private final JsonWebTokenFilter jsonWebTokenFilter;
     private final ApplicationConfiguration applicationConfiguration;
     private final String[] allowedEndpoints =  new String[]{
             "/api/v1/**",
@@ -35,9 +38,6 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-
-
-
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize ->
@@ -51,6 +51,7 @@ public class SecurityConfiguration {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(applicationConfiguration.authenticationProvider())
+                .addFilterBefore(jsonWebTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }

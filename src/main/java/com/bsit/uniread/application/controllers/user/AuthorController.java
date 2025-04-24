@@ -2,6 +2,7 @@ package com.bsit.uniread.application.controllers.user;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.response.book.BookDto;
+import com.bsit.uniread.application.dto.response.user.AuthorDto;
 import com.bsit.uniread.application.dto.response.user.UserDto;
 import com.bsit.uniread.application.services.user.AuthorService;
 import com.bsit.uniread.domain.entities.book.BookStatus;
@@ -19,6 +20,15 @@ public class AuthorController {
 
     private final AuthorService authorService;
 
+    @GetMapping
+    public ResponseEntity<Page<AuthorDto>> getAuthors(
+        @RequestParam(name = "pageNo", required = false) int pageNo,
+        @RequestParam(name = "pageSize", required = false) int pageSize,
+        @RequestParam(name = "query", required = false) String query
+    ) {
+        Page<AuthorDto> authors = authorService.getAuthors(pageNo, pageSize, query).map(AuthorDto::new);
+        return ResponseEntity.ok().body(authors);
+    }
     @GetMapping(path = "/{userId}/books")
     public ResponseEntity<Page<BookDto>> getAuthorsBook(
             @PathVariable(name = "userId") UUID userId,
@@ -31,6 +41,8 @@ public class AuthorController {
         Page<BookDto> books = authorService.getAuthorBooksById(userId, pageNo, pageSize, query, status).map(BookDto::new);
         return ResponseEntity.ok()
                 .body(books);
+
     }
+
 
 }

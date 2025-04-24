@@ -42,6 +42,18 @@ public class FollowController {
                 .body(follows);
     }
 
+    @GetMapping(path = "/follows")
+    public ResponseEntity<Page<FollowDto>> getUserFollows(
+            @PathVariable(name = "currentUserId") UUID userId,
+            @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
+            @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
+            @RequestParam(name = "query", required = false) String query
+    ) {
+        Page<FollowDto> follows = followService.getFollowsByUserId(pageNo, pageSize, userId, query).map(FollowDto::new);
+        return ResponseEntity.ok()
+                .body(follows);
+    }
+
     /**
      * Get the followers of user
      * @param userId

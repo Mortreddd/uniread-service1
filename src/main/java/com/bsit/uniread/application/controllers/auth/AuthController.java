@@ -4,6 +4,7 @@ import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.auth.ForgotPasswordRequest;
 import com.bsit.uniread.application.dto.request.auth.LoginRequest;
+import com.bsit.uniread.application.dto.request.auth.RefreshTokenRequest;
 import com.bsit.uniread.application.dto.request.user.SetupUsernameRequest;
 import com.bsit.uniread.application.dto.response.auth.LoginResponse;
 import com.bsit.uniread.application.services.auth.AuthService;
@@ -50,6 +51,15 @@ public class AuthController {
         authService.sendForgotPassword(forgotPasswordRequest.getEmail());
         return ResponseEntity.ok().build();
 
+    }
+
+    @PostMapping(path = "/refresh-token")
+    public ResponseEntity<LoginResponse> refreshToken(
+            @RequestBody RefreshTokenRequest request
+    ) {
+        LoginResponse response = authService.refreshToken(request.getRefreshToken());
+        return ResponseEntity.ok()
+                .body(response);
     }
 
     /**

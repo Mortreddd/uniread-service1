@@ -26,11 +26,22 @@ public class JsonWebTokenService {
 
     @Value("${security.jwt.secret-key}")
     private String secretKey;
+
+    @Value("${security.jwt.accessToken.expiration}")
+    private Integer accessTokenExpiration;
+    @Value("${security.jwt.refreshToken.expiration}")
+    private Integer refreshTokenExpiration;
+
     private final UserService userService;
 
-    public String generateToken(String emailAddress){
+    public String generateAccessToken(String emailAddress){
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, emailAddress);
+        return createAccessToken(claims, emailAddress);
+    }
+
+    public String generateRefreshToken(String emailAddress) {
+        Map<String, Object> claims = new HashMap<>();
+        return createRefreshToken(claims, emailAddress);
     }
 
     public User getUser(String token) {
@@ -38,14 +49,23 @@ public class JsonWebTokenService {
         return userService.getUserByEmail(email);
     }
 
-    private String createToken(Map<String, Object> claims, String emailAddress){
-        long expirationTime = DateUtil.JSON_WEB_TOKEN_EXPIRATION;
+    private String createRefreshToken(Map<String, Object> claims, String emailAddress) {
+        long expiration = refreshTokenExpiration;
+        return createToken(claims, emailAddress, expiration);
+    }
+
+    private String createAccessToken(Map<String, Object> claims, String emailAddress) {
+        long expiration = accessTokenExpiration;
+        return createToken(claims, emailAddress, expiration);
+    }
+
+    private String createToken(Map<String, Object> claims, String emailAddress, Long expiration){
         return Jwts
                 .builder()
                 .claims(claims)
                 .subject(emailAddress)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() * expirationTime))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -84,7 +104,7 @@ public class JsonWebTokenService {
 
     public boolean validateToken(String token, UserDetails userDetails) throws ExpiredJwtException {
         final String username = extractEmailAddress(token);
-        return username.equals(userDetails.getUsername()) || isTokenExpired(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
 }

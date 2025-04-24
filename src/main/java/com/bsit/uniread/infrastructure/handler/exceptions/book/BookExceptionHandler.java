@@ -1,4 +1,4 @@
-package com.bsit.uniread.infrastructure.handler.exceptions;
+package com.bsit.uniread.infrastructure.handler.exceptions.book;
 
 import com.bsit.uniread.application.dto.api.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
@@ -11,10 +11,10 @@ import org.springframework.web.context.request.WebRequest;
 import java.util.Date;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class BookExceptionHandler {
 
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Object> resourceNotFoundException(ConstraintViolationException exception, WebRequest request){
+    @ExceptionHandler(AlreadyPublishedBookException.class)
+    public ResponseEntity<Object> resourceNotFoundException(AlreadyPublishedBookException exception, WebRequest request){
         ErrorResponse details = ErrorResponse.builder()
                 .code(HttpStatus.FORBIDDEN.value())
                 .date(new Date())
@@ -23,9 +23,8 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(details);
 
     }
-
 }

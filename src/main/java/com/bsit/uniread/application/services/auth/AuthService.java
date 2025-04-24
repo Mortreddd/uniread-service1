@@ -10,6 +10,7 @@ import com.bsit.uniread.domain.entities.user.Role;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.infrastructure.handler.exceptions.auth.InvalidCredentialsException;
+import com.bsit.uniread.infrastructure.handler.exceptions.auth.TokenExpiredException;
 import com.bsit.uniread.infrastructure.handler.publishers.auth.UserRegistrationPublisher;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import jakarta.mail.MessagingException;
@@ -46,7 +47,7 @@ public class AuthService {
      * Authenticate the user using email and password
      * @param email
      * @param password
-     * @return
+     * @return loginResponse
      */
     public LoginResponse loginUser(String email, String password) {
         log.info("Email received {}", email);
@@ -61,14 +62,33 @@ public class AuthService {
         if(!authentication.isAuthenticated()) {
             throw new InvalidCredentialsException("Invalid credentials");
         }
-        String authToken = jsonWebTokenService.generateToken(email);
+        String accessToken = jsonWebTokenService.generateAccessToken(email);
+        String refreshToken = jsonWebTokenService.generateRefreshToken(email);
 
         return LoginResponse
                 .builder()
                 .iat(System.currentTimeMillis())
                 .iss(clientUrl)
-                .exp(new Date(System.currentTimeMillis() + DateUtil.JSON_WEB_TOKEN_EXPIRATION).getTime())
-                .accessToken(authToken)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    public LoginResponse refreshToken(String refreshToken) {
+        if(jsonWebTokenService.isTokenExpired(refreshToken)) {
+            throw new TokenExpiredException("Session is expired. Please log in.");
+        }
+
+        String email = jsonWebTokenService.extractEmailAddress(refreshToken);
+        String newAccessToken = jsonWebTokenService.generateAccessToken(email);
+        String newRefreshToken = jsonWebTokenService.generateRefreshToken(email);
+
+        return LoginResponse
+                .builder()
+                .iat(System.currentTimeMillis())
+                .iss(clientUrl)
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
                 .build();
     }
 

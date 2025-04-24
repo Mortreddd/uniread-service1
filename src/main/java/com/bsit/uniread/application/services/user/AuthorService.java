@@ -24,6 +24,9 @@ public class AuthorService {
     private final BookService bookService;
     private final UserService userService;
 
+    public Page<User> getAuthors(int pageNo, int pageSize, String query) {
+        return userService.getUsers(pageNo, pageSize, query);
+    }
     /**
      * Get the user books based on given userId
      * @param userId

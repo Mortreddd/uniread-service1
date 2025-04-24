@@ -13,6 +13,7 @@ public class AuthorDto {
     private String username;
     private String firstName;
     private String lastName;
+    private String fullName;
     private Long followersCount;
     private Long followingsCount;
     private Long storiesCount;
@@ -22,6 +23,7 @@ public class AuthorDto {
         this.username = user.getUsername();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
+        this.fullName = user.getFullName();
         this.followersCount = user.getFollowersCount();
         this.followingsCount = user.getFollowingsCount();
         this.storiesCount = user.getStoriesCount();

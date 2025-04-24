@@ -29,13 +29,14 @@ public class GoogleAuthService {
             userRegistrationPublisher.publishOAuthRegistration(userInfo);
         }
 
-        String authToken = jsonWebTokenService.generateToken(userInfo.getEmail());
+        String accessToken = jsonWebTokenService.generateAccessToken(userInfo.getEmail());
+        String refreshToken = jsonWebTokenService.generateRefreshToken(userInfo.getEmail());
         return LoginResponse
                 .builder()
                 .iat(System.currentTimeMillis())
                 .iss(clientUrl)
-                .exp(new Date(System.currentTimeMillis() + DateUtil.JSON_WEB_TOKEN_EXPIRATION).getTime())
-                .accessToken(authToken)
+                .refreshToken(refreshToken)
+                .accessToken(accessToken)
                 .build();
     }
 }

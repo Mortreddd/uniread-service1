@@ -1,8 +1,6 @@
 package com.bsit.uniread.domain.entities;
 
 import com.bsit.uniread.domain.entities.user.User;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,7 +13,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Table(name = "follows")
+@Table(name = "follows", indexes = {
+        @Index(name = "idx_following_id", columnList = "following_id"),
+        @Index(name = "idx_follower_id", columnList = "follower_id")
+})
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,13 +31,11 @@ public class Follow {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "follower_id", nullable = false)
     @JsonManagedReference
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User follower;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "following_id", nullable = false)
     @JsonManagedReference
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User following;
 
     @CreationTimestamp

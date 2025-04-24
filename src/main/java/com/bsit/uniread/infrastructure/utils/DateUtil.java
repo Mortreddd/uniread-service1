@@ -9,9 +9,6 @@ import java.time.ZoneId;
  * This method ensures that the current date and time are always in UTC.
  */
 public class DateUtil {
-
-    public static final Long JSON_WEB_TOKEN_EXPIRATION = 604800L;
-
     /**
      * Returns the current LocalDateTime in UTC.
      *

@@ -16,6 +16,9 @@ public interface FollowRepository extends JpaRepository<Follow, UUID>, CrudRepos
     Page<Follow> findByFollower(User user, Pageable pageable);
     Page<Follow> findByFollowing(User user, Pageable pageable);
 
+    Page<Follow> findByFollowingOrFollower(User following, User follower, Pageable pageable);
+
+    Page<Follow> findByFollowingOrFollowerOrFollowerFirstNameContainingIgnoreCaseOrFollowerLastNameContainingIgnoreCaseOrFollowerUsernameContainingIgnoreCaseOrFollowingFirstNameContainingIgnoreCaseOrFollowingLastNameContainingIgnoreCaseOrFollowingUsernameContainingIgnoreCase(User follower, User following, String followerFirstName, String followerLastName, String followerUsername, String followingFirstName, String followingLastName, String followingUsername, Pageable pageable);
     /**
      * Get the followings and search for the followings
      * @param user

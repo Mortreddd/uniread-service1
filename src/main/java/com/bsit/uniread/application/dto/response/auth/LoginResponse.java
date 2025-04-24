@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 public class LoginResponse {
 
     private String iss;
-    private Long exp;
     private Long iat;
     private String accessToken;
+    private String refreshToken;
 
 }
