@@ -10,6 +10,7 @@ import com.bsit.uniread.domain.entities.user.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,7 +61,11 @@ public class UserController {
             @PathVariable(name = "userId") UUID userId,
             @Valid @RequestBody SetupUsernameRequest request
     ) {
-        SuccessResponse response = userService.updateUsername(userId, request.getUsername());
+        userService.updateUsername(userId, request.getUsername());
+        SuccessResponse response = SuccessResponse.builder()
+                .code(HttpStatus.OK.value())
+                .message("Username has been updated")
+                .build();
         return ResponseEntity.ok()
                 .body(response);
     }

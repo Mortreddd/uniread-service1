@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +33,7 @@ public class UserService {
      * @param query
      * @return Pagination of User or Filtered By name of User
      */
+    @Transactional(readOnly = true)
     public Page<User> getUsers(int pageNo, int pageSize, String query) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
@@ -47,6 +49,7 @@ public class UserService {
      * @param googleUuid
      * @return user or null
      */
+    @Transactional(readOnly = true)
     public Optional<User> getUserByGoogleUuid(String googleUuid) {
         return userRepository.findByGoogleUuid(googleUuid);
     }
@@ -57,6 +60,7 @@ public class UserService {
      * @return User
      * @throws ResourceNotFoundException
      */
+    @Transactional(readOnly = true)
     public User getUserById(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to find user"));
@@ -67,11 +71,14 @@ public class UserService {
      * @param userIds
      * @return list of users
      */
+    @Transactional(readOnly = true)
     public List<User> getUsersById(List<UUID> userIds) {
         return userRepository.findAllById(userIds);
 
     }
 
+
+    @Transactional
     public User saveIfExistsByEmail(User user) {
         return userRepository.findByEmail(user.getEmail())
                 .orElse(userRepository.save(user));
@@ -82,6 +89,7 @@ public class UserService {
      * @return User
      * @throws ResourceNotFoundException
      */
+    @Transactional(readOnly = true)
     public User getUserByEmail(final String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to find user"));
@@ -92,6 +100,7 @@ public class UserService {
      * @param username
      * @return user
      */
+    @Transactional(readOnly = true)
     public User getUserByUsername(String username) {
         return userRepository.findByUsernameContainingIgnoreCase(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to find " + username));
@@ -102,6 +111,7 @@ public class UserService {
      * @param user
      * @return User
      */
+    @Transactional
     public User save(User user) {
         return userRepository.save(user);
     }
@@ -116,21 +126,18 @@ public class UserService {
         user.setUpdatedAt(DateUtil.now());
         return save(user);
     }
-
-    public SuccessResponse updateUsername(UUID userId, String username) {
+    public User updateUsername(UUID userId, String username) {
         User user = getUserById(userId);
         user.setUsername(username);
-        save(user);
-        return SuccessResponse.builder()
-                .code(HttpStatus.OK.value())
-                .message("Username has been updated")
-                .build();
+        return save(user);
+
     }
     /**
      * Check the email if already exists
      * @param email
      * @return Boolean
      */
+    @Transactional(readOnly = true)
     public Boolean emailExists(String email) {
          return userRepository.findByEmail(email)
                  .isPresent();

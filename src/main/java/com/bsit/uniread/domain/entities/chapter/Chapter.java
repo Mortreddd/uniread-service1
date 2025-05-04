@@ -16,6 +16,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -54,6 +55,13 @@ public class Chapter {
     private LocalDateTime updatedAt;
 
     private LocalDateTime publishedAt;
+
+    @Transient
+    private Boolean isPublished;
+
+    public Boolean getIsPublished() {
+        return Objects.equals(status, ChapterStatus.PUBLISHED);
+    }
 
     @Builder.Default
     @OneToMany(targetEntity = Paragraph.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)

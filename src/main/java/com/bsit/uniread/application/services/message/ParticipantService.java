@@ -8,6 +8,7 @@ import com.bsit.uniread.infrastructure.repositories.message.ParticipantRepositor
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,12 +18,12 @@ public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
 
-
     /**
      * Get the list of participants based on user
      * @param user
      * @return List of Participants
      */
+    @Transactional(readOnly = true)
     public List<Participant> getParticipantByUser(User user) {
         return participantRepository.findByUser(user);
     }
@@ -32,6 +33,7 @@ public class ParticipantService {
      * @param users
      * @return list of participants
      */
+    @Transactional(readOnly = true)
     public List<Participant> getParticipantsByUsers(List<User> users) {
         return participantRepository.findByUserIn(users);
     }
@@ -42,6 +44,7 @@ public class ParticipantService {
      * @param users
      * @return list of participants
      */
+    @Transactional
     public List<Participant> createParticipants(Conversation conversation, List<User> users) {
         List<Participant> participants = users.stream()
                 .map((user) -> Participant.builder()
@@ -60,9 +63,10 @@ public class ParticipantService {
      * @param conversation
      * @return List<Participant>
      */
+    @Transactional
     public List<Participant> createParticipantsByConversation(Conversation conversation, List<User> users) {
         List<Participant> participants = conversation.getParticipants();
-        participantRepository.saveAll(conversation.getParticipants());
+        participantRepository.saveAll(participants);
         return conversation.getParticipants();
     }
 

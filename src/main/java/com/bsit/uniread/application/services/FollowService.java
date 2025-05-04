@@ -9,7 +9,6 @@ import com.bsit.uniread.infrastructure.handler.publishers.follower.FollowPublish
 import com.bsit.uniread.infrastructure.repositories.FollowRepository;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import io.netty.util.internal.StringUtil;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -17,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -29,6 +29,7 @@ public class FollowService {
     private final UserService userService;
     private final FollowPublisher followPublisher;
 
+    @Transactional(readOnly = true)
     public Page<Follow> getFollowsByUserId(int pageNo, int pageSize, UUID userId, String query) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
@@ -48,6 +49,7 @@ public class FollowService {
      * @param query
      * @return Pagination of Follow
      */
+    @Transactional(readOnly = true)
     public Page<Follow> getFollowersByUserId(int pageNo, int pageSize, UUID userId, String query) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);

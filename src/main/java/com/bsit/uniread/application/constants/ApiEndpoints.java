@@ -20,6 +20,8 @@ public class ApiEndpoints {
     public static final String FOLLOW = "/api/v1/users/{currentUserId}/follow";
     // Book Chapters prefix
     public static final String BOOK_CHAPTERS = "/api/v1/books/{bookId}/chapters";
+    // Book Chapter Paragraphs prefix
+    public static final String BOOK_CHAPTER_PARAGRAPHS = "/api/v1/books/{bookId}/chapters/{chapterId}/paragraphs";
     // Book Comments prefix
     public static final String BOOK_COMMENTS = "/api/v1/books/{bookId}/comments";
     // User notifications prefix

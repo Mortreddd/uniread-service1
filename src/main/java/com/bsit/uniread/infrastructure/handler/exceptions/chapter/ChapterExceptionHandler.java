@@ -1,7 +1,6 @@
-package com.bsit.uniread.infrastructure.handler.exceptions;
+package com.bsit.uniread.infrastructure.handler.exceptions.chapter;
 
 import com.bsit.uniread.application.dto.api.ErrorResponse;
-import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,17 +10,13 @@ import org.springframework.web.context.request.WebRequest;
 import java.util.Date;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class ChapterExceptionHandler {
 
-    /**
-     * Exception handler for field validations.
-     * example: request validations
-     * @param exception
-     * @param request
-     * @return responseEntity
-     */
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Object> resourceNotFoundException(ConstraintViolationException exception, WebRequest request){
+    @ExceptionHandler(InvalidOwnerException.class)
+    public ResponseEntity<Object> invalidOwnerException(
+            InvalidOwnerException exception,
+            WebRequest request
+    ) {
         ErrorResponse details = ErrorResponse.builder()
                 .code(HttpStatus.FORBIDDEN.value())
                 .date(new Date())
@@ -34,5 +29,4 @@ public class GlobalExceptionHandler {
                 .body(details);
 
     }
-
 }

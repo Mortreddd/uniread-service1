@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +31,7 @@ public class NotificationService {
      * @param query
      * @return page of notification
      */
+    @Transactional(readOnly = true)
     public Page<Notification> getUserNotifications(UUID userId, int pageNo, int pageSize, String query) {
         User user = userService.getUserById(userId);
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
@@ -49,6 +51,7 @@ public class NotificationService {
      * @param description
      * @return notification
      */
+    @Transactional(readOnly = true)
     public Notification createNotification(User receiver, String title, String description) {
         return notificationRepository.save(
                 Notification.builder()
@@ -74,6 +77,7 @@ public class NotificationService {
         saveNotifications(notifications);
     }
 
+    @Transactional
     public void saveNotifications(List<Notification> notifications) {
         notificationRepository.saveAll(notifications);
     }

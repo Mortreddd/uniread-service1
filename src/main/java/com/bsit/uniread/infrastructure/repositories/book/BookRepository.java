@@ -149,4 +149,5 @@ public interface BookRepository
      * @return Pageable of book
      */
     Page<Book> findByUserUsernameContainingIgnoreCaseOrTitleContainingIgnoreCaseOrUserFirstNameContainingIgnoreCaseOrUserLastNameContainingIgnoreCaseAndStatus(String title, String username, String firstName, String lastName, BookStatus status, Pageable pageable);
+
 }

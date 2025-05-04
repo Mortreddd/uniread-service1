@@ -2,6 +2,7 @@ package com.bsit.uniread.domain.entities.paragraph;
 
 import com.bsit.uniread.domain.entities.chapter.Chapter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -35,9 +36,14 @@ public class Paragraph {
     @JsonBackReference
     private Chapter chapter;
 
-    @Enumerated(EnumType.STRING)
-    private ParagraphStatus status = ParagraphStatus.DRAFT;
+    private String type;
 
+    private String alignment;
+
+    private Integer position;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @CreationTimestamp

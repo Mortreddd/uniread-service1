@@ -1,11 +1,14 @@
 package com.bsit.uniread.application.controllers.chapter;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
-import com.bsit.uniread.application.dto.chapter.ChapterDto;
+import com.bsit.uniread.application.dto.api.SuccessResponse;
+import com.bsit.uniread.application.dto.request.chapter.EditChapterRequest;
+import com.bsit.uniread.application.dto.response.chapter.ChapterDto;
+import com.bsit.uniread.application.dto.request.chapter.NewChapterRequest;
 import com.bsit.uniread.application.services.chapter.ChapterService;
-import com.bsit.uniread.domain.entities.chapter.Chapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,4 +45,51 @@ public class ChapterController {
                 .body(chapters);
     }
 
+    @GetMapping(path = "/{chapterId}")
+    public ResponseEntity<ChapterDto> getBookChapter(
+            @PathVariable(name = "bookId") UUID bookId,
+            @PathVariable(name = "chapterId") UUID chapterId
+    ) {
+        ChapterDto chapter = new ChapterDto(chapterService.getBookChapterById(bookId, chapterId));
+        return ResponseEntity.ok()
+                .body(chapter);
+    }
+
+    @PostMapping(path = "/create")
+    public ResponseEntity<ChapterDto> createBook(
+            @PathVariable(name = "bookId") UUID bookId,
+            @RequestBody NewChapterRequest request
+    ) {
+        ChapterDto chapter = new ChapterDto(chapterService.createNewChapter(bookId, request.getTitle()));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(chapter);
+
+    }
+
+    @PutMapping(path = "/{chapterId}/update")
+    public ResponseEntity<ChapterDto> updateChapter(
+            @PathVariable(name = "bookId") UUID bookId,
+            @PathVariable(name = "chapterId") UUID chapterId,
+            @RequestBody EditChapterRequest request
+    ) {
+        ChapterDto chapter = new ChapterDto(chapterService.editBookChapterById(bookId, chapterId, request));
+
+        return ResponseEntity.ok()
+                .body(chapter);
+
+    }
+
+    @DeleteMapping(path = "/{chapterId}/delete")
+    public ResponseEntity<SuccessResponse> deleteChapter(
+            @PathVariable(name = "chapterId") UUID chapterId
+    ) {
+        chapterService.deleteById(chapterId);
+        SuccessResponse response = SuccessResponse.builder()
+                .message("You successfully deleted the chapter")
+                .code(HttpStatus.NO_CONTENT.value())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .body(response);
+    }
 }

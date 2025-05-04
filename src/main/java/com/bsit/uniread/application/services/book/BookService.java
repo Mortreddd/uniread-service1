@@ -46,6 +46,7 @@ public class BookService {
      * @param query
      * @return Pagination of Books
      */
+    @Transactional(readOnly = true)
     public Page<Book> getBooks(int pageNo, int pageSize, String query, BookStatus status) {
 
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
@@ -70,6 +71,7 @@ public class BookService {
      * @param status
      * @return Pageable of books
      */
+    @Transactional(readOnly = true)
     public Page<Book> getUserBooks(User user, int pageNo, int pageSize, String query, BookStatus status) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
@@ -88,6 +90,7 @@ public class BookService {
      * @param bookId
      * @return book
      */
+    @Transactional(readOnly = true)
     public Book getBookById(UUID bookId) {
         return bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the book"));
@@ -99,6 +102,7 @@ public class BookService {
      * @param status
      * @return
      */
+    @Transactional(readOnly = true)
     public Book getBookById(UUID bookId, BookStatus status) {
         if(status != null) {
             return bookRepository.findByIdAndStatus(bookId, status)
@@ -115,6 +119,7 @@ public class BookService {
      * @param pageSize
      * @return Pagination of Books
      */
+    @Transactional(readOnly = true)
     public Page<Book> getBooksByMultipleGenre(List<Genre> genres, int pageNo, int pageSize, BookStatus status) {
         Sort sort = Sort.by(Sort.Direction.ASC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
@@ -126,24 +131,13 @@ public class BookService {
     }
 
     /**
-     * Get all the books by genre
-     * @param genreId
-     * @param pageNo
-     * @param pageSize
-     * @return Pagination of Books
-     */
-    public Page<Book> getBooksByGenre(int genreId, int pageNo, int pageSize, String query, BookStatus status) {
-        Genre genre = genreService.getGenreById(genreId);
-        return getBooksByGenre(genre, pageNo, pageSize, query, status);
-    }
-
-    /**
      * Get the books based on selected genre
      * @param genreIds
      * @param pageNo
      * @param pageSize
      * @return page of books
      */
+    @Transactional(readOnly = true)
     public Page<Book> getBooksByMultipleGenreById(List<Integer> genreIds, int pageNo, int pageSize, String query, BookStatus status) {
         boolean isNullOrEmpty = Optional.ofNullable(genreIds).map(List::isEmpty).orElse(true);
         if(isNullOrEmpty) {
@@ -168,6 +162,14 @@ public class BookService {
 
     }
 
+    /**
+     * Get the book by title
+     * @param title
+     * @param pageNo
+     * @param pageSize
+     * @return
+     */
+    @Transactional(readOnly = true)
     public Page<Book> getBooksByTitle(String title, int pageNo, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
@@ -181,6 +183,7 @@ public class BookService {
      * @param pageSize
      * @return Pagination of Books
      */
+    @Transactional(readOnly = true)
     public Page<Book> getBooksByGenre(Genre genre, int pageNo, int pageSize, String query, BookStatus status) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
@@ -201,6 +204,7 @@ public class BookService {
      * @param pageSize
      * @return page of books
      */
+    @Transactional(readOnly = true)
     public Page<Book> getBooksByStatus(BookStatus status, int pageNo, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable =  PageRequest.of(pageNo, pageSize, sort);
@@ -213,12 +217,11 @@ public class BookService {
      * @return book
      * @throws IOException
      */
-    @Transactional
     public Book createBook(BookCreationRequest request) throws IOException {
         String fileUrl = imageUtils.saveImage(ImageDirectory.COVER, request.getPhoto());
         User author = userService.getUserById(request.getAuthorId());
         List<Genre> genres = genreService.getGenresByIds(request.getGenreIds());
-        Book book = bookRepository.save(Book.builder()
+        Book book = Book.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .matured(request.getMatured())
@@ -229,10 +232,9 @@ public class BookService {
                 .readCount(0)
                 .completed(false)
                 .createdAt(DateUtil.now())
-                .build()
-        );
+                .build();
 
-        return book;
+        return save(book);
     }
 
     /**
@@ -240,7 +242,6 @@ public class BookService {
      * @param bookId
      * @return book
      */
-    @Transactional
     public Book publishedBookById(UUID bookId) {
         Book book = getBookById(bookId);
 
@@ -253,9 +254,13 @@ public class BookService {
 
         publisher.newPublishBook(book);
 
-        return bookRepository.save(book);
+        return save(book);
     }
 
+    @Transactional
+    public Book save(Book book) {
+        return bookRepository.save(book);
+    }
     /**
      * Delete the book
      * @param bookId

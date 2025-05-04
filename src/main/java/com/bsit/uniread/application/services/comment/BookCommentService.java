@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -28,6 +29,7 @@ public class BookCommentService {
      * @param pageSize
      * @return page of book comments
      */
+    @Transactional(readOnly = true)
     public Page<BookComment> getBookComments(UUID bookId, int pageNo, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
@@ -43,6 +45,7 @@ public class BookCommentService {
      * @param pageSize
      * @return page of comment replies
      */
+    @Transactional(readOnly = true)
     public Page<BookComment> getBookCommentReplies(UUID bookId, UUID parentCommentId, int pageNo, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
@@ -58,6 +61,7 @@ public class BookCommentService {
      * @param bookCommentId
      * @return bookComment
      */
+    @Transactional(readOnly = true)
     public BookComment getBookCommentById(UUID bookCommentId) {
         return bookCommentRepository.findById(bookCommentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to get comment"));

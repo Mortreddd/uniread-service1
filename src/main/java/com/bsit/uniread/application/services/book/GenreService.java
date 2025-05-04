@@ -5,6 +5,7 @@ import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundExcept
 import com.bsit.uniread.infrastructure.repositories.book.GenreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class GenreService {
      * Get all the genres
      * @return list of Genres
      */
+    @Transactional(readOnly = true)
     public List<Genre> getGenres() {
         return genreRepository.findAll();
     }
@@ -26,6 +28,7 @@ public class GenreService {
      * @param genreId
      * @return Genre
      */
+    @Transactional(readOnly = true)
     public Genre getGenreById(int genreId) {
         return genreRepository.findById(genreId)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve selected genre"));
@@ -36,6 +39,7 @@ public class GenreService {
      * @param genreIds
      * @return list of genres
      */
+    @Transactional(readOnly = true)
     public List<Genre> getGenresByIds(List<Integer> genreIds) {
         return genreRepository.findAllById(genreIds);
     }
