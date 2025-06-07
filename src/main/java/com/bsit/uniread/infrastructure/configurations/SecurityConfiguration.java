@@ -28,11 +28,15 @@ public class SecurityConfiguration {
             "/api/v1/books/**",
             "/api/v1/genres/**",
             "/api/v1/genres/{genreId}/books",
+            "/api/v1/genres/options",
             "/api/v1/messages/**",
             "/api/v1/users/{userId}/**",
             "/api/v1/users",
             "/api/v1/authors/**",
             "/messages/**",
+            "/app/**",
+            "/topic/**",
+            "/queue/**",
             "/notifications/**"
     };
 

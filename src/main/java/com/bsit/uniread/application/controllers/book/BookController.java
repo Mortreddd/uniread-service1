@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -39,9 +40,16 @@ public class BookController {
             @RequestParam(name = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
             @RequestParam(name = "query", defaultValue = "", required = false) String query,
-            @RequestParam(name = "status", required = false) BookStatus status
+            @RequestParam(name = "genres", required = false) List<Integer> genres,
+            @RequestParam(name = "status", required = false) BookStatus status,
+            @RequestParam(name = "sortBy", defaultValue = "asc", required = false) String sortBy,
+            @RequestParam(name = "orderBy", defaultValue = "createdAt", required = false) String orderBy,
+            @RequestParam(name = "startDate", required = false) String startDate,
+            @RequestParam(name = "endDate", required = false) String endDate,
+            @RequestParam(name = "deletedAt", required = false) String deletedAt
     ) {
-        Page<BookDto> books = bookService.getBooks(pageNo, pageSize, query, status).map(BookDto::new);
+        Page<BookDto> books = bookService.getBooks(pageNo, pageSize, query, genres, status, sortBy, orderBy, startDate, endDate, deletedAt)
+                .map(BookDto::new);
         return ResponseEntity.ok()
                         .body(books);
     }

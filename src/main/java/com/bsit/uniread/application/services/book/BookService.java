@@ -10,6 +10,7 @@ import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundExcept
 import com.bsit.uniread.infrastructure.handler.exceptions.book.AlreadyPublishedBookException;
 import com.bsit.uniread.infrastructure.handler.publishers.book.BookEventPublisher;
 import com.bsit.uniread.infrastructure.repositories.book.BookRepository;
+import com.bsit.uniread.infrastructure.specifications.BookSpecification;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import com.bsit.uniread.infrastructure.utils.ImageDirectory;
 import com.bsit.uniread.infrastructure.utils.ImageUtils;
@@ -19,12 +20,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
 
@@ -44,22 +45,41 @@ public class BookService {
      * @param pageNo
      * @param pageSize:
      * @param query
+     * @param genreIds
+     * @param status
+     * @param sortBy
+     * @param orderBy
+     * @param startDate
+     * @param endDate
+     * @param deletedAt
      * @return Pagination of Books
      */
     @Transactional(readOnly = true)
-    public Page<Book> getBooks(int pageNo, int pageSize, String query, BookStatus status) {
+    public Page<Book> getBooks(
+            int pageNo,
+            int pageSize,
+            String query,
+            List<Integer>  genreIds,
+            BookStatus status,
+            String sortBy,
+            String orderBy,
+            String startDate,
+            String endDate,
+            String deletedAt
+    ) {
 
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        PageRequest pageRequest = PageRequest.of(pageNo, pageSize, sort);
+        Sort.Direction direction = sortBy.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
 
-        if(status != null && !StringUtil.isNullOrEmpty(query)) {
-            return bookRepository.findByUserUsernameContainingIgnoreCaseOrTitleContainingIgnoreCaseOrUserFirstNameContainingIgnoreCaseOrUserLastNameContainingIgnoreCaseAndStatus(query, query, query, query, status, pageRequest);
-        } else if (!StringUtil.isNullOrEmpty(query)) {
-            return bookRepository.findByUserUsernameContainingIgnoreCaseOrTitleContainingIgnoreCaseOrUserFirstNameContainingIgnoreCaseOrUserLastNameContainingIgnoreCase(query, query, query, query, pageRequest);
-        } else if (status != null) {
-            return getBooksByStatus(status, pageNo, pageSize);
-        }
-        return bookRepository.findAll(pageRequest);
+        Sort sort = Sort.by(direction, orderBy);
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+        Specification<Book> bookSpecification = Specification
+                .where(BookSpecification.hasDeleted(deletedAt))
+                .and(BookSpecification.hasGenres(genreIds))
+                .and(BookSpecification.hasStatus(status))
+                .and(BookSpecification.hasQuery(query));
+
+        return bookRepository.findAll(bookSpecification, pageable);
     }
 
     /**
@@ -69,20 +89,22 @@ public class BookService {
      * @param pageSize
      * @param query
      * @param status
+     * @param sortBy
+     * @param orderBy
      * @return Pageable of books
      */
     @Transactional(readOnly = true)
-    public Page<Book> getUserBooks(User user, int pageNo, int pageSize, String query, BookStatus status) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+    public Page<Book> getUserBooks(User user, int pageNo, int pageSize, String query, BookStatus status, String sortBy, String orderBy) {
+        Sort.Direction direction = sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, orderBy);
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        if(status != null && StringUtil.isNullOrEmpty(query)) {
-            return bookRepository.findByUserAndStatusAndTitleContainingIgnoreCase(user, status, query, pageable);
-        } else if (!StringUtil.isNullOrEmpty(query)) {
-            return bookRepository.findByUserAndTitleContainingIgnoreCase(user, query, pageable);
-        } else if (status != null){
-            return bookRepository.findByUserAndStatus(user, status, pageable);
-        }
-        return bookRepository.findByUser(user, pageable);
+
+        Specification<Book> bookSpecification = Specification
+                .where(BookSpecification.hasAuthor(user))
+                .and(BookSpecification.hasQuery(query))
+                .and(BookSpecification.hasStatus(status));
+
+        return bookRepository.findAll(bookSpecification, pageable);
     }
 
     /**
@@ -112,104 +134,7 @@ public class BookService {
         return getBookById(bookId);
     }
 
-    /**
-     * Get all the books based on matching genres
-     * @param genres
-     * @param pageNo
-     * @param pageSize
-     * @return Pagination of Books
-     */
-    @Transactional(readOnly = true)
-    public Page<Book> getBooksByMultipleGenre(List<Genre> genres, int pageNo, int pageSize, BookStatus status) {
-        Sort sort = Sort.by(Sort.Direction.ASC, "createdAt");
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        if(status != null) {
-            return bookRepository.findByStatusAndGenresIn(status, genres, pageable);
-        }
 
-        return bookRepository.findByGenresIn(genres, pageable);
-    }
-
-    /**
-     * Get the books based on selected genre
-     * @param genreIds
-     * @param pageNo
-     * @param pageSize
-     * @return page of books
-     */
-    @Transactional(readOnly = true)
-    public Page<Book> getBooksByMultipleGenreById(List<Integer> genreIds, int pageNo, int pageSize, String query, BookStatus status) {
-        boolean isNullOrEmpty = Optional.ofNullable(genreIds).map(List::isEmpty).orElse(true);
-        if(isNullOrEmpty) {
-            if(!StringUtil.isNullOrEmpty(query) && status != null) {
-                return getBooks(pageNo, pageSize, query, status);
-            } else if(status != null) {
-                return getBooksByStatus(status, pageNo, pageSize);
-            } else if(query != null) {
-                return getBooksByTitle(query, pageNo, pageSize);
-            }
-        }
-        List<Genre> genres = genreService.getGenresByIds(genreIds);
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        if(!StringUtil.isNullOrEmpty(query) && status != null) {
-            return bookRepository.findByStatusAndTitleContainingIgnoreCaseAndGenresIn(status, query, genres, pageable);
-        } else if(!StringUtil.isNullOrEmpty(query)) {
-            return bookRepository.findByGenresInAndTitleContainingIgnoreCase(genres, query, pageable);
-        }
-
-        return getBooksByMultipleGenre(genres, pageNo, pageSize, status);
-
-    }
-
-    /**
-     * Get the book by title
-     * @param title
-     * @param pageNo
-     * @param pageSize
-     * @return
-     */
-    @Transactional(readOnly = true)
-    public Page<Book> getBooksByTitle(String title, int pageNo, int pageSize) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        return bookRepository.findByTitleContainingIgnoreCase(title, pageable);
-    }
-
-    /**
-     * Get all the books by genre
-     * @param genre
-     * @param pageNo
-     * @param pageSize
-     * @return Pagination of Books
-     */
-    @Transactional(readOnly = true)
-    public Page<Book> getBooksByGenre(Genre genre, int pageNo, int pageSize, String query, BookStatus status) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        if(!StringUtil.isNullOrEmpty(query) && status != null) {
-            return bookRepository.findByStatusAndTitleContainingIgnoreCaseAndGenresIn(status, query, List.of(genre), pageable);
-        } else if(status != null) {
-            return bookRepository.findByStatusAndGenresIn(status, List.of(genre), pageable);
-        } else if(!StringUtil.isNullOrEmpty(query)) {
-            return bookRepository.findByTitleContainingIgnoreCaseAndGenresIn(query, List.of(genre), pageable);
-        }
-        return bookRepository.findByGenresIn(List.of(genre), pageable);
-    }
-
-    /**
-     * Get the books by status
-     * @param status
-     * @param pageNo
-     * @param pageSize
-     * @return page of books
-     */
-    @Transactional(readOnly = true)
-    public Page<Book> getBooksByStatus(BookStatus status, int pageNo, int pageSize) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Pageable pageable =  PageRequest.of(pageNo, pageSize, sort);
-        return bookRepository.findByStatus(status, pageable);
-    }
     /**
      * Create a book
      * @description if any exception occurs, all the created will be deleted
@@ -245,7 +170,8 @@ public class BookService {
     public Book publishedBookById(UUID bookId) {
         Book book = getBookById(bookId);
 
-        if(book.isPublished()) {
+        // Checks the book if already published
+        if(book.getIsPublished()) {
             throw new AlreadyPublishedBookException("This book is already published");
         }
 

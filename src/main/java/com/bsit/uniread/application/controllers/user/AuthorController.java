@@ -24,7 +24,13 @@ public class AuthorController {
     public ResponseEntity<Page<AuthorDto>> getAuthors(
         @RequestParam(name = "pageNo", required = false) int pageNo,
         @RequestParam(name = "pageSize", required = false) int pageSize,
-        @RequestParam(name = "query", required = false) String query
+        @RequestParam(name = "query", required = false) String query,
+        @RequestParam(name = "startDate", required = false) String startDate,
+        @RequestParam(name = "endDate", required = false) String endDate,
+        @RequestParam(name = "bannedAt", required = false) String bannedAt,
+
+        @RequestParam(name = "sortBy", defaultValue = "asc", required = false) String sortBy,
+        @RequestParam(name = "orderBy", defaultValue = "createdAt", required = false) String orderBy
     ) {
         Page<AuthorDto> authors = authorService.getAuthors(pageNo, pageSize, query).map(AuthorDto::new);
         return ResponseEntity.ok().body(authors);
@@ -35,10 +41,12 @@ public class AuthorController {
             @RequestParam(name = "pageNo", required = false) int pageNo,
             @RequestParam(name = "pageSize", required = false) int pageSize,
             @RequestParam(name = "query", required = false) String query,
-            @RequestParam(name = "status", required = false) BookStatus status
+            @RequestParam(name = "status", required = false) BookStatus status,
+            @RequestParam(name = "sortBy", defaultValue = "asc", required = false) String sortBy,
+            @RequestParam(name = "orderBy", defaultValue = "createdAt", required = false) String orderBy
     ) {
 
-        Page<BookDto> books = authorService.getAuthorBooksById(userId, pageNo, pageSize, query, status).map(BookDto::new);
+        Page<BookDto> books = authorService.getAuthorBooksById(userId, pageNo, pageSize, query, status, sortBy, orderBy).map(BookDto::new);
         return ResponseEntity.ok()
                 .body(books);
 

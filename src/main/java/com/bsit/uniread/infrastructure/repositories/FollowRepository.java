@@ -13,6 +13,15 @@ public interface FollowRepository extends JpaRepository<Follow, UUID>, CrudRepos
 
     Boolean existsByFollowerAndFollowing(User requester, User following);
 
+    /**
+     * Checks if the two user is mutual
+     * @param requester
+     * @param following
+     * @param mutualFollowing
+     * @param mutualRequester
+     * @return boolean
+     */
+    Boolean existsByFollowerAndFollowingAndFollowingAndFollower(User requester, User following, User mutualFollowing, User mutualRequester);
     Page<Follow> findByFollower(User user, Pageable pageable);
     Page<Follow> findByFollowing(User user, Pageable pageable);
 

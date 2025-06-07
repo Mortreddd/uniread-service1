@@ -8,6 +8,8 @@ import com.bsit.uniread.domain.entities.chapter.ChapterStatus;
 import com.bsit.uniread.domain.entities.paragraph.Paragraph;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.handler.exceptions.chapter.InvalidOwnerException;
+import com.bsit.uniread.infrastructure.handler.exceptions.chapter.PublishingChapterException;
+import com.bsit.uniread.infrastructure.handler.publishers.chapter.ChapterEventPublisher;
 import com.bsit.uniread.infrastructure.repositories.chapter.ChapterRepository;
 import com.bsit.uniread.infrastructure.repositories.paragraph.ParagraphRepository;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChapterService {
 
+    private final ChapterEventPublisher publisher;
     private final BookService bookService;
     private final ChapterRepository chapterRepository;
     private final ParagraphRepository paragraphRepository;
@@ -83,9 +86,6 @@ public class ChapterService {
     @Transactional
     public Chapter editBookChapterById(UUID bookId, UUID chapterId, EditChapterRequest request) {
         Chapter chapter = getBookChapterById(bookId, chapterId);
-        if(!Objects.equals(chapter.getBook().getId(), bookId)) {
-            throw new InvalidOwnerException("The selected chapter is not the owner of the book");
-        }
 
         List<Paragraph> paragraphs = request.getParagraphs()
                 .stream()
@@ -103,11 +103,23 @@ public class ChapterService {
         chapter.setTitle(request.getTitle());
         chapter.setParagraphs(paragraphs);
         paragraphRepository.saveAll(paragraphs);
-        return saveChapter(chapter);
+        return save(chapter);
     }
 
     @Transactional
-    public Chapter saveChapter(Chapter chapter) {
+    public Chapter publishChapter(UUID bookId, UUID chapterId, ChapterStatus status) {
+        Chapter chapter = getBookChapterById(bookId, chapterId);
+
+        if(!chapter.getBook().getIsPublished()) {
+            throw new PublishingChapterException("The book still in draft, unable to publish any chapter");
+        }
+
+        publisher.publishChapter(chapter);
+        return chapter;
+    }
+
+    @Transactional
+    public Chapter save(Chapter chapter) {
         return chapterRepository.save(chapter);
     }
 

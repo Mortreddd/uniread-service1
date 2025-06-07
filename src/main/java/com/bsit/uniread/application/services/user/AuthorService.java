@@ -33,11 +33,22 @@ public class AuthorService {
      * @param pageNo
      * @param pageSize
      * @param query
+     * @param status
+     * @param sortBy
+     * @param orderBy
      * @return Pageable of books
      */
-    public Page<Book> getAuthorBooksById(UUID userId, int pageNo, int pageSize, String query, BookStatus status) {
+    public Page<Book> getAuthorBooksById(
+            UUID userId,
+            int pageNo,
+            int pageSize,
+            String query,
+            BookStatus status,
+            String sortBy,
+            String orderBy
+    ) {
         User user = userService.getUserById(userId);
-        return bookService.getUserBooks(user, pageNo, pageSize, query, status);
+        return bookService.getUserBooks(user, pageNo, pageSize, query, status, sortBy, orderBy);
     }
 
     public User getAuthorById(UUID authorId) {

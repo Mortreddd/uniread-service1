@@ -29,7 +29,8 @@ import java.util.UUID;
 @Table(name = "users", indexes = {
         @Index(name = "idx_first_name", columnList = "first_name"),
         @Index(name = "idx_last_name", columnList = "last_name"),
-        @Index(name = "idx_username", columnList = "username")
+        @Index(name = "idx_username", columnList = "username"),
+        @Index(name = "idx_email", columnList = "email")
 })
 @Builder
 @Data
@@ -76,13 +77,10 @@ public class User implements UserDetails {
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime bannedAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime deletedAt;
 
     @Transient

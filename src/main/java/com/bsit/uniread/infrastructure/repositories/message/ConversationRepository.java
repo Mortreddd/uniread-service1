@@ -15,6 +15,5 @@ import java.util.UUID;
 @Repository
 public interface ConversationRepository extends JpaRepository<Conversation, UUID>, CrudRepository<Conversation, UUID> {
     List<Conversation> findByParticipants(List<Participant> participant);
-    Page<Conversation> findByParticipants_User(User user, Pageable pageable);
-    Page<Conversation> findByParticipants(List<Participant> participant, Pageable pageable);
+    Page<Conversation> findByParticipantsUser(User user, Pageable pageable);
 }

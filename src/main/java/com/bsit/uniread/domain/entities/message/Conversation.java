@@ -31,7 +31,7 @@ public class Conversation {
     private String name;
 
     @Builder.Default
-    @OneToMany(mappedBy = "conversation", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "conversation", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Participant> participants = new ArrayList<>();
 

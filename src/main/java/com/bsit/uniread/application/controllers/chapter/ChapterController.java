@@ -3,13 +3,17 @@ package com.bsit.uniread.application.controllers.chapter;
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.chapter.EditChapterRequest;
+import com.bsit.uniread.application.dto.request.chapter.PublishChapterRequest;
 import com.bsit.uniread.application.dto.response.chapter.ChapterDto;
 import com.bsit.uniread.application.dto.request.chapter.NewChapterRequest;
 import com.bsit.uniread.application.services.chapter.ChapterService;
+import com.bsit.uniread.domain.entities.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -77,6 +81,19 @@ public class ChapterController {
         return ResponseEntity.ok()
                 .body(chapter);
 
+    }
+
+    @PutMapping(path = "/{chapterId}/publish")
+    @PreAuthorize("@bookPermissions.isAuthor(#bookId, authentication)")
+    public ResponseEntity<ChapterDto> publishChapter(
+            @PathVariable(name = "bookId") UUID bookId,
+            @PathVariable(name = "chapterId") UUID chapterId,
+            @RequestBody PublishChapterRequest request,
+            @AuthenticationPrincipal User user
+    ) {
+        ChapterDto chapter = new ChapterDto(chapterService.publishChapter(bookId, chapterId, request.getStatus()));
+        return ResponseEntity.ok()
+                .body(chapter);
     }
 
     @DeleteMapping(path = "/{chapterId}/delete")

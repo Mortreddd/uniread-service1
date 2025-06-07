@@ -3,7 +3,6 @@ package com.bsit.uniread.application.services.message;
 import com.bsit.uniread.domain.entities.message.Conversation;
 import com.bsit.uniread.domain.entities.message.Participant;
 import com.bsit.uniread.domain.entities.user.User;
-import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.repositories.message.ParticipantRepository;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
@@ -40,22 +39,22 @@ public class ParticipantService {
 
     /**
      * Create a participants for conversation
-     * @param conversation
-     * @param users
+     * @param participants
      * @return list of participants
      */
     @Transactional
-    public List<Participant> createParticipants(Conversation conversation, List<User> users) {
-        List<Participant> participants = users.stream()
-                .map((user) -> Participant.builder()
-                        .addedAt(DateUtil.now())
-                        .conversation(conversation)
-                        .user(user)
-                        .build()
-                ).toList();
+    public List<Participant> saveParticipants(List<Participant> participants) {
+        return (List<Participant>) participantRepository.saveAll(participants);
+    }
 
-        participantRepository.saveAll(participants);
-        return participants;
+    /**
+     * Save the participant
+     * @param participant
+     * @return stored participant
+     */
+    @Transactional
+    public Participant save(Participant participant) {
+        return participantRepository.save(participant);
     }
 
     /**

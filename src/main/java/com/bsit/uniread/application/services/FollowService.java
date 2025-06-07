@@ -139,4 +139,8 @@ public class FollowService {
         log.debug("{} is following {} = {}", userRequester.getUsername(), followedUser.getUsername(), isFollowing);
         return isFollowing;
     }
+
+    public Boolean isMutual(User requester, User following) {
+        return followRepository.existsByFollowerAndFollowingAndFollowingAndFollower(requester, following, following, requester);
+    }
 }

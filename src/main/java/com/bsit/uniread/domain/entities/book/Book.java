@@ -3,7 +3,6 @@ package com.bsit.uniread.domain.entities.book;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
 import com.bsit.uniread.domain.entities.chapter.ChapterStatus;
 import com.bsit.uniread.domain.entities.user.User;
-import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -34,7 +33,7 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
@@ -55,15 +54,14 @@ public class Book {
     private List<Genre> genres;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime deletedAt;
+
+    private LocalDateTime bannedAt;
 
     private LocalDateTime publishedAt;
 
@@ -88,10 +86,8 @@ public class Book {
     @JsonManagedReference
     private List<Tag> tags = new ArrayList<>();
 
-    public Boolean isMatured(){
-        return matured;
-    }
-    public Boolean isPublished() { return status == BookStatus.PUBLISHED; }
+    @Transient
+    public Boolean isPublished;
 
     @Transient
     private Integer totalChapterPublishedCount;
@@ -110,6 +106,10 @@ public class Book {
 
     @Transient
     private Long totalRatingsCount;
+
+    public Boolean getIsPublished() {
+        return status == BookStatus.PUBLISHED;
+    }
 
     public Integer getTotalChaptersCount() {
         return chapters.size();

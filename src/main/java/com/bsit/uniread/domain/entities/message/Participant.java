@@ -33,6 +33,8 @@ public class Participant {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    private LocalDateTime readAt;
+
     @CreationTimestamp
     private LocalDateTime addedAt;
 }
