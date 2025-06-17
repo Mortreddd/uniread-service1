@@ -62,10 +62,10 @@ public class MessageService {
      * @param messageCreationRequest
      */
     @Transactional
-    public void createNewMessage(MessageCreationRequest messageCreationRequest) {
+    public void createNewMessage(MessageCreationRequest messageCreationRequest, UUID userId) {
         Conversation conversation = getConversationById(messageCreationRequest.getConversationId());
 
-        User sender = userService.getUserById(messageCreationRequest.getSenderId());
+        User sender = userService.getUserById(userId);
         
         MessageDto newMessage = new MessageDto(save(Message.builder()
                     .conversation(conversation)

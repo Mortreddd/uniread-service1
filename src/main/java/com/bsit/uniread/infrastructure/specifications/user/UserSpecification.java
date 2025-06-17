@@ -1,4 +1,4 @@
-package com.bsit.uniread.infrastructure.specifications;
+package com.bsit.uniread.infrastructure.specifications.user;
 
 import com.bsit.uniread.domain.entities.user.User;
 import org.springframework.data.jpa.domain.Specification;

@@ -26,6 +26,6 @@ public class AuthorDto {
         this.fullName = user.getFullName();
         this.followersCount = user.getFollowersCount();
         this.followingsCount = user.getFollowingsCount();
-        this.storiesCount = user.getStoriesCount();
+        this.storiesCount = user.getPublishedStoriesCount();
     }
 }

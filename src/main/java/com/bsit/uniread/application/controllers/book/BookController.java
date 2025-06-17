@@ -6,6 +6,7 @@ import com.bsit.uniread.application.dto.request.book.BookCreationRequest;
 import com.bsit.uniread.application.dto.response.book.BookDto;
 import com.bsit.uniread.application.services.book.BookService;
 import com.bsit.uniread.domain.entities.book.BookStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -77,11 +78,13 @@ public class BookController {
      */
     @PostMapping(path = "/create", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<BookDto> createBook(
-            @Valid @ModelAttribute BookCreationRequest request
+            @Valid @ModelAttribute BookCreationRequest request,
+            Authentication authentication
     ) throws IOException {
-        BookDto book = new BookDto(bookService.createBook(request));
+        BookDto book = new BookDto(bookService.createBook(request, authentication));
         return ResponseEntity.status(HttpStatus.CREATED).body(book);
     }
+
 
     @DeleteMapping(path = "/{bookId}")
     public ResponseEntity<SuccessResponse> deleteBookById(

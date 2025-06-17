@@ -35,7 +35,7 @@ public class OtpService {
      * @return Otp
      */
     final public Otp generateOtp(final String email) {
-        final User user = userService.getUserByEmail(email);
+        final User user = userService.getUserByEmailOrThrow(email);
         return otpRepository.save(
             Otp.builder()
                 .email(user.getEmail())

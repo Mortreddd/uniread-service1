@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component;
 import java.util.Objects;
 import java.util.UUID;
 
-@Component("bookPermissions")
+@Component("bookPermission")
 @RequiredArgsConstructor
-public class BookPermissions {
+public class BookPermission {
 
     private final BookService bookService;
 

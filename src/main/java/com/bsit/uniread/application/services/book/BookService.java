@@ -5,22 +5,24 @@ import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.book.Genre;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.handler.exceptions.book.AlreadyPublishedBookException;
 import com.bsit.uniread.infrastructure.handler.publishers.book.BookEventPublisher;
 import com.bsit.uniread.infrastructure.repositories.book.BookRepository;
-import com.bsit.uniread.infrastructure.specifications.BookSpecification;
+import com.bsit.uniread.infrastructure.specifications.book.BookSpecification;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import com.bsit.uniread.infrastructure.utils.ImageDirectory;
 import com.bsit.uniread.infrastructure.utils.ImageUtils;
-import io.netty.util.internal.StringUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +57,10 @@ public class BookService {
      * @return Pagination of Books
      */
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = "books",
+            key = "T(java.util.Objects).hash(#pageNo, #pageSize, #query, #genreIds != null ? #genreIds.stream().sorted().toList().toString() : '', #status, #sortBy, #orderBy, #startDate, #endDate, #deletedAt)"
+    )
     public Page<Book> getBooks(
             int pageNo,
             int pageSize,
@@ -72,7 +78,6 @@ public class BookService {
 
         Sort sort = Sort.by(direction, orderBy);
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-
         Specification<Book> bookSpecification = Specification
                 .where(BookSpecification.hasDeleted(deletedAt))
                 .and(BookSpecification.hasGenres(genreIds))
@@ -94,6 +99,7 @@ public class BookService {
      * @return Pageable of books
      */
     @Transactional(readOnly = true)
+
     public Page<Book> getUserBooks(User user, int pageNo, int pageSize, String query, BookStatus status, String sortBy, String orderBy) {
         Sort.Direction direction = sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Sort sort = Sort.by(direction, orderBy);
@@ -142,16 +148,17 @@ public class BookService {
      * @return book
      * @throws IOException
      */
-    public Book createBook(BookCreationRequest request) throws IOException {
+    public Book createBook(BookCreationRequest request, Authentication authentication) throws IOException {
         String fileUrl = imageUtils.saveImage(ImageDirectory.COVER, request.getPhoto());
-        User author = userService.getUserById(request.getAuthorId());
+        CustomUserDetails author = (CustomUserDetails) authentication.getPrincipal();
+        User user = userService.getUserById(author.getId());
         List<Genre> genres = genreService.getGenresByIds(request.getGenreIds());
         Book book = Book.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .matured(request.getMatured())
                 .genres(genres)
-                .user(author)
+                .user(user)
                 .coverPhoto(fileUrl)
                 .status(BookStatus.DRAFT)
                 .readCount(0)
@@ -187,18 +194,31 @@ public class BookService {
     public Book save(Book book) {
         return bookRepository.save(book);
     }
+
+
     /**
-     * Delete the book
+     * Safe delete the book
      * @param bookId
      * @throws IOException
      */
     @Transactional
     public void deleteBookById(UUID bookId) throws IOException {
         Book book = getBookById(bookId);
+        book.setDeletedAt(DateUtil.now());
+        save(book);
+    }
 
+    /**
+     * Force delete the book
+     * @param bookId
+     * @throws IOException
+     */
+    @Transactional
+    public void forceDeleteBookById(UUID bookId) throws IOException {
+        Book book = getBookById(bookId);
         try {
             if(imageUtils.deleteImage(book.getCoverPhoto())) {
-                bookRepository.deleteById(bookId);
+                bookRepository.delete(book);
             }
         } catch (Exception e) {
             throw new FileNotFoundException("Unable to find cover photo of the book");

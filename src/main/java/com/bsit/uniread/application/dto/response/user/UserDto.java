@@ -2,6 +2,7 @@ package com.bsit.uniread.application.dto.response.user;
 
 import com.bsit.uniread.application.dto.response.follow.FollowDto;
 import com.bsit.uniread.domain.entities.user.Gender;
+import com.bsit.uniread.domain.entities.user.Role;
 import com.bsit.uniread.domain.entities.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,9 +24,8 @@ public class UserDto {
     private Gender gender;
     private String email;
     private String photoUrl;
-    private RoleDto role;
+    private Role role;
     private LocalDateTime emailVerifiedAt;
-    private String fcmToken;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime bannedAt;
@@ -51,9 +51,8 @@ public class UserDto {
         this.gender = user.getGender();
         this.email = user.getEmail();
         this.photoUrl = user.getPhotoUrl();
-        this.role = new RoleDto(user.getRole());
+        this.role = user.getRole();
         this.emailVerifiedAt = user.getEmailVerifiedAt();
-        this.fcmToken = user.getFcmToken();
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
         this.deletedAt = user.getDeletedAt();
@@ -67,6 +66,6 @@ public class UserDto {
         this.fullName = user.getFullName();
         this.followersCount = user.getFollowersCount();
         this.followingsCount = user.getFollowingsCount();
-        this.storiesCount = user.getStoriesCount();
+        this.storiesCount = user.getPublishedStoriesCount();
     }
 }

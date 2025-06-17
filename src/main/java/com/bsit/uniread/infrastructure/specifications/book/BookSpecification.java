@@ -1,4 +1,4 @@
-package com.bsit.uniread.infrastructure.specifications;
+package com.bsit.uniread.infrastructure.specifications.book;
 
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookStatus;
@@ -8,7 +8,6 @@ import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
-import java.util.Optional;
 
 public class BookSpecification {
 

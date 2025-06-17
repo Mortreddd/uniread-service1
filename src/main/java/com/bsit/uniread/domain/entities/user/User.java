@@ -5,7 +5,6 @@ import com.bsit.uniread.domain.entities.Notification;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookComment;
 import com.bsit.uniread.domain.entities.book.BookCommentLike;
-import com.bsit.uniread.infrastructure.security.validations.constraints.UniqueEmail;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -62,15 +61,11 @@ public class User implements UserDetails {
 
     private String photoUrl;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id", nullable = false)
-    @JsonManagedReference
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime emailVerifiedAt;
-
-    private String fcmToken;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
@@ -100,6 +95,10 @@ public class User implements UserDetails {
     @Transient
     private Long storiesCount;
     @Transient
+    private Long publishedStoriesCount;
+    @Transient
+    private Long draftedStoriesCount;
+    @Transient
     private String fullName;
 
     @Builder.Default
@@ -109,12 +108,12 @@ public class User implements UserDetails {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_comment_id")
-    @JsonManagedReference
+    @JsonBackReference
     private BookComment bookComment;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_comment_like_id")
-    @JsonManagedReference
+    @JsonBackReference
     private BookCommentLike bookCommentLike;
 
     @Builder.Default
@@ -150,20 +149,34 @@ public class User implements UserDetails {
         return (long) books.size();
     }
 
+    public Long getPublishedStoriesCount() {
+        return (long) books
+                .stream()
+                .filter(Book::getIsPublished)
+                .count();
+    }
+
+    public Long getDraftedStoriesCount() {
+        return (long) books
+                .stream()
+                .filter((b) -> !b.getIsPublished())
+                .count();
+    }
+
     public Boolean getIsEmailVerified() {
         return emailVerifiedAt != null;
     }
 
     public Boolean getIsUser() {
-        return role.getName() == RoleName.USER;
+        return role == Role.USER;
     }
 
     public Boolean getIsSuperAdmin() {
-        return role.getName() == RoleName.SUPER_ADMIN;
+        return role == Role.SUPER_ADMIN;
     }
 
     public Boolean getIsAdmin() {
-        return role.getName() == RoleName.ADMIN;
+        return role == Role.ADMIN;
     }
 
     public Boolean getIsBanned() {
@@ -176,12 +189,12 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.getName().name()));
+        return List.of(new SimpleGrantedAuthority(role.toString()));
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return this.bannedAt == null;
     }
 
     @Override
@@ -196,6 +209,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.deletedAt == null && emailVerifiedAt != null;
     }
 }

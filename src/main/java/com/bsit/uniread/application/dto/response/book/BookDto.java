@@ -10,14 +10,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+
+/**
+ * Full details of a book
+ */
 @Data
 @AllArgsConstructor
 public class BookDto {
 
     private UUID id;
-
     private AuthorDto user;
-
     private String title;
     private String coverPhoto;
     private String description;

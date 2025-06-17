@@ -10,6 +10,5 @@ import java.util.UUID;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MessageCreationRequest {
     private UUID conversationId;
-    private UUID senderId;
     private String message;
 }

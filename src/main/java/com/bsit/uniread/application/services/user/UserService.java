@@ -1,7 +1,5 @@
 package com.bsit.uniread.application.services.user;
 
-import com.bsit.uniread.application.dto.api.SuccessResponse;
-import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.repositories.user.UserRepository;
@@ -12,7 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +24,12 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    @Transactional(readOnly = true)
+    public User getCurrentUser() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return getUserByEmailOrThrow(userDetails.getUsername());
+    }
 
     /**
      * Get the users with pagination
@@ -90,9 +95,14 @@ public class UserService {
      * @throws ResourceNotFoundException
      */
     @Transactional(readOnly = true)
-    public User getUserByEmail(final String email) {
+    public User getUserByEmailOrThrow(final String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to find user"));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<User> getUserByEmail(final String email) {
+        return userRepository.findByEmail(email);
     }
 
     /**

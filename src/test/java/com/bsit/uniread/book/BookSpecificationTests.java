@@ -3,7 +3,7 @@ package com.bsit.uniread.book;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.infrastructure.repositories.book.BookRepository;
-import com.bsit.uniread.infrastructure.specifications.BookSpecification;
+import com.bsit.uniread.infrastructure.specifications.book.BookSpecification;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -11,7 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.web.bind.annotation.RequestParam;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;

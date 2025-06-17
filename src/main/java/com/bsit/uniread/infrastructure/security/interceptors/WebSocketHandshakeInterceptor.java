@@ -3,7 +3,6 @@ package com.bsit.uniread.infrastructure.security.interceptors;
 import com.bsit.uniread.application.services.auth.JsonWebTokenService;
 import com.bsit.uniread.application.services.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -41,12 +40,10 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
 
             if (authToken != null) {
                 String email = jsonWebTokenService.extractEmailAddress(authToken);
-                UUID userId = userService.getUserByEmail(email).getId();
-
-                log.info("User Id: {}", userId);
+                UUID userId = userService.getUserByEmailOrThrow(email).getId();
                 // Create Principal with user ID as name
                 Principal userPrincipal = userId::toString;
-                attributes.put("userId", userPrincipal); // Spring will pick this up
+                attributes.put("userId", userPrincipal);
             }
         }
 

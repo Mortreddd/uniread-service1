@@ -6,12 +6,14 @@ import com.bsit.uniread.application.dto.request.user.SetupUsernameRequest;
 import com.bsit.uniread.application.dto.response.user.UserDto;
 import com.bsit.uniread.application.services.auth.JsonWebTokenService;
 import com.bsit.uniread.application.services.user.UserService;
-import com.bsit.uniread.domain.entities.user.User;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -46,7 +48,6 @@ public class UserController {
             @PathVariable(name = "userId") UUID userId
     ) {
         UserDto user = new UserDto(userService.getUserById(userId));
-
         return ResponseEntity.ok()
                 .body(user);
     }
@@ -72,17 +73,12 @@ public class UserController {
 
     /**
      * Extract the user based on access token or jwt token of the user
-     * @param authorizationHeader extracts the jwt token
+     * @param customUserDetails
      * @return User
      */
     @GetMapping(path = "/current")
-    public ResponseEntity<UserDto> getCurrentUser(
-            @RequestHeader("Authorization") String authorizationHeader
-    ) {
-        String accessToken = authorizationHeader.substring(7);
-        User user = jsonWebTokenService.getUser(accessToken);
-        UserDto currentUser = new UserDto(user);
+    public ResponseEntity<Object> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return ResponseEntity.ok()
-                .body(currentUser);
+                .body(customUserDetails);
     }
 }
