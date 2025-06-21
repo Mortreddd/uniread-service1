@@ -34,20 +34,22 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
             WebSocketHandler wsHandler,
             Map<String, Object> attributes
     ) throws Exception {
-        if (request instanceof ServletServerHttpRequest servletRequest) {
-            HttpServletRequest httpServletRequest = servletRequest.getServletRequest();
-            String authToken = httpServletRequest.getParameter("access_token");
+        log.debug("Handshake initiated for: {}", request.getURI());
+        if (request instanceof ServletServerHttpRequest) {
+            ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
+            String token = servletRequest.getServletRequest().getParameter("access_token");
+            log.debug("Token found: {}", token);
 
-            if (authToken != null) {
-                String email = jsonWebTokenService.extractEmailAddress(authToken);
-                UUID userId = userService.getUserByEmailOrThrow(email).getId();
-                // Create Principal with user ID as name
-                Principal userPrincipal = userId::toString;
-                attributes.put("userId", userPrincipal);
+            if (token != null) {
+                UUID userId = jsonWebTokenService.extractUserId(token);
+                log.debug("Authenticating user: {}", userId);
+
+                attributes.put("user", (Principal) userId::toString);
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     @Override

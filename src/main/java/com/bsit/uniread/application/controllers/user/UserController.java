@@ -3,6 +3,7 @@ package com.bsit.uniread.application.controllers.user;
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.user.SetupUsernameRequest;
+import com.bsit.uniread.application.dto.response.user.AuthorDto;
 import com.bsit.uniread.application.dto.response.user.UserDto;
 import com.bsit.uniread.application.services.auth.JsonWebTokenService;
 import com.bsit.uniread.application.services.user.UserService;
@@ -12,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,10 +44,10 @@ public class UserController {
      * @return user
      */
     @GetMapping(path = "/{userId}")
-    public ResponseEntity<UserDto> getUserById(
+    public ResponseEntity<AuthorDto> getUserById(
             @PathVariable(name = "userId") UUID userId
     ) {
-        UserDto user = new UserDto(userService.getUserById(userId));
+        AuthorDto user = new AuthorDto(userService.getUserById(userId));
         return ResponseEntity.ok()
                 .body(user);
     }
@@ -77,8 +77,8 @@ public class UserController {
      * @return User
      */
     @GetMapping(path = "/current")
-    public ResponseEntity<Object> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+    public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return ResponseEntity.ok()
-                .body(customUserDetails);
+                .body(new UserDto(customUserDetails));
     }
 }

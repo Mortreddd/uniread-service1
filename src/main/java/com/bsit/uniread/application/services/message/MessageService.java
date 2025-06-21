@@ -4,6 +4,7 @@ import com.bsit.uniread.application.dto.request.message.MessageCreationRequest;
 import com.bsit.uniread.application.dto.response.message.MessageDto;
 import com.bsit.uniread.domain.entities.message.Conversation;
 import com.bsit.uniread.domain.entities.message.Message;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.handler.publishers.message.MessagePublisher;
@@ -62,11 +63,11 @@ public class MessageService {
      * @param messageCreationRequest
      */
     @Transactional
-    public void createNewMessage(MessageCreationRequest messageCreationRequest, UUID userId) {
+    public void createNewMessage(MessageCreationRequest messageCreationRequest, CustomUserDetails userDetails) {
         Conversation conversation = getConversationById(messageCreationRequest.getConversationId());
 
-        User sender = userService.getUserById(userId);
-        
+        User sender = userService.getUserById(userDetails.getId());
+
         MessageDto newMessage = new MessageDto(save(Message.builder()
                     .conversation(conversation)
                     .message(messageCreationRequest.getMessage())

@@ -21,6 +21,7 @@ public class SecurityConfiguration {
     private final JsonWebTokenFilter jsonWebTokenFilter;
     private final ApplicationConfiguration applicationConfiguration;
     private final CustomUserDetailsService customUserDetailsService;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     private final String[] allowedEndpoints =  new String[]{
             "/api/v1/profile/*",
@@ -35,19 +36,15 @@ public class SecurityConfiguration {
             "/api/v1/genres/*/books",
             "/api/v1/genres/options",
             "/api/v1/messages/**",
-            "/api/v1/users",
             "/api/v1/authors/**",
-            "/messages/**",
-            "/app/**",
-            "/topic/**",
-            "/queue/**",
-            "/notifications/**"
+            "/ws/**" // Disable the authentication for WebSocket
     };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource.corsConfiguration()))
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers(allowedEndpoints)

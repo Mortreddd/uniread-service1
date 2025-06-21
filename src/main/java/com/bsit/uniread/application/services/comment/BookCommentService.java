@@ -4,6 +4,7 @@ import com.bsit.uniread.application.services.book.BookService;
 import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookComment;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.repositories.book.BookCommentRepository;
@@ -112,7 +113,7 @@ public class BookCommentService {
     /**
      * Create a book feedback which automatically a parent comment for the book
      * @param bookId
-     * @param commenterId
+     * @param userDetails
      * @param content
      * @param rating
      * @return bookComment
@@ -120,17 +121,12 @@ public class BookCommentService {
     @Transactional
     public BookComment createBookComment(
             UUID bookId,
-//            UUID commenterId,
-//            User user,
+            CustomUserDetails userDetails,
             String content,
             int rating
     ) {
         Book book = bookService.getBookById(bookId);
-//        User user = userService.getUserById(commenterId);
-        User user = (User) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
+        User user = userService.getUserById(userDetails.getId());
 
         BookComment comment = BookComment
                 .builder()

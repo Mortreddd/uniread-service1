@@ -5,11 +5,13 @@ import com.bsit.uniread.application.dto.request.book.BookCommentCreationRequest;
 import com.bsit.uniread.application.dto.request.book.BookCommentReplyCreationRequest;
 import com.bsit.uniread.application.dto.response.book.BookCommentDto;
 import com.bsit.uniread.application.services.comment.BookCommentService;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -90,10 +92,11 @@ public class BookCommentController {
     @PostMapping(path = "/create")
     public ResponseEntity<BookCommentDto> createBookComment(
             @PathVariable(name = "bookId") UUID bookId,
-            @RequestBody BookCommentCreationRequest request
-    ) {
+            @RequestBody BookCommentCreationRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+            ) {
         BookCommentDto bookComment = new BookCommentDto(
-                bookCommentService.createBookComment(bookId, request.getContent(), request.getRating())
+                bookCommentService.createBookComment(bookId, userDetails, request.getContent(), request.getRating())
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)

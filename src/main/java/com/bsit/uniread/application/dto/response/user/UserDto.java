@@ -1,6 +1,6 @@
 package com.bsit.uniread.application.dto.response.user;
 
-import com.bsit.uniread.application.dto.response.follow.FollowDto;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.Gender;
 import com.bsit.uniread.domain.entities.user.Role;
 import com.bsit.uniread.domain.entities.user.User;
@@ -9,7 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -17,9 +16,9 @@ import java.util.UUID;
 @NoArgsConstructor
 public class UserDto {
     private UUID id;
-    private String googleUuid;
     private String firstName;
     private String lastName;
+    private String fullName;
     private String username;
     private Gender gender;
     private String email;
@@ -30,23 +29,17 @@ public class UserDto {
     private LocalDateTime updatedAt;
     private LocalDateTime bannedAt;
     private LocalDateTime deletedAt;
-    private List<FollowDto> followers;
-    private List<FollowDto> followings;
     private Boolean isEmailVerified;
     private Boolean isUser;
     private Boolean isSuperAdmin;
     private Boolean isAdmin;
     private Boolean isBanned;
-    private String fullName;
-    private Long followersCount;
-    private Long followingsCount;
-    private Long storiesCount;
 
     public UserDto (User user) {
         this.id = user.getId();
-        this.googleUuid = user.getGoogleUuid();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
+        this.fullName = user.getFullName();
         this.username = user.getUsername();
         this.gender = user.getGender();
         this.email = user.getEmail();
@@ -56,16 +49,32 @@ public class UserDto {
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
         this.deletedAt = user.getDeletedAt();
-        this.followers = user.getFollowers().stream().map(FollowDto::new).toList();
-        this.followings = user.getFollowings().stream().map(FollowDto::new).toList();
         this.isEmailVerified = user.getIsEmailVerified();
         this.isUser = user.getIsUser();
         this.isSuperAdmin = user.getIsSuperAdmin();
         this.isAdmin = user.getIsAdmin();
         this.isBanned = user.getIsBanned();
-        this.fullName = user.getFullName();
-        this.followersCount = user.getFollowersCount();
-        this.followingsCount = user.getFollowingsCount();
-        this.storiesCount = user.getPublishedStoriesCount();
+    }
+
+
+    public UserDto(CustomUserDetails userDetails)  {
+        this.id = userDetails.getId();
+        this.firstName = userDetails.getFirstName();
+        this.lastName = userDetails.getLastName();
+        this.fullName = userDetails.getFullName();
+        this.username = userDetails.getUsername();
+        this.gender = userDetails.getGender();
+        this.email = userDetails.getEmail();
+        this.photoUrl = userDetails.getPhotoUrl();
+        this.role = userDetails.getRole();
+        this.emailVerifiedAt = userDetails.getEmailVerifiedAt();
+        this.createdAt = userDetails.getCreatedAt();
+        this.updatedAt = userDetails.getUpdatedAt();
+        this.deletedAt = userDetails.getDeletedAt();
+        this.isEmailVerified = userDetails.getIsEmailVerified();
+        this.isUser = userDetails.getIsUser();
+        this.isSuperAdmin = userDetails.getIsSuperAdmin();
+        this.isAdmin = userDetails.getIsAdmin();
+        this.isBanned = userDetails.getIsBanned();
     }
 }

@@ -3,7 +3,6 @@ package com.bsit.uniread.application.controllers.user;
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.response.book.BookDto;
 import com.bsit.uniread.application.dto.response.user.AuthorDto;
-import com.bsit.uniread.application.dto.response.user.UserDto;
 import com.bsit.uniread.application.services.user.AuthorService;
 import com.bsit.uniread.domain.entities.book.BookStatus;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +21,12 @@ public class AuthorController {
 
     @GetMapping
     public ResponseEntity<Page<AuthorDto>> getAuthors(
-        @RequestParam(name = "pageNo", required = false) int pageNo,
-        @RequestParam(name = "pageSize", required = false) int pageSize,
+        @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
+        @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
         @RequestParam(name = "query", required = false) String query,
         @RequestParam(name = "startDate", required = false) String startDate,
         @RequestParam(name = "endDate", required = false) String endDate,
         @RequestParam(name = "bannedAt", required = false) String bannedAt,
-
         @RequestParam(name = "sortBy", defaultValue = "asc", required = false) String sortBy,
         @RequestParam(name = "orderBy", defaultValue = "createdAt", required = false) String orderBy
     ) {
@@ -38,8 +36,8 @@ public class AuthorController {
     @GetMapping(path = "/{userId}/books")
     public ResponseEntity<Page<BookDto>> getAuthorsBook(
             @PathVariable(name = "userId") UUID userId,
-            @RequestParam(name = "pageNo", required = false) int pageNo,
-            @RequestParam(name = "pageSize", required = false) int pageSize,
+            @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
+            @RequestParam(name = "pageSize", required = false, defaultValue = "0") int pageSize,
             @RequestParam(name = "query", required = false) String query,
             @RequestParam(name = "status", required = false) BookStatus status,
             @RequestParam(name = "sortBy", defaultValue = "asc", required = false) String sortBy,

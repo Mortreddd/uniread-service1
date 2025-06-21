@@ -6,6 +6,7 @@ import com.bsit.uniread.application.dto.request.reaction.BookCommentReactionRequ
 import com.bsit.uniread.application.dto.response.reaction.BookCommentLikeDto;
 import com.bsit.uniread.application.services.reaction.BookCommentReactionService;
 import com.bsit.uniread.application.services.user.UserService;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,38 +35,14 @@ public class BookCommentReactionController {
             @PathVariable(name = "bookId") UUID bookId,
             @PathVariable(name = "commentId") UUID commentId,
             @RequestBody BookCommentReactionRequest request,
-            @AuthenticationPrincipal User userPrincipal
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+        BookCommentLikeDto like = new BookCommentLikeDto(
+                bookCommentReactionService.createReaction(bookId, commentId, userDetails, request.getReaction())
+        );
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null) {
-            log.error("Authentication is NULL in SecurityContextHolder");
-        } else {
-            log.info("Authentication class: {}", authentication.getClass().getName());
-            log.info("Principal class: {}", authentication.getPrincipal().getClass().getName());
-            log.info("Is authenticated: {}", authentication.isAuthenticated());
-            log.info("Authorities: {}", authentication.getAuthorities());
-
-            if (authentication.getPrincipal() instanceof UserDetails) {
-                UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-                log.info("UserDetails username: {}", userDetails.getUsername());
-            }
-        }
-
-        if (userPrincipal == null) {
-            log.error("@AuthenticationPrincipal is NULL");
-        } else {
-            log.info("@AuthenticationPrincipal user: {}", userPrincipal.getUsername());
-        }
-//        BookCommentLikeDto like = new BookCommentLikeDto(
-//                bookCommentReactionService.createReaction(bookId, commentId, user, request.getReaction())
-//        );
-//
-//        return ResponseEntity.status(HttpStatus.CREATED)
-//                .body(like);
-
-        return null;
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(like);
     }
 
 

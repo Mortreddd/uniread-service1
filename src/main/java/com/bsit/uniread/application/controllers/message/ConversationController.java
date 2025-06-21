@@ -5,9 +5,11 @@ import com.bsit.uniread.application.dto.response.message.ConversationDto;
 import com.bsit.uniread.application.dto.response.message.MessageDto;
 import com.bsit.uniread.application.services.conversation.ConversationService;
 import com.bsit.uniread.application.services.message.MessageService;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -32,12 +34,12 @@ public class ConversationController {
      */
     @GetMapping
     public ResponseEntity<Page<ConversationDto>> getUserConversations(
-            @PathVariable(name = "userId", required = false) UUID userId,
             @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
-            @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize
+            @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Page<ConversationDto> conversation = conversationService
-                .getUserConversationsById(userId, pageNo, pageSize)
+                .getUserConversationsById(userDetails.getId(), pageNo, pageSize)
                 .map(ConversationDto::new);
 
         return ResponseEntity.ok()
@@ -46,10 +48,10 @@ public class ConversationController {
 
     @GetMapping(path = "/{conversationId}")
     public ResponseEntity<ConversationDto> getConversationById(
-            @PathVariable(name = "userId") UUID userId,
-            @PathVariable(name = "conversationId") UUID conversationId
+            @PathVariable(name = "conversationId") UUID conversationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        ConversationDto conversation = new ConversationDto(conversationService.getConversationById(userId, conversationId));
+        ConversationDto conversation = new ConversationDto(conversationService.getConversationById(userDetails.getId(), conversationId));
         return ResponseEntity.ok()
                 .body(conversation);
     }

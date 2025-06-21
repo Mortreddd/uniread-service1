@@ -26,6 +26,9 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     private final JsonWebTokenService jsonWebTokenService;
     @Value("${client.url}")
     private String clientUrl;
+
+
+    private static final String API_PATH = "/ws";
     /**
      * Register the prefixes of all the topics
      * @param registry
@@ -44,21 +47,31 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
      */
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        String[] paths = {
-                "/conversations",
-                "/messages",
-                "/notifications"
-        };
-        registry.addEndpoint(paths)
+        registry.addEndpoint("/ws/messages")
                 .addInterceptors(new WebSocketHandshakeInterceptor(jsonWebTokenService, userService))
-                .setHandshakeHandler(new DefaultHandshakeHandler() {
-                    @Override
-                    protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
-                        return (Principal) attributes.get("userId");
-                    }
-                })
+                .setHandshakeHandler(defaultHandshakeHandler())
                 .setAllowedOriginPatterns(clientUrl)
                 .withSockJS();
 
+        registry.addEndpoint("/ws/conversations")
+                .addInterceptors(new WebSocketHandshakeInterceptor(jsonWebTokenService, userService))
+                .setHandshakeHandler(defaultHandshakeHandler())
+                .setAllowedOriginPatterns(clientUrl)
+                .withSockJS();
+
+        registry.addEndpoint("/ws/notifications")
+                .addInterceptors(new WebSocketHandshakeInterceptor(jsonWebTokenService, userService))
+                .setHandshakeHandler(defaultHandshakeHandler())
+                .setAllowedOriginPatterns(clientUrl)
+                .withSockJS();
+    }
+
+    private DefaultHandshakeHandler defaultHandshakeHandler() {
+        return new DefaultHandshakeHandler() {
+            @Override
+            protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
+                return (Principal) attributes.get("user");
+            }
+        };
     }
 }

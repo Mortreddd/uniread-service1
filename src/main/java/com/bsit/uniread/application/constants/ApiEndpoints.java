@@ -13,7 +13,7 @@ public class ApiEndpoints {
     // Users prefix
     public static final String USERS = "/api/v1/users";
     // User's Conversation prefix
-    public static final String CONVERSATIONS = "/api/v1/users/{userId}/conversations";
+    public static final String CONVERSATIONS = "/api/v1/conversations";
     // Genres prefix
     public static final String GENRES = "/api/v1/genres";
     // User following or follower activity prefix
@@ -27,6 +27,6 @@ public class ApiEndpoints {
     // Book Comments Reaction prefix
     public static final String BOOK_COMMENTS_REACTIONS = "/api/v1/books/{bookId}/comments/{commentId}/reactions";
     // User notifications prefix
-    public static final String USER_NOTIFICATION = "/api/v1/users/{userId}/notifications";
+    public static final String NOTIFICATIONS = "/api/v1/notifications";
 
 }

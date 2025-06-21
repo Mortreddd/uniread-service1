@@ -5,6 +5,7 @@ import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.domain.entities.Reaction;
 import com.bsit.uniread.domain.entities.book.BookComment;
 import com.bsit.uniread.domain.entities.book.BookCommentLike;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.handler.exceptions.reaction.AlreadyReactedException;
@@ -39,10 +40,12 @@ public class BookCommentReactionService {
     public BookCommentLike createReaction(
             UUID bookId,
             UUID bookCommentId,
-            User reactor,
+            CustomUserDetails userDetails,
             Reaction reaction
     ) {
+
         BookComment comment = bookCommentService.getBookCommentById(bookCommentId);
+        User reactor = userService.getUserById(userDetails.getId());
 
         if(alreadyReacted(reactor, comment)) {
             throw new AlreadyReactedException("Unable to save repeated reaction");
