@@ -16,7 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Table(name = "collaborators")
+@Table(name = "collaborators", indexes = {
+        @Index(name = "idx_book_id", columnList = "book_id"),
+        @Index(name = "idx_user_id", columnList = "user_id"),
+})
 @Entity
 @Data
 @AllArgsConstructor
@@ -34,7 +37,7 @@ public class Collaborator {
     private Book book;
 
     @Builder.Default
-    @OneToMany(targetEntity = User.class, fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @OneToMany(targetEntity = User.class, fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id")
     private List<User> users = new ArrayList<>();
 

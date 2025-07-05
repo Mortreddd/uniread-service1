@@ -1,6 +1,5 @@
 package com.bsit.uniread.domain.entities.chapter;
 
-import com.bsit.uniread.domain.entities.Reaction;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.paragraph.Paragraph;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -22,7 +21,9 @@ import java.util.UUID;
 
 @Entity
 @Table(indexes = {
-        @Index(name = "idx_book_id", columnList = "book_id")
+        @Index(name = "idx_book_id", columnList = "book_id"),
+        @Index(name = "idx_status", columnList = "status"),
+        @Index(name = "idx_paragraph_id", columnList = "paragraph_id")
 })
 @Data
 @AllArgsConstructor
@@ -47,12 +48,12 @@ public class Chapter {
     private Long readCount;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
+
+    private LocalDateTime deletedAt;
 
     private LocalDateTime publishedAt;
 

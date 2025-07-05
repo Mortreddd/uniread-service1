@@ -22,7 +22,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,28 +117,12 @@ public class BookService {
      * @param bookId
      * @return book
      */
+    @Cacheable(value = "T(java.util.Objects).hash(#bookId)")
     @Transactional(readOnly = true)
     public Book getBookById(UUID bookId) {
         return bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the book"));
     }
-
-    /**
-     * Get the book by id and status
-     * @param bookId
-     * @param status
-     * @return
-     */
-    @Transactional(readOnly = true)
-    public Book getBookById(UUID bookId, BookStatus status) {
-        if(status != null) {
-            return bookRepository.findByIdAndStatus(bookId, status)
-                    .orElseThrow(() -> new ResourceNotFoundException("No current book published"));
-        }
-
-        return getBookById(bookId);
-    }
-
 
     /**
      * Create a book
@@ -148,10 +131,9 @@ public class BookService {
      * @return book
      * @throws IOException
      */
-    public Book createBook(BookCreationRequest request, Authentication authentication) throws IOException {
+    public Book createBook(BookCreationRequest request, CustomUserDetails userDetails) throws IOException {
         String fileUrl = imageUtils.saveImage(ImageDirectory.COVER, request.getPhoto());
-        CustomUserDetails author = (CustomUserDetails) authentication.getPrincipal();
-        User user = userService.getUserById(author.getId());
+        User user = userService.getUserById(userDetails.getId());
         List<Genre> genres = genreService.getGenresByIds(request.getGenreIds());
         Book book = Book.builder()
                 .title(request.getTitle())

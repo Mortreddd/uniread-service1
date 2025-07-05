@@ -1,23 +1,17 @@
 package com.bsit.uniread.application.controllers.auth;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
-import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.auth.ForgotPasswordRequest;
 import com.bsit.uniread.application.dto.request.auth.LoginRequest;
 import com.bsit.uniread.application.dto.request.auth.RefreshTokenRequest;
-import com.bsit.uniread.application.dto.request.user.SetupUsernameRequest;
 import com.bsit.uniread.application.dto.response.auth.LoginResponse;
 import com.bsit.uniread.application.services.auth.AuthService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.UUID;
 
 /**

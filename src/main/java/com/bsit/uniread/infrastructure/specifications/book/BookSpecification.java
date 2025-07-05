@@ -8,9 +8,16 @@ import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
+import java.util.UUID;
 
 public class BookSpecification {
 
+    /**
+     * Create a condition for a search or query
+     * It query the username, firstName, lastName of the owner and title of the book
+     * @param query
+     * @return org.springframework.data.jpa.domain.Specification
+     */
     public static Specification<Book> hasQuery(String query) {
         return (root, query1, cb) -> {
             if(query == null || query.isBlank()) return null;
@@ -25,13 +32,22 @@ public class BookSpecification {
         };
     }
 
+    /**
+     * Creates a condition for a book depending on the status given
+     * if status is null, it bypasses the condition instead
+     * @param status
+     * @return org.springframework.data.jpa.domain.Specification
+     */
     public static Specification<Book> hasStatus(BookStatus status) {
-        return (root, query1, cb) -> {
-            return status == null ? null :
-                    cb.equal(root.get("status"), status);
-        };
+        return (root, query1, cb) -> status == null ? null : cb.equal(root.get("status"), status);
     }
 
+    /**
+     * Create a condition for book for soft delete
+     * Giving null as a parameter will bypass the condition
+     * @param deletedAt
+     * @return org.springframework.data.jpa.domain.Specification
+     */
     public static Specification<Book> hasDeleted(String deletedAt) {
         return (root, query, cb) -> {
             if(deletedAt == null || deletedAt.isBlank()) {
@@ -42,6 +58,12 @@ public class BookSpecification {
         };
     }
 
+    /**
+     * Create a condition for book matching given genre ids
+     * Providing empty list of genre ids will bypass the condition
+     * @param ids
+     * @return org.springframework.data.jpa.domain.Specification
+     */
     public static Specification<Book> hasGenres(List<Integer> ids) {
         return (root, query, cb) -> {
             if(ids == null || ids.isEmpty()) return null;
@@ -51,7 +73,21 @@ public class BookSpecification {
         };
     }
 
+    /**
+     * Create a condition for book matching the provided user
+     * @param user
+     * @return org.springframework.data.jpa.domain.Specification
+     */
     public static Specification<Book> hasAuthor(User user) {
         return (root, query, builder) -> builder.equal(root.get("user"), user);
+    }
+
+    /**
+     * Create a condition for book matching the provider user id
+     * @param userId
+     * @return org.springframework.data.jpa.domain.Specification
+     */
+    public static Specification<Book> hasAuthorById(UUID userId) {
+        return (root, query, builder) -> builder.equal(root.get("user").get("id"), userId);
     }
 }

@@ -6,7 +6,9 @@ import com.bsit.uniread.application.dto.request.book.BookCreationRequest;
 import com.bsit.uniread.application.dto.response.book.BookDto;
 import com.bsit.uniread.application.services.book.BookService;
 import com.bsit.uniread.domain.entities.book.BookStatus;
-import org.springframework.security.core.Authentication;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,13 @@ public class BookController {
      * @param pageNo
      * @param pageSize
      * @param query
+     * @param genres
+     * @param status
+     * @param sortBy
+     * @param orderBy
+     * @param startDate
+     * @param endDate
+     * @param deletedAt
      * @return page of books
      */
     @GetMapping
@@ -61,11 +70,12 @@ public class BookController {
      * @return book
      */
     @GetMapping(path = "/{bookId}")
+    @PreAuthorize("@bookPermission.isPublished(#bookId, #userDetails)")
     public ResponseEntity<BookDto> getBookById(
             @PathVariable(name = "bookId") UUID bookId,
-            @RequestParam(name = "status", required = false) BookStatus status
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        BookDto book = new BookDto(bookService.getBookById(bookId, status));
+        BookDto book = new BookDto(bookService.getBookById(bookId));
         return ResponseEntity.ok()
                 .body(book);
     }
@@ -79,12 +89,11 @@ public class BookController {
     @PostMapping(path = "/create", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<BookDto> createBook(
             @Valid @ModelAttribute BookCreationRequest request,
-            Authentication authentication
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) throws IOException {
-        BookDto book = new BookDto(bookService.createBook(request, authentication));
+        BookDto book = new BookDto(bookService.createBook(request, userDetails));
         return ResponseEntity.status(HttpStatus.CREATED).body(book);
     }
-
 
     @DeleteMapping(path = "/{bookId}")
     public ResponseEntity<SuccessResponse> deleteBookById(

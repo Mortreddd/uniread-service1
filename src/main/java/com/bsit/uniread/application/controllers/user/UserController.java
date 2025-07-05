@@ -31,9 +31,16 @@ public class UserController {
     public ResponseEntity<Page<UserDto>> getUsers(
             @RequestParam(name = "pageNo", required = false, defaultValue = "0") Integer pageNo,
             @RequestParam(name = "pageSize", required = false, defaultValue = "10") Integer pageSize,
-            @RequestParam(name = "query", required = false) String query
+            @RequestParam(name = "query", required = false) String query,
+            @RequestParam(name = "sortBy", required = false, defaultValue = "asc") String sortBy,
+            @RequestParam(name = "orderBy", required = false, defaultValue = "createdAt") String orderBy,
+            @RequestParam(name = "startDate", required = false) String startDate,
+            @RequestParam(name = "endDate", required = false) String endDate,
+            @RequestParam(name = "bannedAt", required = false) String bannedAt,
+            @RequestParam(name = "deletedAt", required = false) String deletedAt
     ) {
-        Page<UserDto> users = userService.getUsers(pageNo, pageSize, query).map(UserDto::new);
+        Page<UserDto> users = userService.getUsers(pageNo, pageSize, query, sortBy, orderBy, startDate, endDate, bannedAt, deletedAt)
+                .map(UserDto::new);
         return ResponseEntity.ok()
                 .body(users);
     }

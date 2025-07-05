@@ -1,15 +1,21 @@
 package com.bsit.uniread.application.services.user;
 
+import com.bsit.uniread.domain.entities.book.Book;
+import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.repositories.user.UserRepository;
+import com.bsit.uniread.infrastructure.specifications.book.BookSpecification;
+import com.bsit.uniread.infrastructure.specifications.user.UserSpecification;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import io.netty.util.internal.StringUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -25,29 +31,47 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    @Transactional(readOnly = true)
-    public User getCurrentUser() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return getUserByEmailOrThrow(userDetails.getUsername());
-    }
-
     /**
-     * Get the users with pagination
+     * Get the users or authors will be based on pageNumber, pageSize, and query if not empty or null.
+     * The authors queried that matches the query
      * @param pageNo
      * @param pageSize
      * @param query
-     * @return Pagination of User or Filtered By name of User
+     * @param sortBy
+     * @param orderBy
+     * @param startDate
+     * @param endDate
+     * @param bannedAt
+     * @param deletedAt
+     * @return Pagination of Books
      */
     @Transactional(readOnly = true)
-    public Page<User> getUsers(int pageNo, int pageSize, String query) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        if(!StringUtil.isNullOrEmpty(query)) {
-            return userRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrUsernameIgnoreCase(query, query, query, pageable);
-        }
-        return userRepository.findAll(pageable);
-    }
+    @Cacheable(
+            value = "books",
+            key = "T(java.util.Objects).hash(#pageNo, #pageSize, #query, #sortBy, #orderBy, #startDate, #endDate, #bannedAt, #deletedAt)"
+    )
+    public Page<User> getUsers(
+            int pageNo,
+            int pageSize,
+            String query,
+            String sortBy,
+            String orderBy,
+            String startDate,
+            String endDate,
+            String bannedAt,
+            String deletedAt
+    ) {
 
+        Sort.Direction direction = sortBy.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+
+        Sort sort = Sort.by(direction, orderBy);
+        Specification<User> userSpecification = Specification
+                .where(UserSpecification.hasDeleted(deletedAt))
+                .and(UserSpecification.hasBanned(bannedAt))
+                .and(UserSpecification.hasQuery(query));
+
+        return userRepository.findAll(userSpecification, PageRequest.of(pageNo, pageSize, sort));
+    }
 
     /**
      * Get the user based on googleUuid
@@ -82,8 +106,12 @@ public class UserService {
 
     }
 
-
-    @Transactional
+    /**
+     * Get the user by email
+     * @param user
+     * @return User
+     */
+    @Transactional(readOnly = true)
     public User saveIfExistsByEmail(User user) {
         return userRepository.findByEmail(user.getEmail())
                 .orElse(userRepository.save(user));
@@ -136,6 +164,13 @@ public class UserService {
         user.setUpdatedAt(DateUtil.now());
         return save(user);
     }
+
+    /**
+     * Update the username of selected user id
+     * @param userId
+     * @param username
+     * @return
+     */
     public User updateUsername(UUID userId, String username) {
         User user = getUserById(userId);
         user.setUsername(username);

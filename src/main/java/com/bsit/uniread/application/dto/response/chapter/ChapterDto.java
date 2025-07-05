@@ -14,7 +14,7 @@ import java.util.UUID;
 public class ChapterDto {
 
     private UUID id;
-    private BookDto book;
+    private UUID bookId;
     private String title;
     private List<ParagraphDto> paragraphs;
 
@@ -22,15 +22,17 @@ public class ChapterDto {
     private Boolean isPublished;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     public ChapterDto(Chapter chapter) {
         this.id = chapter.getId();
-        this.book = new BookDto(chapter.getBook());
+        this.bookId = chapter.getBook().getId();
         this.title = chapter.getTitle();
         this.paragraphs = chapter.getParagraphs().stream().map(ParagraphDto::new).toList();
         this.readCount = chapter.getReadCount();
         this.isPublished = chapter.getIsPublished();
         this.createdAt = chapter.getCreatedAt();
         this.updatedAt = chapter.getUpdatedAt();
+        this.deletedAt = chapter.getDeletedAt();
     }
 }

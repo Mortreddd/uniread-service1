@@ -6,6 +6,8 @@ package com.bsit.uniread.application.constants;
 public class ApiEndpoints {
     // Authentication prefix
     public static final String AUTH = "/api/v1/auth";
+    // Current User Profile
+    public static final String PROFILE = "/api/v1/profile";
     // Authors prefix
     public static final String AUTHORS = "/api/v1/authors";
     // Books prefix

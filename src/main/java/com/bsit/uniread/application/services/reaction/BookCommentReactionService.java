@@ -12,9 +12,6 @@ import com.bsit.uniread.infrastructure.handler.exceptions.reaction.AlreadyReacte
 import com.bsit.uniread.infrastructure.handler.exceptions.reaction.UnmatchedReactionException;
 import com.bsit.uniread.infrastructure.repositories.book.BookCommentLikeRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,10 +70,10 @@ public class BookCommentReactionService {
 
 
     @Transactional
-    public void removeReaction(UUID bookCommentLikeId, Authentication authentication) {
+    public void removeReaction(UUID bookCommentLikeId, CustomUserDetails userDetails) {
 
         BookCommentLike reaction = getBookCommentLikeById(bookCommentLikeId);
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = userService.getUserById(userDetails.getId());
 
         if(!Objects.equals(reaction.getUser(), currentUser)) {
             throw new UnmatchedReactionException("Unable to delete reaction of user " + currentUser.getId());

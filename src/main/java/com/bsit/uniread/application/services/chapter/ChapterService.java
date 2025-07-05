@@ -12,12 +12,14 @@ import com.bsit.uniread.infrastructure.handler.exceptions.chapter.PublishingChap
 import com.bsit.uniread.infrastructure.handler.publishers.chapter.ChapterEventPublisher;
 import com.bsit.uniread.infrastructure.repositories.chapter.ChapterRepository;
 import com.bsit.uniread.infrastructure.repositories.paragraph.ParagraphRepository;
+import com.bsit.uniread.infrastructure.specifications.chapter.ChapterSpecification;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,15 +42,39 @@ public class ChapterService {
      * @param bookId
      * @param pageNo
      * @param pageSize
+     * @param query
+     * @param status
+     * @param sortBy
+     * @param orderBy
+     * @param startDate
+     * @param endDate
+     * @param deletedAt
      * @return page of chaptes
      */
     @Transactional(readOnly = true)
-    public Page<Chapter> getBookChapters(UUID bookId, int pageNo, int pageSize) {
-        Sort sort = Sort.by(Sort.Direction.ASC, "createdAt");
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+    @Cacheable(value = "T(java.util.Objects).hash(#bookId, #pageNo, #pageSize, #query, #status, #sortBy, #orderBy, #startDate, #endDate, #deletedAt)")
+    public Page<Chapter> getBookChapters(
+            UUID bookId,
+            int pageNo,
+            int pageSize,
+            String query,
+            ChapterStatus status,
+            String sortBy,
+            String orderBy,
+            String startDate,
+            String endDate,
+            String deletedAt
+    ) {
+        Sort.Direction direction = sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
 
-        Book book = bookService.getBookById(bookId);
-        return chapterRepository.findByBook(book, pageable);
+        Sort sort = Sort.by(direction, orderBy);
+
+        Specification<Chapter> chapterSpecification = Specification
+                .where(ChapterSpecification.hasBookById(bookId))
+                .and(ChapterSpecification.hasDeleted(deletedAt))
+                .and(ChapterSpecification.hasStatus(status));
+
+        return chapterRepository.findAll(chapterSpecification, PageRequest.of(pageNo, pageSize, sort));
     }
 
     @Transactional(readOnly = true)
@@ -124,7 +150,9 @@ public class ChapterService {
     }
 
     @Transactional
-    public void deleteById(UUID chapterId) {
-        chapterRepository.deleteById(chapterId);
+    public void deleteById(UUID bookId, UUID chapterId) {
+        Chapter chapter = getBookChapterById(bookId, chapterId);
+        chapter.setDeletedAt(DateUtil.now());
+        save(chapter);
     }
 }

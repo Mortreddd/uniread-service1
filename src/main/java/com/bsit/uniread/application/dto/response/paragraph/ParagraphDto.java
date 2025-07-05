@@ -1,6 +1,5 @@
 package com.bsit.uniread.application.dto.response.paragraph;
 
-import com.bsit.uniread.application.dto.response.chapter.ChapterDto;
 import com.bsit.uniread.domain.entities.paragraph.Paragraph;
 import lombok.Data;
 

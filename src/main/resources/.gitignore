@@ -2,3 +2,4 @@ application-prod.properties
 application-prod.yml
 application.yml
 migrate.json
+aws-accesskey.csv
