@@ -21,8 +21,6 @@ public class BookCreationRequest {
 
     @NotNull(message = "Title is null")
     private String title;
-    @NotNull(message = "Author of the book is required")
-    private UUID authorId;
     @NotNull(message = "Cover photo of the book is required")
     private MultipartFile photo;
     @NotBlank(message = "Synopsis must not be blank")

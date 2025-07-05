@@ -1,11 +1,8 @@
 package com.bsit.uniread.infrastructure.persistence;
 
-import com.bsit.uniread.application.services.role.RoleService;
 import com.bsit.uniread.domain.entities.user.Gender;
 import com.bsit.uniread.domain.entities.user.Role;
-import com.bsit.uniread.domain.entities.user.RoleName;
 import com.bsit.uniread.domain.entities.user.User;
-import com.bsit.uniread.infrastructure.repositories.user.RoleRepository;
 import com.bsit.uniread.infrastructure.repositories.user.UserRepository;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
@@ -20,27 +17,14 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class UserSeeder implements CommandLineRunner {
 
-    private final RoleService roleService;
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
 
     @Override
     public void run(String... args) throws Exception {
-        if (roleRepository.count() == 0) {
-            // Create roles
-            List<Role> roles = List.of(
-                    Role.builder().name(RoleName.SUPER_ADMIN).build(),
-                    Role.builder().name(RoleName.ADMIN).build(),
-                    Role.builder().name(RoleName.USER).build()
-            );
-
-            roleRepository.saveAll(roles);
-        }
-
 
         if(userRepository.count() == 0) {
-            Role superAdminRole = roleService.getSuperAdminRole();
-            Role userRole = roleService.getUserRole();
+            Role superAdminRole = Role.SUPER_ADMIN;
+            Role userRole = Role.USER;
             List<User> users = List.of(
                     User.builder()
                             .username("mortreddd".toLowerCase(Locale.ROOT))

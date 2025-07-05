@@ -1,5 +1,6 @@
 package com.bsit.uniread.infrastructure.configurations;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +23,7 @@ public class WebConfiguration {
     public WebMvcConfigurer configurer() {
         return new WebMvcConfigurer() {
             @Override
-            public void addCorsMappings(CorsRegistry registry) {
+            public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/api/v1/**")
                         .allowedOrigins(clientUrl)
                         .allowedHeaders("*")
@@ -31,4 +32,5 @@ public class WebConfiguration {
             }
         };
     }
+
 }

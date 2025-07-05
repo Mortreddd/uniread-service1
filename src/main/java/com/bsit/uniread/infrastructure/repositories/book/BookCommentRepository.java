@@ -4,7 +4,9 @@ import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookComment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +14,7 @@ import java.util.UUID;
 
 @Repository
 public interface BookCommentRepository
-        extends JpaRepository<BookComment, UUID>, CrudRepository<BookComment, UUID> {
+        extends JpaRepository<BookComment, UUID>, CrudRepository<BookComment, UUID>, JpaSpecificationExecutor<BookComment> {
 
     /**
      * Get the comments of a book

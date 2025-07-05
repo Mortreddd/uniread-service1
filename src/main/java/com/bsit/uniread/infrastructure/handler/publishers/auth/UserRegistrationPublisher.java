@@ -2,7 +2,6 @@ package com.bsit.uniread.infrastructure.handler.publishers.auth;
 
 import com.bsit.uniread.application.dto.response.auth.GoogleUserInfoResponse;
 import com.bsit.uniread.domain.entities.user.User;
-import com.bsit.uniread.domain.events.auth.GoogleAuthenticationEvent;
 import com.bsit.uniread.domain.events.auth.UserRegistrationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -16,9 +15,5 @@ public class UserRegistrationPublisher {
 
     public void publishUserRegistration(User registeredUser) {
         applicationEventPublisher.publishEvent(new UserRegistrationEvent(this, registeredUser));
-    }
-
-    public void publishOAuthRegistration(GoogleUserInfoResponse userInfo) {
-        applicationEventPublisher.publishEvent(new GoogleAuthenticationEvent(this, userInfo));
     }
 }

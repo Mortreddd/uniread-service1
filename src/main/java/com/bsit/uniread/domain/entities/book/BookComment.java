@@ -54,14 +54,11 @@ public class BookComment {
     @JsonBackReference
     private List<BookCommentLike> bookCommentLikes = new ArrayList<>();
 
-    @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
 
     @Transient
     private Long totalLikes;

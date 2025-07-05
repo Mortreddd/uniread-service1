@@ -3,6 +3,7 @@ package com.bsit.uniread.domain.entities.book;
 import com.bsit.uniread.domain.entities.Reaction;
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,7 +36,7 @@ public class BookCommentLike {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id")
-    @JsonBackReference
+    @JsonManagedReference
     private User user;
 
     @Enumerated(EnumType.STRING)

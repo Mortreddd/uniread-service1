@@ -1,29 +1,32 @@
 package com.bsit.uniread.application.controllers.message;
 
 import com.bsit.uniread.application.dto.request.message.MessageCreationRequest;
-import com.bsit.uniread.domain.entities.message.Message;
 import com.bsit.uniread.application.services.message.MessageService;
-import com.bsit.uniread.application.services.user.UserService;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
+import com.bsit.uniread.domain.entities.user.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping
 public class MessageController {
 
-    private final UserService userService;
     private final MessageService messageService;
 
     @MessageMapping("/messages/send")
-    @SendTo("/topic/messages")
-    public Message sendMessage(
-            @Payload MessageCreationRequest messageCreationRequest
+    public void sendMessage(
+            @Payload MessageCreationRequest messageCreationRequest,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        return messageService.createNewMessage(messageCreationRequest);
+        messageService.createNewMessage(messageCreationRequest, userDetails);
     }
 }

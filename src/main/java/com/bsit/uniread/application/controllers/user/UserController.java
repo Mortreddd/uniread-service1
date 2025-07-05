@@ -3,15 +3,17 @@ package com.bsit.uniread.application.controllers.user;
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.user.SetupUsernameRequest;
+import com.bsit.uniread.application.dto.response.user.AuthorDto;
 import com.bsit.uniread.application.dto.response.user.UserDto;
 import com.bsit.uniread.application.services.auth.JsonWebTokenService;
 import com.bsit.uniread.application.services.user.UserService;
-import com.bsit.uniread.domain.entities.user.User;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -29,9 +31,16 @@ public class UserController {
     public ResponseEntity<Page<UserDto>> getUsers(
             @RequestParam(name = "pageNo", required = false, defaultValue = "0") Integer pageNo,
             @RequestParam(name = "pageSize", required = false, defaultValue = "10") Integer pageSize,
-            @RequestParam(name = "query", required = false) String query
+            @RequestParam(name = "query", required = false) String query,
+            @RequestParam(name = "sortBy", required = false, defaultValue = "asc") String sortBy,
+            @RequestParam(name = "orderBy", required = false, defaultValue = "createdAt") String orderBy,
+            @RequestParam(name = "startDate", required = false) String startDate,
+            @RequestParam(name = "endDate", required = false) String endDate,
+            @RequestParam(name = "bannedAt", required = false) String bannedAt,
+            @RequestParam(name = "deletedAt", required = false) String deletedAt
     ) {
-        Page<UserDto> users = userService.getUsers(pageNo, pageSize, query).map(UserDto::new);
+        Page<UserDto> users = userService.getUsers(pageNo, pageSize, query, sortBy, orderBy, startDate, endDate, bannedAt, deletedAt)
+                .map(UserDto::new);
         return ResponseEntity.ok()
                 .body(users);
     }
@@ -42,11 +51,10 @@ public class UserController {
      * @return user
      */
     @GetMapping(path = "/{userId}")
-    public ResponseEntity<UserDto> getUserById(
+    public ResponseEntity<AuthorDto> getUserById(
             @PathVariable(name = "userId") UUID userId
     ) {
-        UserDto user = new UserDto(userService.getUserById(userId));
-
+        AuthorDto user = new AuthorDto(userService.getUserById(userId));
         return ResponseEntity.ok()
                 .body(user);
     }
@@ -72,17 +80,12 @@ public class UserController {
 
     /**
      * Extract the user based on access token or jwt token of the user
-     * @param authorizationHeader extracts the jwt token
+     * @param customUserDetails
      * @return User
      */
     @GetMapping(path = "/current")
-    public ResponseEntity<UserDto> getCurrentUser(
-            @RequestHeader("Authorization") String authorizationHeader
-    ) {
-        String accessToken = authorizationHeader.substring(7);
-        User user = jsonWebTokenService.getUser(accessToken);
-        UserDto currentUser = new UserDto(user);
+    public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return ResponseEntity.ok()
-                .body(currentUser);
+                .body(new UserDto(customUserDetails));
     }
 }

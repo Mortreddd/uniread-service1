@@ -41,7 +41,7 @@ COPY --from=build /usr/src/uniread/target/uniread-0.0.1-SNAPSHOT.jar app.jar
 
 
 # EXPOSE will set the port of the application based on argument
-EXPOSE 8000
+EXPOSE 8080
 
 # CMD which finally executes the executeable file to run the application
 CMD ["java", "-jar", "app.jar"]

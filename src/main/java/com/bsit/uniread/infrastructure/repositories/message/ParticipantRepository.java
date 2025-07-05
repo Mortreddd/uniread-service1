@@ -1,5 +1,6 @@
 package com.bsit.uniread.infrastructure.repositories.message;
 
+import com.bsit.uniread.domain.entities.message.Conversation;
 import com.bsit.uniread.domain.entities.message.Participant;
 import com.bsit.uniread.domain.entities.user.User;
 import org.springframework.data.repository.CrudRepository;
@@ -14,4 +15,7 @@ public interface ParticipantRepository extends CrudRepository<Participant, UUID>
 
     List<Participant> findByUserIn(List<User> users);
     List<Participant> findByUser(User user);
+
+    List<Participant> findByConversation(Conversation conversation);
+    Boolean existsByConversationIdAndUserId(UUID conversationId, UUID userId);
 }

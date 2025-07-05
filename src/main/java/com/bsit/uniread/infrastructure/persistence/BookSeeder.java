@@ -1,6 +1,7 @@
 package com.bsit.uniread.infrastructure.persistence;
 
 import com.bsit.uniread.domain.entities.book.Book;
+import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.book.Genre;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.repositories.book.BookRepository;
@@ -54,6 +55,7 @@ public class BookSeeder implements CommandLineRunner {
                                     .completed(false)
                                     .matured(Boolean.valueOf(bookJson.getMatured()))
                                     .description(bookJson.getDescription())
+                                    .status(bookJson.getStatus())
                                     .createdAt(DateUtil.now())
                                     .readCount(Integer.valueOf(bookJson.getReadCount()))
                                     .coverPhoto(bookJson.getCoverPhoto())
@@ -80,6 +82,7 @@ public class BookSeeder implements CommandLineRunner {
         private String readCount;
         private String description;
         private String matured;
+        private BookStatus status;
         private String coverPhoto;
         private String[] genre;
     }

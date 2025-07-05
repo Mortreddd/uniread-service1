@@ -36,8 +36,6 @@ public class Message {
 
     private String message;
 
-    private LocalDateTime readAt;
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 

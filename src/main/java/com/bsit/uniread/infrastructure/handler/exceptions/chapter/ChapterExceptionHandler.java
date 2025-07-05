@@ -29,4 +29,21 @@ public class ChapterExceptionHandler {
                 .body(details);
 
     }
+
+    @ExceptionHandler(PublishingChapterException.class)
+    public ResponseEntity<Object> publishingChapterException(
+            PublishingChapterException exception,
+            WebRequest request
+    ) {
+        ErrorResponse details = ErrorResponse.builder()
+                .code(HttpStatus.CONFLICT.value())
+                .date(new Date())
+                .message(exception.getMessage())
+                .description(request.getDescription(false))
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(details);
+    }
 }

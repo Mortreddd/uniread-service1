@@ -6,6 +6,8 @@ package com.bsit.uniread.application.constants;
 public class ApiEndpoints {
     // Authentication prefix
     public static final String AUTH = "/api/v1/auth";
+    // Current User Profile
+    public static final String PROFILE = "/api/v1/profile";
     // Authors prefix
     public static final String AUTHORS = "/api/v1/authors";
     // Books prefix
@@ -13,7 +15,7 @@ public class ApiEndpoints {
     // Users prefix
     public static final String USERS = "/api/v1/users";
     // User's Conversation prefix
-    public static final String CONVERSATIONS = "/api/v1/users/{userId}/conversations";
+    public static final String CONVERSATIONS = "/api/v1/conversations";
     // Genres prefix
     public static final String GENRES = "/api/v1/genres";
     // User following or follower activity prefix
@@ -24,7 +26,9 @@ public class ApiEndpoints {
     public static final String BOOK_CHAPTER_PARAGRAPHS = "/api/v1/books/{bookId}/chapters/{chapterId}/paragraphs";
     // Book Comments prefix
     public static final String BOOK_COMMENTS = "/api/v1/books/{bookId}/comments";
+    // Book Comments Reaction prefix
+    public static final String BOOK_COMMENTS_REACTIONS = "/api/v1/books/{bookId}/comments/{commentId}/reactions";
     // User notifications prefix
-    public static final String USER_NOTIFICATION = "/api/v1/users/{userId}/notifications";
+    public static final String NOTIFICATIONS = "/api/v1/notifications";
 
 }

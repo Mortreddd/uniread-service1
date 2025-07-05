@@ -4,8 +4,8 @@ import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.auth.UserRegistrationRequest;
 import com.bsit.uniread.application.dto.response.auth.LoginResponse;
 import com.bsit.uniread.application.services.otp.OtpService;
-import com.bsit.uniread.application.services.role.RoleService;
 import com.bsit.uniread.domain.entities.auth.Otp;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.Role;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.application.services.user.UserService;
@@ -24,7 +24,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.UUID;
 
 @Slf4j
@@ -38,7 +37,6 @@ public class AuthService {
     private final OtpService otpService;
     private final EmailService emailService;
     private final JsonWebTokenService jsonWebTokenService;
-    private final RoleService roleService;
 
     @Value("${client.url}")
     private String clientUrl;
@@ -62,8 +60,9 @@ public class AuthService {
         if(!authentication.isAuthenticated()) {
             throw new InvalidCredentialsException("Invalid credentials");
         }
-        String accessToken = jsonWebTokenService.generateAccessToken(email);
-        String refreshToken = jsonWebTokenService.generateRefreshToken(email);
+        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+        String accessToken = jsonWebTokenService.generateAccessToken(user.getId(), user.getEmail());
+        String refreshToken = jsonWebTokenService.generateRefreshToken(user.getId(), user.getEmail());
 
         return LoginResponse
                 .builder()
@@ -79,9 +78,9 @@ public class AuthService {
             throw new TokenExpiredException("Session is expired. Please log in.");
         }
 
-        String email = jsonWebTokenService.extractEmailAddress(refreshToken);
-        String newAccessToken = jsonWebTokenService.generateAccessToken(email);
-        String newRefreshToken = jsonWebTokenService.generateRefreshToken(email);
+        User user = userService.getUserById(jsonWebTokenService.extractUserId(refreshToken));
+        String newAccessToken = jsonWebTokenService.generateAccessToken(user.getId(), user.getEmail());
+        String newRefreshToken = jsonWebTokenService.generateRefreshToken(user.getId(), user.getEmail());
 
         return LoginResponse
                 .builder()
@@ -98,7 +97,6 @@ public class AuthService {
      * @param userRegistrationRequest
      */
     public void registerUser(UserRegistrationRequest userRegistrationRequest) {
-        Role userRole = roleService.getUserRole();
         User newUser = userService.save(
                 User.builder()
                     .firstName(userRegistrationRequest.getFirstName())
@@ -106,13 +104,12 @@ public class AuthService {
                     .username(userRegistrationRequest.getUsername())
                     .email(userRegistrationRequest.getEmail())
                     .gender(userRegistrationRequest.getGender())
-                    .role(userRole)
+                    .role(Role.USER)
                     .password(new BCryptPasswordEncoder().encode(userRegistrationRequest.getPassword()))
                     .emailVerifiedAt(DateUtil.now())
                     .build()
         );
 
-        // userRegistrationPublisher.publishUserRegistration(newUser);
         userService.save(newUser);
     }
 
@@ -133,7 +130,7 @@ public class AuthService {
      */
     public void verifyEmailByOtpId(UUID otpUuid) {
         Otp otp = otpService.getOtpById(otpUuid);
-        User user = userService.getUserByEmail(otp.getEmail());
+        User user = userService.getUserByEmailOrThrow(otp.getEmail());
 
         userService.verifyUserEmail(user);
     }

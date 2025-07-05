@@ -20,3 +20,8 @@ spring:
 client:
   url: http://localhost:5173
 
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG

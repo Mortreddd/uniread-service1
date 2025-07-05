@@ -2,14 +2,16 @@ package com.bsit.uniread.application.services;
 
 import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.domain.entities.Notification;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.repositories.NotificationRepository;
-import io.netty.util.internal.StringUtil;
+import com.bsit.uniread.infrastructure.specifications.notification.NotificationSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,24 +26,24 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
 
     /**
-     * Get the user's notification
-     * @param userId
+     * Get the authenticated user's notification
+     * @param user
      * @param pageNo
      * @param pageSize
      * @param query
      * @return page of notification
      */
     @Transactional(readOnly = true)
-    public Page<Notification> getUserNotifications(UUID userId, int pageNo, int pageSize, String query) {
-        User user = userService.getUserById(userId);
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+    public Page<Notification> getCurrentUserNotifications(CustomUserDetails user, int pageNo, int pageSize, String query, String sortBy, String orderBy, String startDate, String endDate) {
+        Sort.Direction direction = sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, orderBy);
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
-        if(StringUtil.isNullOrEmpty(query)) {
-            return notificationRepository.findByUser(user, pageable);
-        }
-
-        return notificationRepository.findByUserAndTitleContainingIgnoreCase(user, query, pageable);
+        Specification<Notification> notificationSpecification = Specification.where(
+                NotificationSpecification.hasQuery(query)
+        );
+        
+        return notificationRepository.findAll(notificationSpecification, pageable);
     }
 
     /**

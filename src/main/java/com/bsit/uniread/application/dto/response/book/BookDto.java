@@ -10,14 +10,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+
+/**
+ * Full details of a book
+ */
 @Data
 @AllArgsConstructor
 public class BookDto {
 
     private UUID id;
-
     private AuthorDto user;
-
     private String title;
     private String coverPhoto;
     private String description;
@@ -39,6 +41,8 @@ public class BookDto {
     private LocalDateTime updatedAt;
 
     private LocalDateTime deletedAt;
+
+    private LocalDateTime bannedAt;
 
     private LocalDateTime publishedAt;
 
@@ -64,6 +68,7 @@ public class BookDto {
         this.createdAt = book.getCreatedAt();
         this.updatedAt = book.getUpdatedAt();
         this.deletedAt = book.getDeletedAt();
+        this.bannedAt = book.getBannedAt();
         this.publishedAt = book.getPublishedAt();
         this.chapters = book.getChapters();
         this.bookComments = book.getBookComments().stream().map(BookCommentDto::new).toList();

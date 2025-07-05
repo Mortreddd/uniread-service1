@@ -1,33 +1,7 @@
 package com.bsit.uniread.domain.entities.user;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Table
-@Builder
-@Entity
-public class Role {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @Enumerated(EnumType.STRING)
-    private RoleName name;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-    @JsonBackReference
-    private List<User> users = new ArrayList<>();
+public enum Role {
+    SUPER_ADMIN,
+    ADMIN,
+    USER
 }

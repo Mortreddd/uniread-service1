@@ -2,6 +2,7 @@ package com.bsit.uniread.infrastructure.handler.exceptions.auth;
 
 
 import com.bsit.uniread.application.dto.api.ErrorResponse;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,7 +17,7 @@ import java.util.List;
 public class AuthExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<ErrorResponse> resourceNotFoundException(InvalidCredentialsException exception, WebRequest request){
+    public ResponseEntity<ErrorResponse> invalidCredentialsException(InvalidCredentialsException exception, WebRequest request){
         ErrorResponse details = ErrorResponse.builder()
                 .code(HttpStatus.UNPROCESSABLE_ENTITY.value())
                 .date(new Date())
@@ -25,7 +26,7 @@ public class AuthExceptionHandler {
                 .build();
 
         return ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY.value())
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(details);
     }
 
@@ -36,21 +37,21 @@ public class AuthExceptionHandler {
      * @return Unprocessable Entity response
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> constrainedExceptions(
-            MethodArgumentNotValidException exception,
-            WebRequest request
-    ) {
-        String message = exception.getFieldError().getDefaultMessage();
+    public ResponseEntity<ErrorResponse> invalidProvidedValue(MethodArgumentNotValidException exception, WebRequest request) {
+        String errorMessage = exception.getBindingResult().getAllErrors().stream()
+                .findFirst()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .orElse("Invalid input.");
+
         ErrorResponse details = ErrorResponse.builder()
                 .code(HttpStatus.UNPROCESSABLE_ENTITY.value())
+                .message(errorMessage)
                 .date(new Date())
-                .message(message)
-                .description(request.getDescription(false))
                 .build();
 
         return ResponseEntity
                 .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(details);
-    }
 
+    }
 }
