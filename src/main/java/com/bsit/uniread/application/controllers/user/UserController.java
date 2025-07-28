@@ -78,12 +78,13 @@ public class UserController {
                 .body(response);
     }
 
+
     /**
      * Extract the user based on access token or jwt token of the user
      * @param customUserDetails
      * @return User
      */
-    @GetMapping(path = "/current")
+    @GetMapping(path = "/me")
     public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return ResponseEntity.ok()
                 .body(new UserDto(customUserDetails));

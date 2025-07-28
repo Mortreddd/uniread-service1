@@ -49,7 +49,4 @@ public class Follow {
     @Transient
     private Boolean isMutualFollow;
 
-    public Boolean getIsMutualFollow() {
-        return follower.getFollowings().contains(this);
-    }
 }

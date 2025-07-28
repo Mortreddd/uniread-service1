@@ -1,6 +1,7 @@
 package com.bsit.uniread.application.controllers.message;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
+import com.bsit.uniread.application.dto.request.message.MessageCreationRequest;
 import com.bsit.uniread.application.dto.response.message.ConversationDto;
 import com.bsit.uniread.application.dto.response.message.MessageDto;
 import com.bsit.uniread.application.services.conversation.ConversationService;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 /**
- * Api endpoint - /api/v1/users/{userId}/conversations
+ * Api endpoint - /api/v1/conversations
  */
 @RestController
 @RequestMapping(path = ApiEndpoints.CONVERSATIONS)
@@ -29,7 +30,6 @@ public class ConversationController {
      * Get the conversations of the user
      * @param pageNo
      * @param pageSize
-     * @param userId
      * @return pagination of conversations of user
      */
     @GetMapping
@@ -65,17 +65,17 @@ public class ConversationController {
      */
     @GetMapping(path = "/{conversationId}/messages")
     public ResponseEntity<Page<MessageDto>> getConversationMessages(
-            @PathVariable(name = "userId") UUID userId,
             @PathVariable(name = "conversationId") UUID conversationId,
             @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
-            @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize
+            @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
+            @RequestParam(name = "query", required = false) String query,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Page<MessageDto> messages = messageService
-                .getMessagesByConversationId(conversationId, pageNo, pageSize)
+                .getUserConversationMessages(conversationId, pageNo, pageSize, query)
                 .map(MessageDto::new);
 
         return ResponseEntity.ok()
                 .body(messages);
     }
-
 }

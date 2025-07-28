@@ -4,9 +4,11 @@ import com.bsit.uniread.domain.entities.Follow;
 import com.bsit.uniread.domain.entities.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface FollowRepository extends JpaRepository<Follow, UUID>, CrudRepository<Follow, UUID> {
@@ -22,10 +24,23 @@ public interface FollowRepository extends JpaRepository<Follow, UUID>, CrudRepos
      * @return boolean
      */
     Boolean existsByFollowerAndFollowingAndFollowingAndFollower(User requester, User following, User mutualFollowing, User mutualRequester);
+    @EntityGraph(attributePaths = {"following", "follower"})
     Page<Follow> findByFollower(User user, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"following", "follower"})
+    List<Follow> findByFollowerId(UUID followerId);
+
+    @EntityGraph(attributePaths = {"following", "follower"})
     Page<Follow> findByFollowing(User user, Pageable pageable);
 
+    @EntityGraph(attributePaths = "follower")
+    List<Follow> findByFollowing(User user);
+
+    @EntityGraph(attributePaths = {"following", "follower"})
     Page<Follow> findByFollowingOrFollower(User following, User follower, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"following", "follower"})
+    List<Follow> findByFollowingIdOrFollowerId(UUID followingId, UUID followerId);
 
     Page<Follow> findByFollowingOrFollowerOrFollowerFirstNameContainingIgnoreCaseOrFollowerLastNameContainingIgnoreCaseOrFollowerUsernameContainingIgnoreCaseOrFollowingFirstNameContainingIgnoreCaseOrFollowingLastNameContainingIgnoreCaseOrFollowingUsernameContainingIgnoreCase(User follower, User following, String followerFirstName, String followerLastName, String followerUsername, String followingFirstName, String followingLastName, String followingUsername, Pageable pageable);
     /**

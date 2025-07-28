@@ -1,10 +1,9 @@
-package com.bsit.uniread.application.services.message;
+package com.bsit.uniread.application.services.participant;
 
 import com.bsit.uniread.domain.entities.message.Conversation;
 import com.bsit.uniread.domain.entities.message.Participant;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.repositories.message.ParticipantRepository;
-import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

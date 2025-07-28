@@ -3,6 +3,7 @@ package com.bsit.uniread.domain.entities;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,8 +13,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Table(name = "collaborators", indexes = {
@@ -36,12 +35,10 @@ public class Collaborator {
     @JsonBackReference
     private Book book;
 
-    @Builder.Default
-    @OneToMany(targetEntity = User.class, fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @OneToOne(targetEntity = User.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id")
-    private List<User> users = new ArrayList<>();
-
-    private String collaboratorTitle;
+    @JsonManagedReference
+    private User user;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)

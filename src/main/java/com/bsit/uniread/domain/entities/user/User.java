@@ -1,5 +1,6 @@
 package com.bsit.uniread.domain.entities.user;
 
+import com.bsit.uniread.domain.entities.Collaborator;
 import com.bsit.uniread.domain.entities.Follow;
 import com.bsit.uniread.domain.entities.Notification;
 import com.bsit.uniread.domain.entities.book.Book;
@@ -105,6 +106,10 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Book> books = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private Collaborator collaborator;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_comment_id")

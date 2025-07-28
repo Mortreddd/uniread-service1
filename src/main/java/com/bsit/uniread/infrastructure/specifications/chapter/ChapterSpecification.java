@@ -26,11 +26,7 @@ public class ChapterSpecification {
     }
 
     public static Specification<Chapter> hasStatus(ChapterStatus status) {
-        return (root, query, builder) -> {
-            if(status == null) return null;
-
-            return builder.equal(root.get("status"), status);
-        };
+        return (root, query, builder) -> status == null ? builder.conjunction() : builder.equal(root.get("status"), status);
     }
 
 }

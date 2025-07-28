@@ -61,7 +61,7 @@ public class Chapter {
     private Boolean isPublished;
 
     public Boolean getIsPublished() {
-        return Objects.equals(status, ChapterStatus.PUBLISHED);
+        return status == ChapterStatus.PUBLISHED;
     }
 
     @Builder.Default

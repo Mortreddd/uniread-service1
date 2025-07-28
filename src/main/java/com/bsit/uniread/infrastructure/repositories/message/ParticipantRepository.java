@@ -17,5 +17,6 @@ public interface ParticipantRepository extends CrudRepository<Participant, UUID>
     List<Participant> findByUser(User user);
 
     List<Participant> findByConversation(Conversation conversation);
+    List<Participant> findByIdIn(List<UUID> ids);
     Boolean existsByConversationIdAndUserId(UUID conversationId, UUID userId);
 }

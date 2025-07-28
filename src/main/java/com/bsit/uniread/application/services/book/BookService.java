@@ -117,7 +117,6 @@ public class BookService {
      * @param bookId
      * @return book
      */
-    @Cacheable(value = "T(java.util.Objects).hash(#bookId)")
     @Transactional(readOnly = true)
     public Book getBookById(UUID bookId) {
         return bookRepository.findById(bookId)

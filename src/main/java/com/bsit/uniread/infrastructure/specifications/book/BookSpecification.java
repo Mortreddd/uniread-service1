@@ -20,7 +20,7 @@ public class BookSpecification {
      */
     public static Specification<Book> hasQuery(String query) {
         return (root, query1, cb) -> {
-            if(query == null || query.isBlank()) return null;
+            if(query == null || query.isBlank()) return cb.conjunction();
 
             String likeQuery = "%" + query.toLowerCase() + "%";
             return cb.or(
@@ -39,7 +39,7 @@ public class BookSpecification {
      * @return org.springframework.data.jpa.domain.Specification
      */
     public static Specification<Book> hasStatus(BookStatus status) {
-        return (root, query1, cb) -> status == null ? null : cb.equal(root.get("status"), status);
+        return (root, query1, cb) -> status == null ? cb.conjunction() : cb.equal(root.get("status"), status);
     }
 
     /**
@@ -66,7 +66,7 @@ public class BookSpecification {
      */
     public static Specification<Book> hasGenres(List<Integer> ids) {
         return (root, query, cb) -> {
-            if(ids == null || ids.isEmpty()) return null;
+            if(ids == null || ids.isEmpty()) return cb.conjunction();
             Join<Book, Genre> join = root.join("genres");
             query.distinct(true);
             return join.get("id").in(ids);

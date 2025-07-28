@@ -1,5 +1,6 @@
 package com.bsit.uniread.application.services;
 
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.infrastructure.handler.exceptions.follow.UserNotFollowedException;
 import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.domain.entities.Follow;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -29,18 +31,6 @@ public class FollowService {
     private final UserService userService;
     private final FollowPublisher followPublisher;
 
-    @Transactional(readOnly = true)
-    public Page<Follow> getFollowsByUserId(int pageNo, int pageSize, UUID userId, String query) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        User user = userService.getUserById(userId);
-
-        if(StringUtil.isNullOrEmpty(query)) {
-            return followRepository.findByFollowingOrFollowerOrFollowerFirstNameContainingIgnoreCaseOrFollowerLastNameContainingIgnoreCaseOrFollowerUsernameContainingIgnoreCaseOrFollowingFirstNameContainingIgnoreCaseOrFollowingLastNameContainingIgnoreCaseOrFollowingUsernameContainingIgnoreCase(user, user, query, query, query, query, query, query, pageable);
-        }
-
-        return followRepository.findByFollowingOrFollower(user, user, pageable);
-    }
     /**
      * Get the followers of the user or get the users matching query
      * @param pageNo
@@ -50,16 +40,12 @@ public class FollowService {
      * @return Pagination of Follow
      */
     @Transactional(readOnly = true)
-    public Page<Follow> getFollowersByUserId(int pageNo, int pageSize, UUID userId, String query) {
+    public Page<Follow> getFollowersByUserId(UUID userId, int pageNo, int pageSize, String query) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         User user = userService.getUserById(userId);
 
-        if(StringUtil.isNullOrEmpty(query)) {
-            return followRepository.findByFollowing(user, pageable);
-        }
-
-        return followRepository.findByFollowingAndFollowerFirstNameContainingIgnoreCaseOrFollowerLastNameContainingIgnoreCaseOrFollowerUsernameContainingIgnoreCase(user, query, query, query, pageable);
+        return followRepository.findByFollowing(user, pageable);
     }
 
     /**
@@ -70,16 +56,13 @@ public class FollowService {
      * @param query
      * @return Pagination of Follow
      */
-    public Page<Follow> getFollowingsByUserId(int pageNo, int pageSize, UUID userId, String query) {
+    @Transactional(readOnly = true)
+    public Page<Follow> getFollowingsByUserId(UUID userId, int pageNo, int pageSize, String query) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         User user = userService.getUserById(userId);
 
-        if(StringUtil.isNullOrEmpty(query)) {
-            return followRepository.findByFollower(user, pageable);
-        }
-
-        return followRepository.findByFollowerAndFollowingFirstNameContainingIgnoreCaseOrFollowingLastNameContainingIgnoreCaseOrFollowingUsernameContainingIgnoreCase(user, query, query, query, pageable);
+        return followRepository.findByFollower(user, pageable);
     }
 
     /**
@@ -93,7 +76,7 @@ public class FollowService {
         User followedUser = userService.getUserById(followedUserId);
 
         // Checks if the requester is already followed and throws an exception if not
-        if(isFollowingUser(userRequester, followedUser)) {
+        if(Boolean.TRUE.equals(isFollowingUser(userRequester, followedUser))) {
             throw new AlreadyFollowingUserException("Already following user");
         }
 
@@ -123,11 +106,14 @@ public class FollowService {
         if(!isFollowingUser(userRequester, unfollowedUser)) {
             throw new UserNotFollowedException("User is not followed");
         }
-
         int rowsAffected = followRepository.deleteByFollowerAndFollowing(userRequester, unfollowedUser);
         log.info("Rows affected {}", rowsAffected);
     }
 
+    @Transactional(readOnly = true)
+    public List<Follow> getFollowersByUser(User user) {
+        return followRepository.findByFollowing(user);
+    }
     /**
      * Checks if the userRequester is followed the followed user and if it was existed
      * @param userRequester
@@ -140,7 +126,7 @@ public class FollowService {
         return isFollowing;
     }
 
-    public Boolean isMutual(User requester, User following) {
-        return followRepository.existsByFollowerAndFollowingAndFollowingAndFollower(requester, following, following, requester);
+    public List<Follow> getCurrentUserFollows(CustomUserDetails userDetails) {
+        return followRepository.findByFollowingIdOrFollowerId(userDetails.getId(), userDetails.getId());
     }
 }

@@ -24,7 +24,7 @@ public class ParagraphController {
     private final ParagraphService paragraphService;
 
     @GetMapping
-    @PreAuthorize("@bookPermission.isPublished(#bookId, #userDetails) && @chapterPermission.isPublished(#bookId, #chapterId, #userDetails)")
+    @PreAuthorize("@bookPermission.isPublished(#bookId, #userDetails) && @chapterPermission.isAccessible(#bookId, #chapterId, #userDetails)")
     public ResponseEntity<List<ParagraphDto>> getChapterParagraphs(
             @PathVariable(name = "bookId") UUID bookId,
             @PathVariable(name = "chapterId") UUID chapterId,

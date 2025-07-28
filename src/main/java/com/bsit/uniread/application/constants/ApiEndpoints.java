@@ -18,8 +18,6 @@ public class ApiEndpoints {
     public static final String CONVERSATIONS = "/api/v1/conversations";
     // Genres prefix
     public static final String GENRES = "/api/v1/genres";
-    // User following or follower activity prefix
-    public static final String FOLLOW = "/api/v1/users/{currentUserId}/follow";
     // Book Chapters prefix
     public static final String BOOK_CHAPTERS = "/api/v1/books/{bookId}/chapters";
     // Book Chapter Paragraphs prefix

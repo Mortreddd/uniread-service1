@@ -3,6 +3,7 @@ package com.bsit.uniread.application.services.user;
 import com.bsit.uniread.application.services.book.BookService;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookStatus;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.repositories.user.UserRepository;
 import com.bsit.uniread.infrastructure.specifications.user.UserSpecification;
@@ -41,7 +42,7 @@ public class AuthorService {
      */
     @Transactional(readOnly = true)
     @Cacheable(
-            value = "books",
+            value = "authors",
             key = "T(java.util.Objects).hash(#pageNo, #pageSize, #query, #sortBy, #orderBy, #startDate, #endDate, #bannedAt, #deletedAt, #userDetails)"
     )
     public Page<User> getAuthors(
@@ -53,7 +54,8 @@ public class AuthorService {
             String startDate,
             String endDate,
             String bannedAt,
-            String deletedAt
+            String deletedAt,
+            CustomUserDetails userDetails
     ) {
         Sort.Direction direction = sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Sort sort = Sort.by(direction, orderBy);
@@ -61,7 +63,8 @@ public class AuthorService {
         Specification<User> authorSpecification = Specification
                 .where(UserSpecification.hasBanned(bannedAt))
                 .and(UserSpecification.hasDeleted(deletedAt))
-                .and(UserSpecification.hasQuery(query));
+                .and(UserSpecification.hasQuery(query))
+                .and(UserSpecification.hasCurrentUser(userDetails));
 
         return userRepository.findAll(authorSpecification, PageRequest.of(pageNo, pageSize, sort));
     }

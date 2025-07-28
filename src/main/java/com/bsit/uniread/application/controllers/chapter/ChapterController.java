@@ -9,6 +9,7 @@ import com.bsit.uniread.application.dto.request.chapter.NewChapterRequest;
 import com.bsit.uniread.application.services.chapter.ChapterService;
 import com.bsit.uniread.domain.entities.chapter.ChapterStatus;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -47,7 +48,6 @@ public class ChapterController {
      * @return page of chapters
      */
     @GetMapping
-    @PreAuthorize("@bookPermission.isPublished(#bookId, #userDetails)")
     public ResponseEntity<Page<ChapterDto>> getBookChapters(
             @PathVariable(name = "bookId") UUID bookId,
             @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
@@ -61,7 +61,6 @@ public class ChapterController {
             @RequestParam(name = "deletedAt", required = false) String deletedAt,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        log.debug("Deleted At: {}", deletedAt);
         Page<ChapterDto> chapters = chapterService.getBookChapters(bookId, pageNo, pageSize, query, status, sortBy, orderBy, startDate, endDate, deletedAt)
                 .map(ChapterDto::new);
 
@@ -70,6 +69,7 @@ public class ChapterController {
     }
 
     @GetMapping(path = "/{chapterId}")
+    @PreAuthorize("@chapterPermission.isBelong(#bookId, #chapterId)")
     public ResponseEntity<ChapterDto> getBookChapter(
             @PathVariable(name = "bookId") UUID bookId,
             @PathVariable(name = "chapterId") UUID chapterId
@@ -79,10 +79,10 @@ public class ChapterController {
                 .body(chapter);
     }
 
-    @PostMapping(path = "/create")
-    public ResponseEntity<ChapterDto> createBook(
+    @PostMapping
+    public ResponseEntity<ChapterDto> createChapter(
             @PathVariable(name = "bookId") UUID bookId,
-            @RequestBody NewChapterRequest request
+            @Valid @RequestBody NewChapterRequest request
     ) {
         ChapterDto chapter = new ChapterDto(chapterService.createNewChapter(bookId, request.getTitle()));
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -90,7 +90,8 @@ public class ChapterController {
 
     }
 
-    @PutMapping(path = "/{chapterId}/update")
+    @PutMapping(path = "/{chapterId}")
+    @PreAuthorize("@chapterPermission.isBelong(#bookId, #chapterId)")
     public ResponseEntity<ChapterDto> updateChapter(
             @PathVariable(name = "bookId") UUID bookId,
             @PathVariable(name = "chapterId") UUID chapterId,
@@ -104,7 +105,7 @@ public class ChapterController {
     }
 
     @PutMapping(path = "/{chapterId}/publish")
-    @PreAuthorize("@bookPermission.isAuthor(#bookId, #userDetails)")
+    @PreAuthorize("@bookPermission.isPublished(#bookId, #userDetails) && @bookPermission.isAuthor(#bookId, #userDetails) && @chapterPermission.isBelong(#bookId, #chapterId)")
     public ResponseEntity<ChapterDto> publishChapter(
             @PathVariable(name = "bookId") UUID bookId,
             @PathVariable(name = "chapterId") UUID chapterId,
@@ -117,7 +118,7 @@ public class ChapterController {
     }
 
 
-    @DeleteMapping(path = "/{chapterId}/delete")
+    @DeleteMapping(path = "/{chapterId}")
     @PreAuthorize("@bookPermission.isAuthor(#bookId, #userDetails)")
     public ResponseEntity<SuccessResponse> deleteChapter(
             @PathVariable(name = "bookId") UUID bookId,
@@ -133,4 +134,23 @@ public class ChapterController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body(response);
     }
+
+    @DeleteMapping(path = "/{chapterId}/force")
+    @PreAuthorize("@bookPermission.isAuthor(#bookId, #userDetails)")
+    public ResponseEntity<SuccessResponse> forceDeleteChapter(
+            @PathVariable(name = "bookId") UUID bookId,
+            @PathVariable(name = "chapterId") UUID chapterId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        chapterService.forceDeleteById(chapterId);
+        SuccessResponse response = SuccessResponse.builder()
+                .message("You successfully forced delete the chapter")
+                .code(HttpStatus.NO_CONTENT.value())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .body(response);
+    }
+
+
 }

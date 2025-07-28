@@ -7,14 +7,13 @@ import com.bsit.uniread.domain.entities.chapter.Chapter;
 import com.bsit.uniread.domain.entities.chapter.ChapterStatus;
 import com.bsit.uniread.domain.entities.paragraph.Paragraph;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
-import com.bsit.uniread.infrastructure.handler.exceptions.chapter.InvalidOwnerException;
-import com.bsit.uniread.infrastructure.handler.exceptions.chapter.PublishingChapterException;
 import com.bsit.uniread.infrastructure.handler.publishers.chapter.ChapterEventPublisher;
 import com.bsit.uniread.infrastructure.repositories.chapter.ChapterRepository;
 import com.bsit.uniread.infrastructure.repositories.paragraph.ParagraphRepository;
 import com.bsit.uniread.infrastructure.specifications.chapter.ChapterSpecification;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,7 +51,7 @@ public class ChapterService {
      * @return page of chaptes
      */
     @Transactional(readOnly = true)
-    @Cacheable(value = "T(java.util.Objects).hash(#bookId, #pageNo, #pageSize, #query, #status, #sortBy, #orderBy, #startDate, #endDate, #deletedAt)")
+    @Cacheable(value = "chapters", key = "T(java.util.Objects).hash(#bookId, #pageNo, #pageSize, #query, #status, #sortBy, #orderBy, #startDate, #endDate, #deletedAt)")
     public Page<Chapter> getBookChapters(
             UUID bookId,
             int pageNo,
@@ -77,16 +76,22 @@ public class ChapterService {
         return chapterRepository.findAll(chapterSpecification, PageRequest.of(pageNo, pageSize, sort));
     }
 
+    @Cacheable(value = "chapter", key = "T(java.util.Objects).hash(#bookId, #chapterId")
     @Transactional(readOnly = true)
     public Chapter getBookChapterById(UUID bookId, UUID chapterId) {
-        Chapter chapter = chapterRepository.findById(chapterId)
+        return chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new ResourceNotFoundException("Chapter not found"));
+    }
 
-        if(!Objects.equals(chapter.getBook().getId(), bookId)) {
-            throw new InvalidOwnerException("The selected chapter is not the owner of the book");
-        }
-
-        return chapter;
+    /**
+     * Get the chapter by using chapterId
+     * @param chapterId
+     * @return Chapter
+     */
+    @Transactional(readOnly = true)
+    public Chapter getChapterById(UUID chapterId) {
+        return chapterRepository.findById(chapterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Chapter not found"));
     }
 
     /**
@@ -96,6 +101,7 @@ public class ChapterService {
      * @return chapter
      */
     @Transactional
+    @CacheEvict(value = "chapters", allEntries = true)
     public Chapter createNewChapter(UUID bookId, String title) {
         Book book = bookService.getBookById(bookId);
         Chapter chapter = Chapter.builder()
@@ -133,15 +139,14 @@ public class ChapterService {
     }
 
     @Transactional
+    @CacheEvict(value = "chapters", allEntries = true)
     public Chapter publishChapter(UUID bookId, UUID chapterId, ChapterStatus status) {
         Chapter chapter = getBookChapterById(bookId, chapterId);
-
-        if(!chapter.getBook().getIsPublished()) {
-            throw new PublishingChapterException("The book still in draft, unable to publish any chapter");
-        }
-
-        publisher.publishChapter(chapter);
-        return chapter;
+        chapter.setStatus(status);
+        chapter.setPublishedAt(status == ChapterStatus.DRAFT ? null : DateUtil.now());
+        Chapter newChapter = save(chapter);
+        publisher.publishChapter(newChapter);
+        return newChapter;
     }
 
     @Transactional
@@ -150,9 +155,16 @@ public class ChapterService {
     }
 
     @Transactional
+    @CacheEvict(value = "chapters", allEntries = true)
     public void deleteById(UUID bookId, UUID chapterId) {
         Chapter chapter = getBookChapterById(bookId, chapterId);
         chapter.setDeletedAt(DateUtil.now());
         save(chapter);
+    }
+
+    @Transactional
+    @CacheEvict(value = "chapters", allEntries = true)
+    public void forceDeleteById(UUID chapterId) {
+        chapterRepository.deleteById(chapterId);
     }
 }

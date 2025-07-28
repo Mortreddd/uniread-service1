@@ -23,7 +23,7 @@ public class FollowExceptionHandler {
                 .build();
 
         return ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY.value())
+                .status(HttpStatus.CONFLICT.value())
                 .body(details);
     }
 

@@ -41,7 +41,13 @@ public class SecurityConfiguration {
             "/api/v1/genres/options",
             "/api/v1/messages/**",
             "/api/v1/authors/**",
-            "/ws/**" // Disable the authentication for WebSocket
+            "/api/v1/users/*/follow/followings",
+            "/api/v1/users/*/follow/followers",
+            "/ws/**", // Disable the authentication for WebSocket
+//            "/app/**",
+            "/topic/**",
+            "/user/**"
+
     };
 
     @Bean

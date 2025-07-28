@@ -16,5 +16,5 @@ public interface MessageRepository extends JpaRepository<Message, UUID>,
         CrudRepository<Message, UUID> {
 
     List<Message> findByConversationIdOrderByCreatedAtAsc(UUID conversationId);
-    Page<Message> findByConversation(Conversation conversation, Pageable pageable);
+    Page<Message> findByConversationId(UUID conversationId, Pageable pageable);
 }

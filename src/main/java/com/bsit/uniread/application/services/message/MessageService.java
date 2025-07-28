@@ -4,13 +4,14 @@ import com.bsit.uniread.application.dto.request.message.MessageCreationRequest;
 import com.bsit.uniread.application.dto.response.message.MessageDto;
 import com.bsit.uniread.domain.entities.message.Conversation;
 import com.bsit.uniread.domain.entities.message.Message;
-import com.bsit.uniread.domain.entities.user.CustomUserDetails;
+import com.bsit.uniread.domain.entities.message.Participant;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.handler.publishers.message.MessagePublisher;
 import com.bsit.uniread.infrastructure.repositories.message.ConversationRepository;
 import com.bsit.uniread.infrastructure.repositories.message.MessageRepository;
 import com.bsit.uniread.application.services.user.UserService;
+import com.bsit.uniread.infrastructure.repositories.message.ParticipantRepository;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +33,7 @@ import java.util.UUID;
 public class MessageService {
 
     private final MessageRepository messageRepository;
+    private final ParticipantRepository participantRepository;
     private final ConversationRepository conversationRepository;
     private final UserService userService;
     private final MessagePublisher messagePublisher;
@@ -39,12 +44,11 @@ public class MessageService {
      * @return Page of Message
      */
     @Transactional(readOnly = true)
-    public Page<Message> getMessagesByConversationId(UUID conversationId, int pageNo, int pageSize) {
+    public Page<Message> getUserConversationMessages(UUID conversationId, int pageNo, int pageSize, String query) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        Conversation conversation = getConversationById(conversationId);
 
-        return messageRepository.findByConversation(conversation, pageable);
+        return messageRepository.findByConversationId(conversationId, pageable);
     }
 
     /**
@@ -63,20 +67,24 @@ public class MessageService {
      * @param messageCreationRequest
      */
     @Transactional
-    public void createNewMessage(MessageCreationRequest messageCreationRequest, CustomUserDetails userDetails) {
-        Conversation conversation = getConversationById(messageCreationRequest.getConversationId());
+    public void createNewMessage(MessageCreationRequest messageCreationRequest, User sender) {
+        Conversation conversation;
 
-        User sender = userService.getUserById(userDetails.getId());
+        if(messageCreationRequest.getConversationId() != null) {
+            conversation = getConversationById(messageCreationRequest.getConversationId());
+        } else {
+            conversation = conversationRepository
+                    .findOneOnOneConversation(sender.getId(), messageCreationRequest.getReceiverIds().getFirst())
+                    .orElseGet(() -> newConversation(sender, messageCreationRequest.getReceiverIds(), messageCreationRequest.getIsGroup()));
+        }
 
-        MessageDto newMessage = new MessageDto(save(Message.builder()
-                    .conversation(conversation)
-                    .message(messageCreationRequest.getMessage())
-                    .sender(sender)
-                    .createdAt(DateUtil.now())
-                    .build()
-        ));
+        // First save the message
+        Message savedMessage = save(newMessage(conversation, messageCreationRequest.getMessage(), sender));
+        MessageDto messageDto = new MessageDto(savedMessage);
 
-        messagePublisher.publishUserSentMessage(conversation, newMessage);
+        // Then update read status and publish event
+        List<Participant> participants = conversation.getParticipants();
+        messagePublisher.publishUserSentMessage(messageDto, participants);
     }
 
     /**
@@ -84,9 +92,55 @@ public class MessageService {
      * @param message
      * @return Message
      */
+    @Transactional
     public Message save(Message message) {
         return messageRepository.save(message);
     }
 
 
+    private Message newMessage(Conversation conversation, String message, User sender) {
+        return Message.builder()
+                .conversation(conversation)
+                .message(message)
+                .sender(sender)
+                .createdAt(DateUtil.now())
+                .updatedAt(DateUtil.now())
+                .build();
+    }
+
+    @Transactional
+    private Conversation newConversation(User sender, List<UUID> receiverIds, boolean isGroup) {
+        Conversation conversation = createConversation();
+        conversation.setIsGroup(isGroup);
+        conversation.setName(null);
+
+
+        List<Participant> participants = userService.getUsersById(receiverIds)
+                .stream()
+                .map(user -> Participant.builder()
+                        .user(user)
+                        .conversation(conversation)
+                        .readAt(null)
+                        .build()
+                ).collect(Collectors.toList());
+
+        Participant senderParticipant = Participant.builder()
+                .user(sender)
+                .conversation(conversation)
+                .readAt(DateUtil.now())
+                .build();
+
+        participants.add(senderParticipant);
+        conversation.setParticipants(participants);
+        return conversationRepository.save(conversation);
+    }
+
+
+    private Conversation createConversation() {
+        return Conversation.builder()
+                .name(null)
+                .isGroup(false)
+                .participants(new ArrayList<>())
+                .build();
+    }
 }

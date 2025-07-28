@@ -1,5 +1,6 @@
 package com.bsit.uniread.domain.entities.book;
 
+import com.bsit.uniread.domain.entities.Collaborator;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
 import com.bsit.uniread.domain.entities.chapter.ChapterStatus;
 import com.bsit.uniread.domain.entities.user.User;
@@ -79,6 +80,11 @@ public class Book {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "book", cascade = CascadeType.REMOVE)
     @JsonManagedReference
     private List<BookLike> bookLikes = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
+    @JsonManagedReference
+    private List<Collaborator> collaborators = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(fetch = FetchType.LAZY)

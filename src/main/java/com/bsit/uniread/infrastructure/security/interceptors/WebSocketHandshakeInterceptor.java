@@ -1,8 +1,6 @@
 package com.bsit.uniread.infrastructure.security.interceptors;
 
 import com.bsit.uniread.application.services.auth.JsonWebTokenService;
-import com.bsit.uniread.application.services.user.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -15,48 +13,44 @@ import java.security.Principal;
 import java.util.Map;
 import java.util.UUID;
 
-@Slf4j
 @Component
+@Slf4j
 public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
 
     private final JsonWebTokenService jsonWebTokenService;
-    private final UserService userService;
 
-    public WebSocketHandshakeInterceptor(JsonWebTokenService service, UserService userService) {
-        this.jsonWebTokenService = service;
-        this.userService = userService;
+    public WebSocketHandshakeInterceptor(JsonWebTokenService jsonWebTokenService) {
+        this.jsonWebTokenService = jsonWebTokenService;
     }
 
     @Override
-    public boolean beforeHandshake(
-            ServerHttpRequest request,
-            ServerHttpResponse response,
-            WebSocketHandler wsHandler,
-            Map<String, Object> attributes
-    ) throws Exception {
-        log.debug("Handshake initiated for: {}", request.getURI());
+    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
+                                   WebSocketHandler wsHandler, Map<String, Object> attributes) {
+
+        log.debug("------------------- ServerHttpRequest {}", request.toString());
+
         if (request instanceof ServletServerHttpRequest) {
             ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
+
+            // Try to get token from query parameter first
             String token = servletRequest.getServletRequest().getParameter("access_token");
-            log.debug("Token found: {}", token);
-
-            if (token != null) {
-                UUID userId = jsonWebTokenService.extractUserId(token);
-                log.debug("Authenticating user: {}", userId);
-
-                attributes.put("user", (Principal) userId::toString);
-                return true;
+            log.debug("------------------------------------- Auth Token {}", token);
+            if (token != null && !token.isBlank()) {
+                try {
+                    UUID userId = jsonWebTokenService.extractUserId(token);
+                    attributes.put("user", (Principal) userId::toString);
+                    return true;
+                } catch (Exception e) {
+                    return false;
+                }
             }
         }
-
         return false;
     }
 
     @Override
-    public void afterHandshake(
-            ServerHttpRequest request,
-            ServerHttpResponse response,
-            WebSocketHandler wsHandler,
-            Exception exception
-    ) {}
+    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
+                               WebSocketHandler wsHandler, Exception exception) {
+        // Optional post-handshake logic
+    }
 }

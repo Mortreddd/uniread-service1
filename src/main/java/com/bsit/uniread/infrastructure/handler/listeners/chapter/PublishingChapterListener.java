@@ -1,59 +1,53 @@
 package com.bsit.uniread.infrastructure.handler.listeners.chapter;
 
-import com.bsit.uniread.application.services.NotificationService;
+import com.bsit.uniread.application.dto.response.notification.NotificationDto;
+import com.bsit.uniread.application.services.FollowService;
+import com.bsit.uniread.application.services.notification.NotificationService;
+import com.bsit.uniread.application.services.notification.WebSocketNotificationSender;
 import com.bsit.uniread.domain.entities.Follow;
 import com.bsit.uniread.domain.entities.Notification;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.domain.events.chapter.PublishChapterEvent;
-import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationListener;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class PublishingChapterListener implements ApplicationListener<PublishChapterEvent> {
+public class PublishingChapterListener {
 
     private final NotificationService notificationService;
-    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final FollowService followService;
+    private final WebSocketNotificationSender webSocketNotificationSender;
 
-    @Override
-    public void onApplicationEvent(PublishChapterEvent event) {
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Async
+    public void handlePublishingChapter(PublishChapterEvent event) {
         Chapter chapter = event.getChapter();
         Book book = event.getBook();
         User author = event.getAuthor();
-
-        List<Follow> followers = author.getFollowers();
+        List<User> followers = followService.getFollowersByUser(author)
+                .stream()
+                .map(Follow::getFollower)
+                .toList();
 
         String title = String.format("%s has new chapter", book.getTitle());
         String description = String.format("%s released a new chapter of %s", author.getUsername(), chapter.getTitle());
 
-        List<Notification> notifications = followers
-                .stream()
-                .map((f) -> Notification.builder()
-                        .isRead(false)
-                        .user(f.getFollower())
-                        .title(title)
-                        .description(description)
-                        .createdAt(DateUtil.now())
-                        .build())
-                .toList();
-
+        List<Notification> notifications = notificationService.newNotifications(followers, title, description);
         notificationService.saveNotifications(notifications);
-        notifications.forEach((notification) -> {
-            simpMessagingTemplate.convertAndSendToUser(
-                    notification
-                            .getUser()
-                            .getId()
-                            .toString(),
-                    "/topic/notifications",
-                    notification
-            );
-        });
+        List<NotificationDto> notifs = notifications
+                .stream()
+                .map(NotificationDto::new)
+                .toList();
+        webSocketNotificationSender.sendUsersNotifications(followers, notifs);
+
     }
 }

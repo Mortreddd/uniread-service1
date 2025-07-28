@@ -86,7 +86,7 @@ public class BookController {
      * @return book
      * @throws IOException
      */
-    @PostMapping(path = "/create", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<BookDto> createBook(
             @Valid @ModelAttribute BookCreationRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails

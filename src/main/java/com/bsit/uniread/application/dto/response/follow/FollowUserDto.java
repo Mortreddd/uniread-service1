@@ -1,4 +1,4 @@
-package com.bsit.uniread.application.dto.response.user;
+package com.bsit.uniread.application.dto.response.follow;
 
 import com.bsit.uniread.domain.entities.user.Gender;
 import com.bsit.uniread.domain.entities.user.User;
@@ -9,7 +9,8 @@ import java.util.UUID;
 
 @Data
 @AllArgsConstructor
-public class AuthorDto {
+public class FollowUserDto {
+
     private UUID id;
     private String username;
     private String firstName;
@@ -23,7 +24,7 @@ public class AuthorDto {
     private Boolean isFollowing;
     private Boolean isMutualFollowing;
 
-    public AuthorDto(User user) {
+    public FollowUserDto(User user, Boolean isFollowing, Boolean isMutualFollowing) {
         this.id = user.getId();
         this.username = user.getUsername();
         this.firstName = user.getFirstName();
@@ -33,6 +34,8 @@ public class AuthorDto {
         this.photoUrl = user.getPhotoUrl();
         this.followersCount = user.getFollowersCount();
         this.followingsCount = user.getFollowingsCount();
-        this.storiesCount = user.getPublishedStoriesCount();
+        this.storiesCount = user.getStoriesCount();
+        this.isFollowing = isFollowing;
+        this.isMutualFollowing = isMutualFollowing;
     }
 }
