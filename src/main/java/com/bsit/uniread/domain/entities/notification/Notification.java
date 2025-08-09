@@ -1,4 +1,4 @@
-package com.bsit.uniread.domain.entities;
+package com.bsit.uniread.domain.entities.notification;
 
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;

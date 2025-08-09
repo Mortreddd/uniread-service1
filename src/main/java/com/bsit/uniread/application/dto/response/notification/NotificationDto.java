@@ -1,7 +1,7 @@
 package com.bsit.uniread.application.dto.response.notification;
 
 import com.bsit.uniread.application.dto.response.user.AuthorDto;
-import com.bsit.uniread.domain.entities.Notification;
+import com.bsit.uniread.domain.entities.notification.Notification;
 import lombok.Data;
 
 import java.time.LocalDateTime;

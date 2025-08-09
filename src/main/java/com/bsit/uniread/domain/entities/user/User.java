@@ -2,7 +2,7 @@ package com.bsit.uniread.domain.entities.user;
 
 import com.bsit.uniread.domain.entities.Collaborator;
 import com.bsit.uniread.domain.entities.Follow;
-import com.bsit.uniread.domain.entities.Notification;
+import com.bsit.uniread.domain.entities.notification.Notification;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookComment;
 import com.bsit.uniread.domain.entities.book.BookCommentLike;

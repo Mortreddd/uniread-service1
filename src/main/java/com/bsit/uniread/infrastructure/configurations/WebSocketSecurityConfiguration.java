@@ -10,7 +10,7 @@ import org.springframework.security.messaging.access.intercept.MessageMatcherDel
 public class WebSocketSecurityConfiguration {
 
     @Bean
-    AuthorizationManager<Message<?>> messageAuthorizationManager(
+    public AuthorizationManager<Message<?>> messageAuthorizationManager(
             MessageMatcherDelegatingAuthorizationManager.Builder messages) {
         return messages
                 .simpDestMatchers("/app/**").authenticated()

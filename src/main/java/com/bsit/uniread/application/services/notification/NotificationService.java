@@ -1,7 +1,7 @@
 package com.bsit.uniread.application.services.notification;
 
 import com.bsit.uniread.application.services.user.UserService;
-import com.bsit.uniread.domain.entities.Notification;
+import com.bsit.uniread.domain.entities.notification.Notification;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.repositories.NotificationRepository;

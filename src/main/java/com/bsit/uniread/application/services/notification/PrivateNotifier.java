@@ -1,6 +1,5 @@
 package com.bsit.uniread.application.services.notification;
 
-import com.bsit.uniread.application.dto.response.message.MessageDto;
 import com.bsit.uniread.application.dto.response.notification.NotificationDto;
 import com.bsit.uniread.domain.entities.user.User;
 import lombok.RequiredArgsConstructor;
@@ -11,28 +10,25 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class WebSocketNotificationSender {
+public class PrivateNotifier implements Notifier {
 
-    private final SimpMessagingTemplate simpMessagingTemplate;
+    private SimpMessagingTemplate simpMessagingTemplate;
 
-    public void sendUsersNotifications(List<User> users, List<NotificationDto> notifications) {
-        notifications.forEach(notification -> {
-            sendUsersNotification(users, notification);
-        });
-    }
-
-    private void sendUsersNotification(List<User> users, NotificationDto notification) {
-        users.forEach(user -> {
-            sendNotification(user, notification);
-        });
+    private void sendPrivateUsersNotification(List<User> users, NotificationDto notification) {
+        users.forEach(user -> sendNotification(user, notification));
     }
 
     private void sendNotification(User user, NotificationDto notification) {
         simpMessagingTemplate.convertAndSendToUser(
                 user.getId().toString(),
-                "/topic/notifications",
+                "/queue/notifications",
                 notification
         );
+    }
+
+    @Override
+    public void handleNotify(List<User> users, NotificationDto notification) {
+        sendPrivateUsersNotification(users, notification);
     }
 
 }

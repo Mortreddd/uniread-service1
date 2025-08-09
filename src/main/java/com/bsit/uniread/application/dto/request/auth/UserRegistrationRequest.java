@@ -1,7 +1,6 @@
 package com.bsit.uniread.application.dto.request.auth;
 
 import com.bsit.uniread.domain.entities.user.Gender;
-import com.bsit.uniread.infrastructure.security.validations.constraints.UniqueEmail;
 import com.bsit.uniread.infrastructure.security.validations.constraints.UniqueUsername;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
@@ -22,7 +21,6 @@ public class UserRegistrationRequest {
     private Gender gender;
 
     @Email(message = "Email must be valid")
-    @UniqueEmail
     private String email;
 
     @Min(value = 8, message = "Password must be 8 characters long or above")

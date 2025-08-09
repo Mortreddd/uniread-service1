@@ -3,15 +3,14 @@ package com.bsit.uniread.infrastructure.handler.listeners.chapter;
 import com.bsit.uniread.application.dto.response.notification.NotificationDto;
 import com.bsit.uniread.application.services.FollowService;
 import com.bsit.uniread.application.services.notification.NotificationService;
-import com.bsit.uniread.application.services.notification.WebSocketNotificationSender;
+import com.bsit.uniread.application.services.notification.PrivateNotifier;
 import com.bsit.uniread.domain.entities.Follow;
-import com.bsit.uniread.domain.entities.Notification;
+import com.bsit.uniread.domain.entities.notification.Notification;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.domain.events.chapter.PublishChapterEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -25,7 +24,7 @@ public class PublishingChapterListener {
 
     private final NotificationService notificationService;
     private final FollowService followService;
-    private final WebSocketNotificationSender webSocketNotificationSender;
+    private final PrivateNotifier webSocketNotificationSender;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
@@ -47,7 +46,10 @@ public class PublishingChapterListener {
                 .stream()
                 .map(NotificationDto::new)
                 .toList();
-        webSocketNotificationSender.sendUsersNotifications(followers, notifs);
+
+        for(NotificationDto notification : notifs) {
+            webSocketNotificationSender.handleNotify(followers, notification);
+        }
 
     }
 }

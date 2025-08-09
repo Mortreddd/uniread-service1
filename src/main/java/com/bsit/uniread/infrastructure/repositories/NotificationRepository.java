@@ -1,6 +1,6 @@
 package com.bsit.uniread.infrastructure.repositories;
 
-import com.bsit.uniread.domain.entities.Notification;
+import com.bsit.uniread.domain.entities.notification.Notification;
 import com.bsit.uniread.domain.entities.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
