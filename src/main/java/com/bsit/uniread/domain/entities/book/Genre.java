@@ -1,6 +1,8 @@
 package com.bsit.uniread.domain.entities.book;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,12 +37,11 @@ public class Genre {
     @JsonBackReference
     public List<Book> books;
 
-
-    @Temporal(TemporalType.TIMESTAMP)
+    @JsonSerialize(using = ToStringSerializer.class)
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    @JsonSerialize(using = ToStringSerializer.class)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

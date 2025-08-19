@@ -44,9 +44,10 @@ public class SecurityConfiguration {
             "/api/v1/users/*/follow/followings",
             "/api/v1/users/*/follow/followers",
             "/ws/**", // Disable the authentication for WebSocket
-//            "/app/**",
             "/topic/**",
-            "/user/**"
+            "/user/**",
+            "/swagger-ui/**",
+            "/v3/api-docs*/**"
 
     };
 

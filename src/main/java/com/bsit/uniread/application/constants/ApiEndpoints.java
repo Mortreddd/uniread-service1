@@ -26,6 +26,8 @@ public class ApiEndpoints {
     public static final String BOOK_COMMENTS = "/api/v1/books/{bookId}/comments";
     // Book Comments Reaction prefix
     public static final String BOOK_COMMENTS_REACTIONS = "/api/v1/books/{bookId}/comments/{commentId}/reactions";
+    // Book collaborators
+    public static final String BOOK_COLLABORATORS = "/api/v1/books/{bookId}/collaborators";
     // User notifications prefix
     public static final String NOTIFICATIONS = "/api/v1/notifications";
 

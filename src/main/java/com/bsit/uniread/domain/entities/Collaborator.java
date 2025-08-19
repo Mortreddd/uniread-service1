@@ -1,6 +1,7 @@
 package com.bsit.uniread.domain.entities;
 
 import com.bsit.uniread.domain.entities.book.Book;
+import com.bsit.uniread.domain.entities.collaborator.CollaboratorPermission;
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -13,9 +14,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.*;
 
-@Table(name = "collaborators", indexes = {
+@Table(name = "collaborator", indexes = {
         @Index(name = "idx_book_id", columnList = "book_id"),
         @Index(name = "idx_user_id", columnList = "user_id"),
 })
@@ -40,12 +41,16 @@ public class Collaborator {
     @JsonManagedReference
     private User user;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private List<CollaboratorPermission> permissions = new ArrayList<>();
+
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
+
+    private LocalDateTime bannedAt;
 
 }

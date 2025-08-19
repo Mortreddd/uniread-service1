@@ -18,7 +18,10 @@ public class GenreController {
 
     @GetMapping
     public ResponseEntity<List<GenreDto>> getGenres() {
-        List<GenreDto> genres = genreService.getGenres().stream().map(GenreDto::new).toList();
+        List<GenreDto> genres = genreService.getGenres()
+                .stream()
+                .map(GenreDto::new)
+                .toList();
         return ResponseEntity.ok()
                 .body(genres);
     }
