@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Data
 @NoArgsConstructor
-public class UserChatInfo {
+public class SimpleUserInfo {
 
     private UUID id;
     private String username;
@@ -16,7 +16,7 @@ public class UserChatInfo {
     private String firstName;
     private String lastName;
 
-    public UserChatInfo(User user) {
+    public SimpleUserInfo(User user) {
         this.id = user.getId();
         this.username = user.getUsername();
         this.fullName = user.getFullName();

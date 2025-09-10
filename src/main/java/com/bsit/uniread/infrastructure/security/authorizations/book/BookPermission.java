@@ -38,7 +38,7 @@ public class BookPermission {
      */
     public boolean isPublished(UUID bookId, CustomUserDetails userDetails) {
         Book book = bookService.getBookById(bookId);
-        if(book.getIsPublished()) return true;
+        if(Boolean.TRUE.equals(book.getIsPublished())) return true;
 
         /**
          * Allow the collaborator to edit the book if the selected book is in draft

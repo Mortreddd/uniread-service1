@@ -50,9 +50,9 @@ public class BookSpecification {
      */
     public static Specification<Book> hasDeleted(String deletedAt) {
         return (root, query, cb) -> {
-            if(deletedAt == null || deletedAt.isBlank()) {
-                return cb.isNull(root.get("deletedAt"));
-            }
+            if(deletedAt == null) return cb.conjunction();
+
+            if(deletedAt.isBlank()) return cb.isNull(root.get("deletedAt"));
 
             return cb.isNotNull(root.get("deletedAt"));
         };

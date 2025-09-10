@@ -1,8 +1,9 @@
 package com.bsit.uniread.domain.entities.book;
 
-import com.bsit.uniread.domain.entities.Collaborator;
+import com.bsit.uniread.domain.entities.collaborator.Collaborator;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
 import com.bsit.uniread.domain.entities.chapter.ChapterStatus;
+import com.bsit.uniread.domain.entities.collaborator.CollaboratorRequest;
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -85,6 +86,11 @@ public class Book {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
     @JsonManagedReference
     private List<Collaborator> collaborators = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
+    @JsonManagedReference
+    private List<CollaboratorRequest> collaboratorRequests = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(fetch = FetchType.LAZY)

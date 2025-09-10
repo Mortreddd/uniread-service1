@@ -27,6 +27,7 @@ public class CustomUserDetails implements UserDetails {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     private final LocalDateTime bannedAt;
+    private final LocalDateTime unbannedAt;
     private final LocalDateTime deletedAt;
     private final Boolean isEmailVerified;
     private final Boolean isUser;
@@ -51,6 +52,7 @@ public class CustomUserDetails implements UserDetails {
         this.updatedAt = user.getUpdatedAt();
         this.deletedAt = user.getDeletedAt();
         this.bannedAt = user.getBannedAt();
+        this.unbannedAt = user.getUnbannedAt();
         this.isEmailVerified = user.getIsEmailVerified();
         this.isUser = user.getIsUser();
         this.isBanned = user.getIsBanned();

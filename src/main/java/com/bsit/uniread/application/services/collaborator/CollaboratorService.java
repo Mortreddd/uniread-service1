@@ -1,9 +1,10 @@
 package com.bsit.uniread.application.services.collaborator;
 
+import com.bsit.uniread.application.dto.request.collaborator.ApproveCollaborationRequest;
 import com.bsit.uniread.application.dto.request.collaborator.NewCollaboratorRequest;
 import com.bsit.uniread.application.services.book.BookService;
 import com.bsit.uniread.application.services.user.UserService;
-import com.bsit.uniread.domain.entities.Collaborator;
+import com.bsit.uniread.domain.entities.collaborator.Collaborator;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
@@ -50,6 +51,15 @@ public class CollaboratorService {
     }
 
     /**
+     * Get the collaborators of a book
+     * @param bookId
+     * @return list of collaborators
+     */
+    public List<Collaborator> getBookCollaboratorsById(UUID bookId) {
+        return collaboratorRepository.findByBookId(bookId);
+    }
+
+    /**
      * Get the collaborator by id
      * @param collaboratorId
      * @return collaborator
@@ -65,7 +75,7 @@ public class CollaboratorService {
      * @param request
      * @return collaborator
      */
-    public Collaborator createCollaborator(UUID bookId, NewCollaboratorRequest request) {
+    public Collaborator createCollaborator(UUID bookId, ApproveCollaborationRequest request) {
         Book book = bookService.getBookById(bookId);
         User user = userService.getUserById(request.getUserCollaboratorId());
 

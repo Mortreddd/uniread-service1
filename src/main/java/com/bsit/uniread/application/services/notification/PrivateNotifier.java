@@ -3,16 +3,20 @@ package com.bsit.uniread.application.services.notification;
 import com.bsit.uniread.application.dto.response.notification.NotificationDto;
 import com.bsit.uniread.domain.entities.user.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
-public class PrivateNotifier implements Notifier {
+public class PrivateNotifier extends Notifier {
 
-    private SimpMessagingTemplate simpMessagingTemplate;
+    private final SimpMessagingTemplate simpMessagingTemplate;
+
+    public PrivateNotifier(List<User> users, List<NotificationDto> notifications, SimpMessagingTemplate simpMessagingTemplate) {
+        super(users, notifications);
+        this.simpMessagingTemplate = simpMessagingTemplate;
+    }
 
     private void sendPrivateUsersNotification(List<User> users, NotificationDto notification) {
         users.forEach(user -> sendNotification(user, notification));
@@ -27,8 +31,7 @@ public class PrivateNotifier implements Notifier {
     }
 
     @Override
-    public void handleNotify(List<User> users, NotificationDto notification) {
-        sendPrivateUsersNotification(users, notification);
+    public void handleNotify() {
+        getNotifications().forEach(notification -> sendPrivateUsersNotification(getUsers(), notification));
     }
-
 }

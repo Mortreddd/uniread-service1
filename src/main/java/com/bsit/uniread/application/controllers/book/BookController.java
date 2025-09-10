@@ -3,10 +3,13 @@ package com.bsit.uniread.application.controllers.book;
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.book.BookCreationRequest;
+import com.bsit.uniread.application.dto.response.book.BookDetailDto;
 import com.bsit.uniread.application.dto.response.book.BookDto;
+import com.bsit.uniread.application.dto.response.book.DetailedBookDto;
 import com.bsit.uniread.application.services.book.BookService;
 import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
+import jakarta.annotation.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -71,13 +74,16 @@ public class BookController {
      */
     @GetMapping(path = "/{bookId}")
     @PreAuthorize("@bookPermission.isPublished(#bookId, #userDetails)")
-    public ResponseEntity<BookDto> getBookById(
+    public ResponseEntity<DetailedBookDto> getBookById(
             @PathVariable(name = "bookId") UUID bookId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        BookDto book = new BookDto(bookService.getBookById(bookId));
+        UUID userId = (userDetails != null) ? userDetails.getId() : null;
+
+        BookDetailDto detail = bookService.getBookDetailById(bookId, userId);
+        DetailedBookDto detailedBook = new DetailedBookDto(bookService.getBookById(bookId), detail);
         return ResponseEntity.ok()
-                .body(book);
+                .body(detailedBook);
     }
 
     /**
@@ -98,8 +104,20 @@ public class BookController {
     @DeleteMapping(path = "/{bookId}")
     public ResponseEntity<SuccessResponse> deleteBookById(
             @PathVariable(name = "bookId") UUID bookId
-    ) throws IOException {
+    ) {
         bookService.deleteBookById(bookId);
+        SuccessResponse response = SuccessResponse.builder()
+                .code(HttpStatus.OK.value())
+                .message("Successfully deleted")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping(path = "/{bookId}/force")
+    public ResponseEntity<SuccessResponse> forceDeleteBookById(
+            @PathVariable(name = "bookId") UUID bookId
+    ) throws IOException {
+        bookService.forceDeleteBookById(bookId);
         SuccessResponse response = SuccessResponse.builder()
                 .code(HttpStatus.OK.value())
                 .message("Successfully deleted")

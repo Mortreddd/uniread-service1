@@ -28,6 +28,7 @@ public class UserDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime bannedAt;
+    private LocalDateTime unbannedAt;
     private LocalDateTime deletedAt;
     private Boolean isEmailVerified;
     private Boolean isUser;
@@ -49,6 +50,7 @@ public class UserDto {
         this.createdAt = user.getCreatedAt();
         this.updatedAt = user.getUpdatedAt();
         this.deletedAt = user.getDeletedAt();
+        this.unbannedAt = user.getUnbannedAt();
         this.isEmailVerified = user.getIsEmailVerified();
         this.isUser = user.getIsUser();
         this.isSuperAdmin = user.getIsSuperAdmin();
@@ -71,6 +73,7 @@ public class UserDto {
         this.createdAt = userDetails.getCreatedAt();
         this.updatedAt = userDetails.getUpdatedAt();
         this.deletedAt = userDetails.getDeletedAt();
+        this.unbannedAt = userDetails.getUnbannedAt();
         this.isEmailVerified = userDetails.getIsEmailVerified();
         this.isUser = userDetails.getIsUser();
         this.isSuperAdmin = userDetails.getIsSuperAdmin();

@@ -82,7 +82,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public void saveNotifications(List<Notification> notifications) {
-        notificationRepository.saveAll(notifications);
+    public List<Notification> saveNotifications(List<Notification> notifications) {
+        return notificationRepository.saveAll(notifications);
     }
 }

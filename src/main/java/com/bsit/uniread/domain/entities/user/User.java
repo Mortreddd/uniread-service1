@@ -1,6 +1,7 @@
 package com.bsit.uniread.domain.entities.user;
 
-import com.bsit.uniread.domain.entities.Collaborator;
+import com.bsit.uniread.domain.entities.book.Bookmark;
+import com.bsit.uniread.domain.entities.collaborator.Collaborator;
 import com.bsit.uniread.domain.entities.Follow;
 import com.bsit.uniread.domain.entities.notification.Notification;
 import com.bsit.uniread.domain.entities.book.Book;
@@ -76,6 +77,7 @@ public class User implements UserDetails {
     private LocalDateTime updatedAt;
 
     private LocalDateTime bannedAt;
+    private LocalDateTime unbannedAt;
 
     private LocalDateTime deletedAt;
 
@@ -122,12 +124,6 @@ public class User implements UserDetails {
     private BookCommentLike bookCommentLike;
 
     @Builder.Default
-    @OneToMany(targetEntity = UserArchive.class, fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_archive_id")
-    @JsonManagedReference
-    private List<UserArchive> userArchive = new ArrayList<>();
-
-    @Builder.Default
     @OneToMany(mappedBy = "following", fetch = FetchType.LAZY)
     @JsonBackReference
     private List<Follow> followers = new ArrayList<>();
@@ -141,6 +137,11 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonBackReference
     private List<Notification> notifications = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Bookmark> bookmarks = new ArrayList<>();
 
     public Long getFollowersCount() {
         return (long) followers.size();

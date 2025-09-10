@@ -36,6 +36,7 @@ public class BookSeeder implements CommandLineRunner {
             if(users.isEmpty()) {
                 throw new IllegalStateException("No existing users");
             }
+
             ObjectMapper mapper = new ObjectMapper();
             try {
                 var resource = resourceLoader.getResource("classpath:migrate.json");

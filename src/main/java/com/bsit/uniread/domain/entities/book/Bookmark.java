@@ -1,8 +1,8 @@
-package com.bsit.uniread.domain.entities.user;
+package com.bsit.uniread.domain.entities.book;
 
-import com.bsit.uniread.domain.entities.book.Book;
+import com.bsit.uniread.domain.entities.paragraph.Paragraph;
+import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,37 +12,32 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
+@Table
+@Entity
+@Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Builder
-@Table
-public class UserArchive {
+public class Bookmark {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @OneToOne(targetEntity = Paragraph.class, fetch = FetchType.LAZY)
+    @JsonBackReference
+    private Paragraph paragraph;
 
-    @OneToOne(targetEntity = Book.class, fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "book_id")
-    @JsonManagedReference
-    private Book book;
-
-    @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

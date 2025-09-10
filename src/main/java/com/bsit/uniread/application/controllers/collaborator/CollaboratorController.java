@@ -2,9 +2,10 @@ package com.bsit.uniread.application.controllers.collaborator;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
+import com.bsit.uniread.application.dto.request.collaborator.ApproveCollaborationRequest;
 import com.bsit.uniread.application.dto.request.collaborator.NewCollaboratorRequest;
 import com.bsit.uniread.application.services.collaborator.CollaboratorService;
-import com.bsit.uniread.domain.entities.Collaborator;
+import com.bsit.uniread.domain.entities.collaborator.Collaborator;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,10 +37,11 @@ public class CollaboratorController {
                 .body(collaborators);
     }
 
+    // TODO: Add verification if the approve is owner or has permission
     @PostMapping
     public ResponseEntity<Collaborator> storeCollaborator(
             @PathVariable(name = "bookId") UUID bookId,
-            @Valid @RequestBody NewCollaboratorRequest request,
+            @Valid @RequestBody ApproveCollaborationRequest request,
             @AuthenticationPrincipal  CustomUserDetails userDetails
     ) {
 
@@ -57,6 +59,8 @@ public class CollaboratorController {
     ) {
         return null;
     }
+    
+    
     @DeleteMapping(value = "/{collaboratorId}")
     public ResponseEntity<SuccessResponse> deleteCollaborator(
             @PathVariable(name = "bookId") UUID bookId,

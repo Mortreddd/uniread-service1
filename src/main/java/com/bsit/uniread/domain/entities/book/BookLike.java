@@ -33,7 +33,7 @@ public class BookLike {
     @JsonBackReference
     private Book book;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;

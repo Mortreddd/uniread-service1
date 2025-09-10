@@ -51,10 +51,6 @@ public class BookDto {
 
     private List<BookCommentDto> bookComments;
 
-//    private List<BookLike> bookLikes;
-
-//    private List<Tag> tags;
-
     public BookDto(Book book) {
         this.id = book.getId();
         this.user = new AuthorDto(book.getUser());
@@ -76,8 +72,6 @@ public class BookDto {
                 .map(ChapterDto::new)
                 .toList();
         this.bookComments = book.getBookComments().stream().map(BookCommentDto::new).toList();
-//        this.bookLikes = book.getBookLikes();
-//        this.tags = book.getTags();
         this.totalChapterPublishedCount = book.getTotalChapterPublishedCount();
         this.totalChapterDraftsCount = book.getTotalChapterDraftsCount();
         this.totalChaptersCount = book.getTotalChaptersCount();

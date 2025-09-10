@@ -1,5 +1,6 @@
 package com.bsit.uniread.domain.entities.paragraph;
 
+import com.bsit.uniread.domain.entities.book.Bookmark;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -56,5 +57,9 @@ public class Paragraph {
     @OneToMany(mappedBy = "paragraph", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonManagedReference
     private List<ParagraphComment> paragraphComments = new ArrayList<>();
+
+    @OneToOne(targetEntity = Bookmark.class, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private Bookmark bookmark;
 
 }

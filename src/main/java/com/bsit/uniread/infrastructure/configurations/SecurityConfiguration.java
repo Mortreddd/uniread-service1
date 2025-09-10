@@ -32,6 +32,7 @@ public class SecurityConfiguration {
             "/api/v1/books/*/chapters",
             "/api/v1/books/*/comments",
             "/api/v1/books/*/comments/*",
+            "/api/v1/books/*/collaborators",
             "/api/v1/authors",
             "/api/v1/authors/*",
             "/api/v1/auth/**",

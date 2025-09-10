@@ -12,6 +12,6 @@ public enum CollaboratorPermission {
     PUBLISH_CHAPTER,
     // collaborator sections
     ADD_COLLABORATOR,
-    MODIFY_PERMISSIONS,
+    MODIFY_PERMISSIONS,;
 
 }

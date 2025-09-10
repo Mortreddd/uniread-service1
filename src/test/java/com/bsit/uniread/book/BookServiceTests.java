@@ -13,6 +13,7 @@ import com.bsit.uniread.domain.entities.user.Role;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.repositories.book.BookRepository;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
+import com.bsit.uniread.infrastructure.utils.ImageUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +37,8 @@ public class BookServiceTests {
     @Mock
     BookRepository bookRepository;
 
+    @Mock
+    ImageUtils imageUtils;
     @Mock
     UserService userService;
 
@@ -115,7 +118,7 @@ public class BookServiceTests {
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(bookPage, result);
-        Assertions.assertEquals(2, result.getSize());
+        Assertions.assertEquals(2, result.getContent().size());
     }
 
     @Test
@@ -145,7 +148,7 @@ public class BookServiceTests {
         );
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(1, result.getSize());
+        Assertions.assertEquals(1, result.getContent().size());
     }
 
     @Test
@@ -175,7 +178,7 @@ public class BookServiceTests {
         );
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(1, result.getSize());
+        Assertions.assertEquals(1, result.getContent().size());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.bsit.uniread.application.services.book;
 
 import com.bsit.uniread.application.dto.request.book.BookCreationRequest;
+import com.bsit.uniread.application.dto.response.book.BookDetailDto;
 import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookStatus;
@@ -25,7 +26,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.List;
@@ -123,6 +123,16 @@ public class BookService {
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the book"));
     }
 
+    @Transactional(readOnly = true)
+    public BookDetailDto getBookDetailById(UUID bookId, UUID userId) {
+        if(userId == null) {
+            return bookRepository.findBookDetailById(bookId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Unable to get the book detail"));
+        }
+        return bookRepository.findBookDetailByIdAndUserId(bookId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Unable to get the book detail"));
+    }
+
     /**
      * Create a book
      * @description if any exception occurs, all the created will be deleted
@@ -176,34 +186,28 @@ public class BookService {
         return bookRepository.save(book);
     }
 
-
     /**
      * Safe delete the book
      * @param bookId
-     * @throws IOException
      */
     @Transactional
-    public void deleteBookById(UUID bookId) throws IOException {
+    public void deleteBookById(UUID bookId) {
         Book book = getBookById(bookId);
         book.setDeletedAt(DateUtil.now());
+
+        // TODO: Add the removal of collaborators and sending notifications
         save(book);
     }
 
     /**
      * Force delete the book
      * @param bookId
-     * @throws IOException
      */
     @Transactional
-    public void forceDeleteBookById(UUID bookId) throws IOException {
+    public void forceDeleteBookById(UUID bookId) {
         Book book = getBookById(bookId);
-        try {
-            if(imageUtils.deleteImage(book.getCoverPhoto())) {
-                bookRepository.delete(book);
-            }
-        } catch (Exception e) {
-            throw new FileNotFoundException("Unable to find cover photo of the book");
-        }
+        // TODO: Add the removal of collaborators in a book and sending notifications
+        bookRepository.delete(book);
     }
 
 

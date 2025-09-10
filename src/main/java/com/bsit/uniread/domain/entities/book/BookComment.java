@@ -36,7 +36,7 @@ public class BookComment {
     @JsonBackReference
     private Book book;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
