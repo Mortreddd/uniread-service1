@@ -18,7 +18,10 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table
+@Table(name = "chapter_likes", indexes = {
+        @Index(name = "idx_chapter_likes_chapter_id", columnList = "chapter_id"),
+        @Index(name = "idx_chapter_likes_user_id", columnList = "user_id")
+})
 @Entity
 public class ChapterLike {
 
@@ -38,11 +41,9 @@ public class ChapterLike {
     @Enumerated(EnumType.STRING)
     private Reaction reaction;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 

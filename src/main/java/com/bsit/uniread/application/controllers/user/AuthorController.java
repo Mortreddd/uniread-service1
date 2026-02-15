@@ -1,17 +1,26 @@
 package com.bsit.uniread.application.controllers.user;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
+import com.bsit.uniread.application.dto.request.user.AuthorBookFilter;
+import com.bsit.uniread.application.dto.request.user.AuthorFilter;
 import com.bsit.uniread.application.dto.response.book.BookDto;
+import com.bsit.uniread.application.dto.response.user.AuthorDetail;
 import com.bsit.uniread.application.dto.response.user.AuthorDto;
 import com.bsit.uniread.application.services.user.AuthorService;
+import com.bsit.uniread.domain.entities.Follow;
+import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
+import com.bsit.uniread.domain.entities.user.User;
+import com.bsit.uniread.infrastructure.repositories.FollowRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -24,44 +33,34 @@ import java.util.UUID;
 public class AuthorController {
 
     private final AuthorService authorService;
+    private final FollowRepository followRepository;
 
     @GetMapping
-    public ResponseEntity<Page<AuthorDto>> getAuthors(
-            @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
-            @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(name = "query", required = false) String query,
-            @RequestParam(name = "sortBy", defaultValue = "asc", required = false) String sortBy,
-            @RequestParam(name = "orderBy", defaultValue = "createdAt", required = false) String orderBy,
-            @RequestParam(name = "startDate", required = false) String startDate,
-            @RequestParam(name = "endDate", required = false) String endDate,
-            @RequestParam(name = "bannedAt", required = false) String bannedAt,
-            @RequestParam(name = "deletedAt", required = false) String deletedAt
+    public ResponseEntity<Page<AuthorDetail>> getAuthors(
+            @ModelAttribute AuthorFilter filter,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Page<AuthorDto> authors = authorService.getAuthors(pageNo, pageSize, query, sortBy, orderBy, startDate, endDate, bannedAt, deletedAt)
-                .map(AuthorDto::new);
+        Page<AuthorDetail> authors = authorService.getAuthors(filter, userDetails);
         return ResponseEntity.ok().body(authors);
     }
 
     @GetMapping(path = "/{authorId}")
-    public ResponseEntity<AuthorDto> getAuthorById(
-            @PathVariable(name = "authorId") UUID authorId
+    public ResponseEntity<AuthorDetail> getAuthorById(
+            @PathVariable(name = "authorId") UUID authorId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        AuthorDto author = new AuthorDto(authorService.getAuthorById(authorId));
-        return ResponseEntity.ok()
-                .body(author);
+        BookStatus bookStatus = BookStatus.PUBLISHED;
+        AuthorDetail author = authorService.getAuthorById(authorId, bookStatus);
+        return ResponseEntity.ok().body(author);
     }
-    @GetMapping(path = "/{userId}/books")
+
+    @GetMapping(path = "/{authorId}/books")
     public ResponseEntity<Page<BookDto>> getAuthorsBook(
-            @PathVariable(name = "userId") UUID userId,
-            @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
-            @RequestParam(name = "pageSize", required = false, defaultValue = "0") int pageSize,
-            @RequestParam(name = "query", required = false) String query,
-            @RequestParam(name = "status", required = false) BookStatus status,
-            @RequestParam(name = "sortBy", defaultValue = "asc", required = false) String sortBy,
-            @RequestParam(name = "orderBy", defaultValue = "createdAt", required = false) String orderBy
+            @PathVariable(name = "authorId") UUID authorId,
+            @ModelAttribute AuthorBookFilter filter
     ) {
 
-        Page<BookDto> books = authorService.getAuthorBooksById(userId, pageNo, pageSize, query, status, sortBy, orderBy).map(BookDto::new);
+        Page<BookDto> books = authorService.getAuthorBooksById(authorId, filter).map(BookDto::new);
         return ResponseEntity.ok()
                 .body(books);
 

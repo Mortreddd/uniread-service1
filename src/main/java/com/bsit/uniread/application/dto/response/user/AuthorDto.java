@@ -20,6 +20,8 @@ public class AuthorDto {
     private Long followersCount;
     private Long followingsCount;
     private Long storiesCount;
+    private Boolean isFollowing;
+    private Boolean isMutualFollowing;
 
     public AuthorDto(User user) {
         this.id = user.getId();

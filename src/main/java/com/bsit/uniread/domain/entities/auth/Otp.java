@@ -6,12 +6,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table
+@Table(name = "otps", indexes = {
+        @Index(name = "idx_otps_email", columnList = "email"),
+        @Index(name = "idx_otps_code", columnList = "email")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,6 +28,7 @@ public class Otp {
     private UUID id;
 
     private String email;
+    private String code;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

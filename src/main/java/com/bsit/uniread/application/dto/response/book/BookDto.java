@@ -1,5 +1,6 @@
 package com.bsit.uniread.application.dto.response.book;
 
+import com.bsit.uniread.application.dto.response.chapter.ChapterDto;
 import com.bsit.uniread.application.dto.response.user.AuthorDto;
 import com.bsit.uniread.domain.entities.book.*;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
@@ -46,13 +47,9 @@ public class BookDto {
 
     private LocalDateTime publishedAt;
 
-    private List<Chapter> chapters;
+    private List<ChapterDto> chapters;
 
     private List<BookCommentDto> bookComments;
-
-    private List<BookLike> bookLikes;
-
-    private List<Tag> tags;
 
     public BookDto(Book book) {
         this.id = book.getId();
@@ -70,10 +67,11 @@ public class BookDto {
         this.deletedAt = book.getDeletedAt();
         this.bannedAt = book.getBannedAt();
         this.publishedAt = book.getPublishedAt();
-        this.chapters = book.getChapters();
+        this.chapters = book.getChapters()
+                .stream()
+                .map(ChapterDto::new)
+                .toList();
         this.bookComments = book.getBookComments().stream().map(BookCommentDto::new).toList();
-        this.bookLikes = book.getBookLikes();
-        this.tags = book.getTags();
         this.totalChapterPublishedCount = book.getTotalChapterPublishedCount();
         this.totalChapterDraftsCount = book.getTotalChapterDraftsCount();
         this.totalChaptersCount = book.getTotalChaptersCount();

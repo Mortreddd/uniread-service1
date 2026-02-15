@@ -10,8 +10,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -22,7 +24,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table
+@Table(name = "book_comment_likes", indexes = {
+        @Index(name = "idx_book_comment_likes_book_comment_id", columnList = "book_comment_id"),
+        @Index(name = "idx_book_comment_likes_user_id", columnList = "user_id")
+})
 @Entity
 public class BookCommentLike {
     @Id
@@ -42,11 +47,9 @@ public class BookCommentLike {
     @Enumerated(EnumType.STRING)
     private Reaction reaction;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

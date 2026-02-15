@@ -7,6 +7,7 @@ import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Component("chapterPermission")
@@ -15,14 +16,24 @@ public class ChapterPermission {
 
     private final ChapterService chapterService;
 
-    public boolean isPublished(UUID bookId, UUID chapterId, CustomUserDetails userDetails) {
+    public boolean isCurrentlyPublished(UUID chapterId) {
+        Chapter chapter = chapterService.getChapterById(chapterId);
+        return chapter.getIsPublished();
+    }
+
+    public boolean isAccessible(UUID bookId, UUID chapterId, CustomUserDetails userDetails) {
         Chapter chapter = chapterService.getBookChapterById(bookId, chapterId);
-        if(chapter.getIsPublished()) return true;
+        if(Boolean.TRUE.equals(chapter.getIsPublished())) return true;
 
         /**
          * Might consider allowing collaborators of the book to access draft chapter
          */
         Book book = chapter.getBook();
         return book.getUser().getId().equals(userDetails.getId());
+    }
+
+    public boolean isBelong(UUID bookId, UUID chapterId) {
+        Chapter chapter = chapterService.getChapterById(chapterId);
+        return Objects.equals(chapter.getBook().getId(), bookId);
     }
 }

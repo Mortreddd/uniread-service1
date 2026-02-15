@@ -19,7 +19,11 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table
+@Table(name = "chapter_comments", indexes = {
+        @Index(name = "idx_chapter_comments_chapter_id", columnList = "chapter_id"),
+        @Index(name = "idx_chapter_comments_user_id", columnList = "user_id"),
+        @Index(name = "idx_chapter_comments_parent_chapter_comment_id", columnList = "parent_chapter_comment_id")
+})
 @Entity
 @Builder
 public class ChapterComment {
@@ -33,7 +37,7 @@ public class ChapterComment {
     @JsonBackReference
     private Chapter chapter;
 
-    @OneToOne(targetEntity = User.class, fetch = FetchType.LAZY)
+    @ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
@@ -46,11 +50,9 @@ public class ChapterComment {
     private String content;
     private Integer rating;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 

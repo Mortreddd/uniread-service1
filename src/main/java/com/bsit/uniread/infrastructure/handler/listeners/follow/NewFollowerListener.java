@@ -2,12 +2,13 @@ package com.bsit.uniread.infrastructure.handler.listeners.follow;
 
 import com.bsit.uniread.application.dto.response.notification.NotificationDto;
 import com.bsit.uniread.application.services.FollowService;
-import com.bsit.uniread.application.services.NotificationService;
+import com.bsit.uniread.application.services.notification.NotificationService;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.domain.events.follow.NewFollowerEvent;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,12 +16,14 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class NewFollowerListener implements ApplicationListener<NewFollowerEvent> {
+public class NewFollowerListener {
 
     private final NotificationService notificationService;
     private final FollowService followService;
     private final SimpMessagingTemplate simpMessagingTemplate;
-    @Override
+
+    @Async
+    @EventListener
     public void onApplicationEvent(NewFollowerEvent event) {
         // The sender of the notification
         User sender = event.getSender();

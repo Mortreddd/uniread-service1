@@ -20,10 +20,9 @@ import java.util.UUID;
 
 
 @Entity
-@Table(indexes = {
-        @Index(name = "idx_book_id", columnList = "book_id"),
-        @Index(name = "idx_status", columnList = "status"),
-        @Index(name = "idx_paragraph_id", columnList = "paragraph_id")
+@Table(name = "chapters", indexes = {
+        @Index(name = "idx_chapters_book_id", columnList = "book_id"),
+        @Index(name = "idx_chapters_status", columnList = "status")
 })
 @Data
 @AllArgsConstructor
@@ -61,7 +60,7 @@ public class Chapter {
     private Boolean isPublished;
 
     public Boolean getIsPublished() {
-        return Objects.equals(status, ChapterStatus.PUBLISHED);
+        return status == ChapterStatus.PUBLISHED;
     }
 
     @Builder.Default

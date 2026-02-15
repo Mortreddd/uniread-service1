@@ -3,20 +3,26 @@ package com.bsit.uniread.application.controllers.user;
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.response.follow.FollowDto;
+import com.bsit.uniread.application.dto.response.follow.FollowUserDto;
 import com.bsit.uniread.application.services.FollowService;
+import com.bsit.uniread.domain.entities.Follow;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
+import com.bsit.uniread.domain.entities.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
- * Api Endpoint - /api/v1/users/{currentUserId}/follow
+ * Api Endpoint - /api/v1/users
  */
 @RestController
-@RequestMapping(path = ApiEndpoints.FOLLOW)
+@RequestMapping(path = ApiEndpoints.USERS)
 @RequiredArgsConstructor
 public class FollowController {
 
@@ -30,28 +36,40 @@ public class FollowController {
      * @param query
      * @return page of followings
      */
-    @GetMapping(path = "/followings")
-    public ResponseEntity<Page<FollowDto>> getUserFollowings(
-            @PathVariable(name = "currentUserId") UUID userId,
+    @GetMapping(path = "/{userId}/follow/followings")
+    public ResponseEntity<Page<FollowUserDto>> getUserFollowings(
+            @PathVariable(name = "userId") UUID userId,
             @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
             @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(name = "query", required = false) String query
+            @RequestParam(name = "query", required = false) String query,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Page<FollowDto> follows = followService.getFollowingsByUserId(pageNo, pageSize, userId, query).map(FollowDto::new);
-        return ResponseEntity.ok()
-                .body(follows);
-    }
+        Page<User> users = followService.getFollowingsByUserId(userId, pageNo, pageSize, query)
+                .map(Follow::getFollowing);
+        List<Follow> follows = userDetails == null ? List.of() : followService.getCurrentUserFollows(userDetails);
+        Page<FollowUserDto> followings = users
+                .map(u -> {
 
-    @GetMapping(path = "/follows")
-    public ResponseEntity<Page<FollowDto>> getUserFollows(
-            @PathVariable(name = "currentUserId") UUID userId,
-            @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
-            @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(name = "query", required = false) String query
-    ) {
-        Page<FollowDto> follows = followService.getFollowsByUserId(pageNo, pageSize, userId, query).map(FollowDto::new);
+                    boolean isFollowing = false;
+                    boolean isFollower = false;
+
+                    if(userDetails != null) {
+
+                        isFollowing = follows
+                                .stream()
+                                .anyMatch(follow -> follow.getFollowing().getId().equals(u.getId()));
+
+                        isFollower = follows
+                                .stream()
+                                .anyMatch(follow -> follow.getFollower().getId().equals(u.getId()));
+
+                    }
+                    boolean isMutualFollowing = isFollowing && isFollower;
+                    return new FollowUserDto(u, isFollowing, isMutualFollowing);
+                });
+
         return ResponseEntity.ok()
-                .body(follows);
+                .body(followings);
     }
 
     /**
@@ -62,49 +80,72 @@ public class FollowController {
      * @param query
      * @return page of followers
      */
-    @GetMapping(path = "/followers")
-    public ResponseEntity<Page<FollowDto>> getUserFollowers(
-            @PathVariable(name = "currentUserId") UUID userId,
+    @GetMapping(path = "/{userId}/follow/followers")
+    public ResponseEntity<Page<FollowUserDto>> getUserFollowers(
+            @PathVariable(name = "userId") UUID userId,
             @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
             @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(name = "query", required = false) String query
+            @RequestParam(name = "query", required = false) String query,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Page<FollowDto> follows = followService.getFollowersByUserId(pageNo, pageSize, userId, query)
-                .map(FollowDto::new);
+        Page<User> users = followService.getFollowersByUserId(userId, pageNo, pageSize, query)
+                .map(Follow::getFollower);
+        List<Follow> follows = userDetails == null ? List.of() : followService.getCurrentUserFollows(userDetails);
+        Page<FollowUserDto> followers = users
+                .map(u -> {
+
+                    boolean isFollowing = false;
+                    boolean isFollower = false;
+                    if(userDetails != null) {
+
+                        isFollowing = follows
+                                .stream()
+                                .anyMatch(follow -> follow.getFollowing().getId().equals(u.getId()));
+
+                        isFollower = follows
+                                .stream()
+                                .anyMatch(follow -> follow.getFollower().getId().equals(u.getId()));
+
+                    }
+
+                    boolean isMutualFollowing = isFollowing && isFollower;
+                    return new FollowUserDto(u, isFollowing, isMutualFollowing);
+                });
+
         return ResponseEntity.ok()
-                .body(follows);
+                .body(followers);
     }
 
     /**
      * Create a new follow transaction
-     * @param currentUserId
      * @param followedUserId
-     * @return new follow
+     * @param userDetails
+     * @return Follow
      */
-    @PostMapping(path = "/{followedUserId}")
+    @PostMapping(path = "/{userId}/follow")
     public ResponseEntity<FollowDto> createNewFollowing(
-            @PathVariable(name = "currentUserId") UUID currentUserId,
-            @PathVariable(name = "followedUserId") UUID followedUserId
+            @PathVariable(name = "userId") UUID followedUserId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
 
-        FollowDto newFollow = new FollowDto(followService.createFollow(currentUserId, followedUserId));
+        FollowDto newFollow = new FollowDto(followService.createFollow(userDetails.getId(), followedUserId));
         return ResponseEntity.ok()
                 .body(newFollow);
     }
 
     /**
      * Delete the record of currentUser following unfollowedUser
-     * @param currentUserId
      * @param unfollowedUserId
+     * @param userDetails
      * @return SuccessResponse
      */
-    @DeleteMapping(path = "/{unfollowedUserId}/delete")
+    @DeleteMapping(path = "/{userId}/follow")
     public ResponseEntity<SuccessResponse> unfollowUser(
-            @PathVariable(name = "currentUserId") UUID currentUserId,
-            @PathVariable(name = "unfollowedUserId") UUID unfollowedUserId
+            @PathVariable(name = "userId") UUID unfollowedUserId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
 
-        followService.unfollowUser(currentUserId, unfollowedUserId);
+        followService.unfollowUser(userDetails.getId(), unfollowedUserId);
         SuccessResponse response = SuccessResponse.builder()
                 .code(HttpStatus.OK.value())
                 .message("Successfully unfollowed the user")

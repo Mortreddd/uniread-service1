@@ -1,5 +1,6 @@
 package com.bsit.uniread.domain.entities.paragraph;
 
+import com.bsit.uniread.domain.entities.book.Bookmark;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -18,8 +19,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-@Table(indexes = {
-        @Index(name = "idx_chapter_id", columnList = "chapter_id")
+@Table(name = "paragraphs", indexes = {
+        @Index(name = "idx_paragraphs_chapter_id", columnList = "chapter_id")
 })
 @Entity
 @AllArgsConstructor
@@ -56,5 +57,8 @@ public class Paragraph {
     @OneToMany(mappedBy = "paragraph", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JsonManagedReference
     private List<ParagraphComment> paragraphComments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "paragraph", cascade = CascadeType.REMOVE)
+    private List<Bookmark> bookmarks = new ArrayList<>();
 
 }

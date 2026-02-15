@@ -4,6 +4,7 @@ import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.user.SetupUsernameRequest;
 import com.bsit.uniread.application.dto.response.user.AuthorDto;
+import com.bsit.uniread.application.dto.response.user.CurrentUser;
 import com.bsit.uniread.application.dto.response.user.UserDto;
 import com.bsit.uniread.application.services.auth.JsonWebTokenService;
 import com.bsit.uniread.application.services.user.UserService;
@@ -78,14 +79,15 @@ public class UserController {
                 .body(response);
     }
 
+
     /**
      * Extract the user based on access token or jwt token of the user
      * @param customUserDetails
      * @return User
      */
-    @GetMapping(path = "/current")
-    public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+    @GetMapping(path = "/me")
+    public ResponseEntity<CurrentUser> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return ResponseEntity.ok()
-                .body(new UserDto(customUserDetails));
+                .body(new CurrentUser(customUserDetails));
     }
 }

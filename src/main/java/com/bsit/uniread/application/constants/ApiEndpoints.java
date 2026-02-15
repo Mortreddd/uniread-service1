@@ -8,6 +8,10 @@ public class ApiEndpoints {
     public static final String AUTH = "/api/v1/auth";
     // Current User Profile
     public static final String PROFILE = "/api/v1/profile";
+    // User library
+    public static final String LIBRARY = "/api/v1/profile/library";
+    // User bookmark prefix
+    public static final String BOOKMARK = "/api/v1/profile/library/bookmarks";
     // Authors prefix
     public static final String AUTHORS = "/api/v1/authors";
     // Books prefix
@@ -18,8 +22,6 @@ public class ApiEndpoints {
     public static final String CONVERSATIONS = "/api/v1/conversations";
     // Genres prefix
     public static final String GENRES = "/api/v1/genres";
-    // User following or follower activity prefix
-    public static final String FOLLOW = "/api/v1/users/{currentUserId}/follow";
     // Book Chapters prefix
     public static final String BOOK_CHAPTERS = "/api/v1/books/{bookId}/chapters";
     // Book Chapter Paragraphs prefix
@@ -28,6 +30,10 @@ public class ApiEndpoints {
     public static final String BOOK_COMMENTS = "/api/v1/books/{bookId}/comments";
     // Book Comments Reaction prefix
     public static final String BOOK_COMMENTS_REACTIONS = "/api/v1/books/{bookId}/comments/{commentId}/reactions";
+    // Book collaborators
+    public static final String BOOK_COLLABORATORS = "/api/v1/books/{bookId}/collaborators";
+    // Book collaboration requests
+    public static final String BOOK_COLLABORATION_REQUEST = "/api/v1/books/{bookId}/collaboration-requests";
     // User notifications prefix
     public static final String NOTIFICATIONS = "/api/v1/notifications";
 

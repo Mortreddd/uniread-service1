@@ -1,6 +1,6 @@
 package com.bsit.uniread.infrastructure.specifications.notification;
 
-import com.bsit.uniread.domain.entities.Notification;
+import com.bsit.uniread.domain.entities.notification.Notification;
 import org.springframework.data.jpa.domain.Specification;
 
 public class NotificationSpecification {

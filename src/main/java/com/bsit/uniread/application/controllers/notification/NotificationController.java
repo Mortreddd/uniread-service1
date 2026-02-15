@@ -2,7 +2,7 @@ package com.bsit.uniread.application.controllers.notification;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.response.notification.NotificationDto;
-import com.bsit.uniread.application.services.NotificationService;
+import com.bsit.uniread.application.services.notification.NotificationService;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

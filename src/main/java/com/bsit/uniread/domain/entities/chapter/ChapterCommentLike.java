@@ -18,7 +18,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table
+@Table(name = "chapter_comment_likes", indexes = {
+        @Index(name = "idx_chapter_comment_likes_chapter_comment_id", columnList = "chapter_comment_id"),
+        @Index(name = "idx_chapter_comment_likes_user_id", columnList = "user_id")
+})
 @Entity
 public class ChapterCommentLike {
 
@@ -40,10 +43,8 @@ public class ChapterCommentLike {
     private Reaction reaction;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 }

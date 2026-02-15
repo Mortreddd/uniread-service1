@@ -5,6 +5,7 @@ import com.bsit.uniread.infrastructure.security.JsonWebTokenFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -32,6 +33,7 @@ public class SecurityConfiguration {
             "/api/v1/books/*/chapters",
             "/api/v1/books/*/comments",
             "/api/v1/books/*/comments/*",
+            "/api/v1/books/*/collaborators",
             "/api/v1/authors",
             "/api/v1/authors/*",
             "/api/v1/auth/**",
@@ -41,13 +43,19 @@ public class SecurityConfiguration {
             "/api/v1/genres/options",
             "/api/v1/messages/**",
             "/api/v1/authors/**",
-            "/ws/**" // Disable the authentication for WebSocket
+            "/api/v1/users/*/follow/followings",
+            "/api/v1/users/*/follow/followers",
+            "/ws/**",
+            "/swagger-ui/**",
+            "/v3/api-docs*/**"
+
     };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
+//                .cors(Customizer.withDefaults())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource.corsConfiguration()))
                 .authorizeHttpRequests(authorize ->
                         authorize
@@ -61,7 +69,7 @@ public class SecurityConfiguration {
                 )
                 .userDetailsService(customUserDetailsService)
                 .addFilterBefore(jsonWebTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .anonymous(AnonymousConfigurer::disable)
+//                .anonymous(AnonymousConfigurer::disable)
                 .build();
     }
 

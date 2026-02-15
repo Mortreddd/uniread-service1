@@ -1,5 +1,6 @@
 package com.bsit.uniread.infrastructure.specifications.user;
 
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.User;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -45,9 +46,17 @@ public class UserSpecification {
 
     public static Specification<User> hasNotIn(List<UUID> ids) {
         return (root, query, builder) -> {
-            if(ids == null || ids.isEmpty()) return null;
+            if(ids == null || ids.isEmpty()) return builder.conjunction();
 
             return builder.not(root.get("id").in(ids));
+        };
+    }
+
+    public static Specification<User> hasCurrentUser(CustomUserDetails user) {
+        return (root, query, builder) -> {
+            if(user == null) return builder.conjunction();
+
+            return builder.notEqual(root.get("id"), user.getId());
         };
     }
 

@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Table(name = "follows", indexes = {
-        @Index(name = "idx_following_id", columnList = "following_id"),
-        @Index(name = "idx_follower_id", columnList = "follower_id")
+        @Index(name = "idx_follows_following_id", columnList = "following_id"),
+        @Index(name = "idx_follows_follower_id", columnList = "follower_id")
 })
 @Entity
 @AllArgsConstructor
@@ -39,17 +39,12 @@ public class Follow {
     private User following;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 
     @Transient
     private Boolean isMutualFollow;
 
-    public Boolean getIsMutualFollow() {
-        return follower.getFollowings().contains(this);
-    }
 }

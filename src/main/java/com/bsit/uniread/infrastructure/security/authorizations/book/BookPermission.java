@@ -4,7 +4,6 @@ import com.bsit.uniread.application.services.book.BookService;
 import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
-import com.bsit.uniread.domain.entities.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,12 +24,9 @@ public class BookPermission {
      * @return boolean
      */
     public boolean isAuthor(UUID bookId, CustomUserDetails userDetails) {
+        Book book = bookService.getBookById(bookId);
 
-        User user = userService.getUserById(userDetails.getId());
-
-        return user.getBooks()
-                .stream()
-                .anyMatch(b -> Objects.equals(b.getId(), bookId));
+        return Objects.equals(book.getUser().getId(), userDetails.getId());
     }
 
     /**
@@ -38,18 +34,18 @@ public class BookPermission {
      * Only the author of the user can access the book if not published
      * @param bookId
      * @param userDetails
-     * @return
+     * @return boolean
      */
     public boolean isPublished(UUID bookId, CustomUserDetails userDetails) {
         Book book = bookService.getBookById(bookId);
-        if(book.getIsPublished()) return true;
+        if(Boolean.TRUE.equals(book.getIsPublished())) return true;
 
         /**
          * Allow the collaborator to edit the book if the selected book is in draft
          */
-        return userDetails != null && book.getUser()
-                .getId()
-                .equals(userDetails.getId());
+        return userDetails != null && Objects.equals(book.getUser().getId(), userDetails.getId());
     }
+
+    // TODO: Create a authorization for collaborator accessing any status of any book
 
 }

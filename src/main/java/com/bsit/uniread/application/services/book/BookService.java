@@ -1,6 +1,9 @@
 package com.bsit.uniread.application.services.book;
 
 import com.bsit.uniread.application.dto.request.book.BookCreationRequest;
+import com.bsit.uniread.application.dto.request.book.BookSearchFilter;
+import com.bsit.uniread.application.dto.request.user.AuthorBookFilter;
+import com.bsit.uniread.application.dto.response.book.BookDetailDto;
 import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookStatus;
@@ -16,6 +19,7 @@ import com.bsit.uniread.infrastructure.utils.DateUtil;
 import com.bsit.uniread.infrastructure.utils.ImageDirectory;
 import com.bsit.uniread.infrastructure.utils.ImageUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +29,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.List;
@@ -43,71 +46,74 @@ public class BookService {
     /**
      * Get the books based on pageNumber, pageSize, and query if not empty or null.
      * The books queried that matches the query
-     * @param pageNo
-     * @param pageSize:
-     * @param query
-     * @param genreIds
-     * @param status
-     * @param sortBy
-     * @param orderBy
-     * @param startDate
-     * @param endDate
-     * @param deletedAt
+     * @param filter
      * @return Pagination of Books
      */
     @Transactional(readOnly = true)
     @Cacheable(
             value = "books",
-            key = "T(java.util.Objects).hash(#pageNo, #pageSize, #query, #genreIds != null ? #genreIds.stream().sorted().toList().toString() : '', #status, #sortBy, #orderBy, #startDate, #endDate, #deletedAt)"
+            key = """
+                    T(java.util.Objects).hash(
+                        #filter.pageNo,
+                        #filter.pageSize,
+                        #filter.query,
+                        #filter.genres != null ? #filter.genres.stream().sorted().toList().toString() : '',
+                        #filter.status,
+                        #filter.sortBy,
+                        #filter.orderBy,
+                        #filter.startDate,
+                        #filter.endDate,
+                        #filter.deletedAt
+                )"""
     )
     public Page<Book> getBooks(
-            int pageNo,
-            int pageSize,
-            String query,
-            List<Integer>  genreIds,
-            BookStatus status,
-            String sortBy,
-            String orderBy,
-            String startDate,
-            String endDate,
-            String deletedAt
+            BookSearchFilter filter
     ) {
 
-        Sort.Direction direction = sortBy.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort.Direction direction =
+                "desc".equalsIgnoreCase(filter.getOrderBy())
+                        ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
 
-        Sort sort = Sort.by(direction, orderBy);
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        Specification<Book> bookSpecification = Specification
-                .where(BookSpecification.hasDeleted(deletedAt))
-                .and(BookSpecification.hasGenres(genreIds))
-                .and(BookSpecification.hasStatus(status))
-                .and(BookSpecification.hasQuery(query));
-
+        Sort sort = Sort.by(direction, filter.getOrderBy());
+        Pageable pageable = PageRequest.of(filter.getPageNo(), filter.getPageSize(), sort);
+        Specification<Book> bookSpecification = Specification.where(BookSpecification.hasDeleted(filter.getDeletedAt()));
+        if(filter.getGenres() != null) {
+            bookSpecification = bookSpecification.and(BookSpecification.hasGenres(filter.getGenres()));
+        }
+        if(filter.getStatus() != null) {
+            bookSpecification = bookSpecification.and(BookSpecification.hasStatus(filter.getStatus()));
+        }
+        String query = filter.getQuery();
+        if (query != null && !query.isBlank()) {
+            bookSpecification = bookSpecification.and(
+                    BookSpecification.hasQuery(query)
+            );
+        }
         return bookRepository.findAll(bookSpecification, pageable);
     }
 
     /**
      * Get the user books based on given userId
-     * @param user
-     * @param pageNo
-     * @param pageSize
-     * @param query
-     * @param status
-     * @param sortBy
-     * @param orderBy
+     * @param userId
+     * @param filter
      * @return Pageable of books
      */
     @Transactional(readOnly = true)
+    public Page<Book> getUserBooks(UUID userId, AuthorBookFilter filter) {
+        Sort.Direction direction = "asc".equalsIgnoreCase(filter.getSortBy()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, filter.getOrderBy());
+        Pageable pageable = PageRequest.of(filter.getPageNo(), filter.getPageSize(), sort);
 
-    public Page<Book> getUserBooks(User user, int pageNo, int pageSize, String query, BookStatus status, String sortBy, String orderBy) {
-        Sort.Direction direction = sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, orderBy);
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+        Specification<Book> bookSpecification = Specification.where(BookSpecification.hasAuthorById(userId));
+        String query = filter.getQuery();
+        if(query != null && query.isBlank()) {
+            bookSpecification = bookSpecification.and(BookSpecification.hasQuery(query));
+        }
 
-        Specification<Book> bookSpecification = Specification
-                .where(BookSpecification.hasAuthor(user))
-                .and(BookSpecification.hasQuery(query))
-                .and(BookSpecification.hasStatus(status));
+        if(filter.getStatus() != null) {
+            bookSpecification = bookSpecification.and(BookSpecification.hasStatus(filter.getStatus()));
+        }
 
         return bookRepository.findAll(bookSpecification, pageable);
     }
@@ -117,11 +123,20 @@ public class BookService {
      * @param bookId
      * @return book
      */
-    @Cacheable(value = "T(java.util.Objects).hash(#bookId)")
     @Transactional(readOnly = true)
     public Book getBookById(UUID bookId) {
         return bookRepository.findById(bookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the book"));
+    }
+
+    @Transactional(readOnly = true)
+    public BookDetailDto getBookDetailById(UUID bookId, UUID userId) {
+        if(userId == null) {
+            return bookRepository.findBookDetailById(bookId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Unable to get the book detail"));
+        }
+        return bookRepository.findBookDetailByIdAndUserId(bookId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Unable to get the book detail"));
     }
 
     /**
@@ -131,6 +146,8 @@ public class BookService {
      * @return book
      * @throws IOException
      */
+    @Transactional
+    @CacheEvict(key = "books", allEntries = true)
     public Book createBook(BookCreationRequest request, CustomUserDetails userDetails) throws IOException {
         String fileUrl = imageUtils.saveImage(ImageDirectory.COVER, request.getPhoto());
         User user = userService.getUserById(userDetails.getId());
@@ -156,6 +173,8 @@ public class BookService {
      * @param bookId
      * @return book
      */
+    @Transactional
+    @CacheEvict(key = "books", allEntries = true)
     public Book publishedBookById(UUID bookId) {
         Book book = getBookById(bookId);
 
@@ -177,34 +196,30 @@ public class BookService {
         return bookRepository.save(book);
     }
 
-
     /**
      * Safe delete the book
      * @param bookId
-     * @throws IOException
      */
     @Transactional
-    public void deleteBookById(UUID bookId) throws IOException {
+    @CacheEvict(key = "books", allEntries = true)
+    public void deleteBookById(UUID bookId) {
         Book book = getBookById(bookId);
         book.setDeletedAt(DateUtil.now());
+
+        // TODO: Add the removal of collaborators and sending notifications
         save(book);
     }
 
     /**
      * Force delete the book
      * @param bookId
-     * @throws IOException
      */
     @Transactional
-    public void forceDeleteBookById(UUID bookId) throws IOException {
+    @CacheEvict(key = "books", allEntries = true)
+    public void forceDeleteBookById(UUID bookId) {
         Book book = getBookById(bookId);
-        try {
-            if(imageUtils.deleteImage(book.getCoverPhoto())) {
-                bookRepository.delete(book);
-            }
-        } catch (Exception e) {
-            throw new FileNotFoundException("Unable to find cover photo of the book");
-        }
+        // TODO: Add the removal of collaborators in a book and sending notifications
+        bookRepository.delete(book);
     }
 
 

@@ -1,59 +1,57 @@
 package com.bsit.uniread.infrastructure.handler.listeners.chapter;
 
-import com.bsit.uniread.application.services.NotificationService;
+import com.bsit.uniread.application.dto.response.notification.NotificationDto;
+import com.bsit.uniread.application.services.FollowService;
+import com.bsit.uniread.application.services.notification.NotificationDispatcher;
+import com.bsit.uniread.application.services.notification.NotificationService;
+import com.bsit.uniread.application.services.notification.PrivateNotifier;
 import com.bsit.uniread.domain.entities.Follow;
-import com.bsit.uniread.domain.entities.Notification;
+import com.bsit.uniread.domain.entities.notification.Notification;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.domain.events.chapter.PublishChapterEvent;
-import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class PublishingChapterListener implements ApplicationListener<PublishChapterEvent> {
+public class PublishingChapterListener {
 
     private final NotificationService notificationService;
+    private final FollowService followService;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
-    @Override
-    public void onApplicationEvent(PublishChapterEvent event) {
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Async
+    public void handlePublishingChapter(PublishChapterEvent event) {
         Chapter chapter = event.getChapter();
         Book book = event.getBook();
         User author = event.getAuthor();
-
-        List<Follow> followers = author.getFollowers();
+        List<User> followers = followService.getFollowersByUser(author)
+                .stream()
+                .map(Follow::getFollower)
+                .toList();
 
         String title = String.format("%s has new chapter", book.getTitle());
         String description = String.format("%s released a new chapter of %s", author.getUsername(), chapter.getTitle());
 
-        List<Notification> notifications = followers
+        List<Notification> notifications = notificationService.saveNotifications(notificationService.newNotifications(followers, title, description));
+
+        List<NotificationDto> notifs = notifications
                 .stream()
-                .map((f) -> Notification.builder()
-                        .isRead(false)
-                        .user(f.getFollower())
-                        .title(title)
-                        .description(description)
-                        .createdAt(DateUtil.now())
-                        .build())
+                .map(NotificationDto::new)
                 .toList();
 
-        notificationService.saveNotifications(notifications);
-        notifications.forEach((notification) -> {
-            simpMessagingTemplate.convertAndSendToUser(
-                    notification
-                            .getUser()
-                            .getId()
-                            .toString(),
-                    "/topic/notifications",
-                    notification
-            );
-        });
+
+        NotificationDispatcher dispatcher = new NotificationDispatcher();
+        dispatcher.addNotifier(new PrivateNotifier(followers, notifs, simpMessagingTemplate));
+        dispatcher.dispatch();
     }
 }

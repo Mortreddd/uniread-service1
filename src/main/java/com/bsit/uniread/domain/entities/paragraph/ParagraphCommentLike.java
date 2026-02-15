@@ -15,7 +15,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@Table
+@Table(name = "paragraph_comment_likes", indexes = {
+        @Index(name = "idx_paragraph_comment_likes_paragraph_comment_id", columnList = "paragraph_comment_id"),
+        @Index(name = "idx_paragraph_comment_likes_user_id", columnList = "user_id")
+})
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor

@@ -1,8 +1,12 @@
 package com.bsit.uniread.application.services.user;
 
+import com.bsit.uniread.application.dto.request.user.AuthorBookFilter;
+import com.bsit.uniread.application.dto.request.user.AuthorFilter;
+import com.bsit.uniread.application.dto.response.user.AuthorDetail;
 import com.bsit.uniread.application.services.book.BookService;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookStatus;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.domain.entities.user.User;
 import com.bsit.uniread.infrastructure.repositories.user.UserRepository;
 import com.bsit.uniread.infrastructure.specifications.user.UserSpecification;
@@ -28,68 +32,54 @@ public class AuthorService {
     /**
      * Get the users or authors excluding the current authenticated user
      * The authors queried that matches the query
-     * @param pageNo
-     * @param pageSize
-     * @param query
-     * @param sortBy
-     * @param orderBy
-     * @param startDate
-     * @param endDate
-     * @param bannedAt
-     * @param deletedAt
+     * @param filter
+     * @param userDetails
      * @return Pagination of Books
      */
     @Transactional(readOnly = true)
     @Cacheable(
-            value = "books",
-            key = "T(java.util.Objects).hash(#pageNo, #pageSize, #query, #sortBy, #orderBy, #startDate, #endDate, #bannedAt, #deletedAt, #userDetails)"
+            value = "authors",
+            key = "T(java.util.Objects).hash(" +
+                    "#filter.pageNo, " +
+                    "#filter.pageSize, " +
+                    "#filter.query, " +
+                    "#filter.sortBy, " +
+                    "#filter.orderBy, " +
+//                    "#filter.startDate, " +
+//                    "#filter.endDate, " +
+//                    "#filter.bannedAt, " +
+//                    "#filter.deletedAt " +
+                    ")"
     )
-    public Page<User> getAuthors(
-            int pageNo,
-            int pageSize,
-            String query,
-            String sortBy,
-            String orderBy,
-            String startDate,
-            String endDate,
-            String bannedAt,
-            String deletedAt
+    public Page<AuthorDetail> getAuthors(
+            AuthorFilter filter,
+            CustomUserDetails userDetails
     ) {
-        Sort.Direction direction = sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, orderBy);
-
-        Specification<User> authorSpecification = Specification
-                .where(UserSpecification.hasBanned(bannedAt))
-                .and(UserSpecification.hasDeleted(deletedAt))
-                .and(UserSpecification.hasQuery(query));
-
-        return userRepository.findAll(authorSpecification, PageRequest.of(pageNo, pageSize, sort));
+        Sort.Direction direction = "asc".equalsIgnoreCase(filter.getSortBy()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, filter.getOrderBy());
+        return userRepository.findAuthors(userDetails.getId(), filter.getBookStatus(), PageRequest.of(filter.getPageNo(), filter.getPageSize(), sort));
     }
     /**
      * Get the user books based on given userId
      * @param userId
-     * @param pageNo
-     * @param pageSize
-     * @param query
-     * @param status
-     * @param sortBy
-     * @param orderBy
+     * @param filter
      * @return Pageable of books
      */
     public Page<Book> getAuthorBooksById(
             UUID userId,
-            int pageNo,
-            int pageSize,
-            String query,
-            BookStatus status,
-            String sortBy,
-            String orderBy
+            AuthorBookFilter filter
     ) {
-        User user = userService.getUserById(userId);
-        return bookService.getUserBooks(user, pageNo, pageSize, query, status, sortBy, orderBy);
+        return bookService.getUserBooks(userId, filter);
     }
 
-    public User getAuthorById(UUID authorId) {
-        return userService.getUserById(authorId);
+    /**
+     * Since it was for public author, assuming the book status should be published
+     * @param authorId
+     * @param bookStatus
+     * @return AuthorDetails
+     */
+    public AuthorDetail getAuthorById(UUID authorId, BookStatus bookStatus) {
+        return userRepository.findByAuthorId(authorId, bookStatus)
+                .orElse(null);
     }
 }
