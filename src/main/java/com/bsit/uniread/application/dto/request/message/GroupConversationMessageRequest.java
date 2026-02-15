@@ -8,9 +8,7 @@ import java.util.UUID;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MessageCreationRequest {
+public class GroupConversationMessageRequest {
     private UUID conversationId;
-    private List<UUID> receiverIds;
-    private Boolean isGroup;
     private String message;
 }

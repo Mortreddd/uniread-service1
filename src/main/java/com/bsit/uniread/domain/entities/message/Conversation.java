@@ -7,15 +7,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Table(name = "conversation",
+@Table(name = "conversations",
     indexes = {
-        @Index(name = "idx_conversation_name", columnList = "name")
+        @Index(name = "idx_conversations_conversation_name", columnList = "name")
     })
 @Data
 @Builder
@@ -28,6 +31,7 @@ public class Conversation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    private String avatar;
     private String name;
 
     @Builder.Default
@@ -39,6 +43,9 @@ public class Conversation {
     @OneToMany(mappedBy = "conversation", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Message> messages = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Message lastMessage;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

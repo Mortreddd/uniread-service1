@@ -8,8 +8,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -17,7 +19,11 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table
+@Table(name = "messages", indexes = {
+        @Index(name = "idx_messages_conversation_id", columnList = "conversation_id"),
+        @Index(name = "idx_messages_sender_id", columnList = "sender_id"),
+        @Index(name = "idx_messages_created_at", columnList = "created_at")
+})
 @Entity
 public class Message {
 
@@ -26,15 +32,16 @@ public class Message {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "conversation_id", nullable = false)
-    @JsonBackReference
     private Conversation conversation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
+    @Column(nullable = false)
     private String message;
+
+    @Enumerated(EnumType.STRING)
+    private MessageType messageType;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

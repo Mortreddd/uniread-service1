@@ -9,12 +9,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Table
+@Table(name = "bookmarks", indexes = {
+        @Index(name = "idx_paragraphs_paragraph_id", columnList = "paragraph_id"),
+        @Index(name = "idx_paragraphs_user_id", columnList = "user_id")
+}, uniqueConstraints = @UniqueConstraint(columnNames = {"paragraph_id", "user_id"}))
 @Entity
 @Builder
 @Data
@@ -26,7 +31,8 @@ public class Bookmark {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(targetEntity = Paragraph.class, fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @JoinColumn(name = "paragraph_id")
     @JsonBackReference
     private Paragraph paragraph;
 

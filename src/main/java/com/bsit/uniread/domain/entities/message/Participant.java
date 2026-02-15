@@ -8,12 +8,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@Table
+@Table(name = "participants", indexes = {
+        @Index(name = "idx_participants_conversation_id", columnList = "conversation_id"),
+        @Index(name = "idx_participants_user_id", columnList = "user_id")
+})
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,16 +30,17 @@ public class Participant {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "conversation_id", nullable = false)
-    @JsonBackReference
     private Conversation conversation;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
-    private LocalDateTime readAt;
+    private LocalDateTime lastReadAt;
 
+    @Column(nullable = false)
+    private Boolean muted = false;
+    @Column(nullable = false)
+    private Boolean archived = false;
     @CreationTimestamp
     private LocalDateTime addedAt;
 }

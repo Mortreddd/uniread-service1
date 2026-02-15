@@ -59,25 +59,5 @@ public class UserDto {
     }
 
 
-    public UserDto(CustomUserDetails userDetails)  {
-        this.id = userDetails.getId();
-        this.firstName = userDetails.getFirstName();
-        this.lastName = userDetails.getLastName();
-        this.fullName = userDetails.getFullName();
-        this.username = userDetails.getUsername();
-        this.gender = userDetails.getGender();
-        this.email = userDetails.getEmail();
-        this.photoUrl = userDetails.getPhotoUrl();
-        this.role = userDetails.getRole();
-        this.emailVerifiedAt = userDetails.getEmailVerifiedAt();
-        this.createdAt = userDetails.getCreatedAt();
-        this.updatedAt = userDetails.getUpdatedAt();
-        this.deletedAt = userDetails.getDeletedAt();
-        this.unbannedAt = userDetails.getUnbannedAt();
-        this.isEmailVerified = userDetails.getIsEmailVerified();
-        this.isUser = userDetails.getIsUser();
-        this.isSuperAdmin = userDetails.getIsSuperAdmin();
-        this.isAdmin = userDetails.getIsAdmin();
-        this.isBanned = userDetails.getIsBanned();
-    }
+
 }

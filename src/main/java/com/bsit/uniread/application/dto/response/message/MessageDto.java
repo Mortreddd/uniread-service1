@@ -10,12 +10,12 @@ import java.util.UUID;
 @Getter
 public class MessageDto {
 
-    private UUID id;
-    private UUID conversationId;
-    private SimpleUserInfo sender;
-    private String message;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private final UUID id;
+    private final UUID conversationId;
+    private final SimpleUserInfo sender;
+    private final String message;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
 
     public MessageDto(Message message) {
         this.id = message.getId();

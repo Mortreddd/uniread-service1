@@ -3,19 +3,16 @@
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/uniread
-    username: postgres
+    url: jdbc:mysql://localhost:3306/uniread?useSSL=false&serverTimezone=UTC
+    username: emmanuel
     password: 12345678
-
-    driver-class-name: org.postgresql.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+
 
 client:
   url: http://localhost:5173
@@ -24,4 +21,4 @@ logging:
   level:
     org:
       springframework:
-        security: DEBUG
+        security: WARN

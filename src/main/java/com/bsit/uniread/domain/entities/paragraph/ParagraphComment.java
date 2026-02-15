@@ -20,7 +20,10 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table
+@Table(name = "paragraph_comments", indexes = {
+        @Index(name = "idx_paragraph_comments_user_id", columnList = "user_id"),
+        @Index(name = "idx_paragraph_comments_paragraph_id", columnList = "paragraph_id")
+})
 @Entity
 public class ParagraphComment {
 

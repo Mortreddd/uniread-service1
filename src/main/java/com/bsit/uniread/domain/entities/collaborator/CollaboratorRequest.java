@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Table(name = "collaborator_requests", indexes = {
-        @Index(name = "idx_user_id", columnList = "user_id"),
-        @Index(name = "idx_book_id", columnList = "book_id")
+        @Index(name = "idx_collaborator_requests_user_id", columnList = "user_id"),
+        @Index(name = "idx_collaborator_requests_book_id", columnList = "book_id")
 })
 @Entity
 @Data
@@ -31,7 +31,7 @@ public class CollaboratorRequest {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(targetEntity = User.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id")
     @JsonManagedReference
     private User user;

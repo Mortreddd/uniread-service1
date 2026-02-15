@@ -9,8 +9,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +22,11 @@ import java.util.UUID;
  * A table for the ratings, comments of users for the book
  */
 @Entity
-@Table
+@Table(name = "book_comments", indexes = {
+    @Index(name = "idx_book_comments_book_id", columnList = "book_id"),
+    @Index(name = "idx_book_comments_user_id", columnList = "user_id"),
+    @Index(name = "idx_book_comments_parent_book_comment_id", columnList = "parent_book_comment_id")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -36,7 +42,7 @@ public class BookComment {
     @JsonBackReference
     private Book book;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;

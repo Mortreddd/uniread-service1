@@ -5,6 +5,7 @@ import com.bsit.uniread.application.services.user.CustomUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.UUID;
 
 @Component
@@ -35,44 +37,33 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
-        log.debug("Auth Header: {}", authHeader);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        Cookie[] cookies = request.getCookies();
+        String accessToken = getTokenFromCookies(cookies);
+
+
+        if (accessToken == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
         try {
-            // Get the userId from a jwt token
-            UUID userId = jsonWebTokenService.extractUserId(token);
-            log.info("Extracted userId: {}", userId.toString());
-            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            UUID userId = jsonWebTokenService.extractUserId(accessToken);
+            if (SecurityContextHolder.getContext().getAuthentication() == null
+                    && jsonWebTokenService.validateToken(accessToken, userId)) {
 
-                // The user details will be UUID of userId
-                // Used a custom User Details to load the user immediately using the userId
                 UserDetails userDetails = customUserDetailsService.loadUserById(userId);
-                log.info("User Details: {}", userDetails.getUsername());
-                if (jsonWebTokenService.validateToken(token, userId)) {
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                    log.info("SecurityContextHolder : {}", SecurityContextHolder.getContext());
-                }
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (ExpiredJwtException e) {
-            log.error("JWT token expired: {}", e.getMessage());
             response.setContentType("application/json");
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write("{\"error\":\"JWT expired\",\"message\":\"" + e.getMessage() + "\"}");
             return;
         } catch (Exception e) {
-            log.error("Authentication error: {}", e.getMessage());
             response.setContentType("application/json");
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write("{\"error\":\"Authentication failed\",\"message\":\"" + e.getMessage() + "\"}");
@@ -80,6 +71,24 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.contains("/api/v1/auth/refresh-token") ||
+                path.contains("/api/v1/auth/login") ||
+                path.contains("/api/v1/auth/register");
+    }
+
+    private String getTokenFromCookies(Cookie[] cookies) {
+        if(cookies == null) return null;
+
+        return Arrays.stream(cookies)
+                .filter(c -> "access_token".equals(c.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElse(null);
     }
 
 }

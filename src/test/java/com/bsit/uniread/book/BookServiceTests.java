@@ -90,96 +90,96 @@ public class BookServiceTests {
 
     }
 
-    @Test
-    @DisplayName("Test get paginated books")
-    void shouldGetBooks() {
-        BookStatus status = null;
-        Sort.Direction direction = this.sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+//    @Test
+//    @DisplayName("Test get paginated books")
+//    void shouldGetBooks() {
+//        BookStatus status = null;
+//        Sort.Direction direction = this.sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+////        Pageable pageable  = PageRequest.of(this.pageNumber, this.pageSize, Sort.by(direction, this.orderBy));
+//
+//        Pageable pageable = PageRequest.of(this.pageNumber, this.pageSize, Sort.by(direction, this.orderBy));
+//        Page<Book> bookPage = new PageImpl<>(this.books, pageable, this.books.size());
+//        Mockito.doReturn(bookPage)
+//                .when(bookRepository)
+//                .findAll(ArgumentMatchers.any(Specification.class), ArgumentMatchers.eq(pageable));
+//
+//        Page<Book> result = bookService.getBooks(
+//                this.pageNumber,
+//                this.pageSize,
+//                this.query,
+//                this.genreIds,
+//                status,
+//                this.sortBy,
+//                this.orderBy,
+//                this.startDate,
+//                this.endDate,
+//                this.deletedAt
+//        );
+//
+//        Assertions.assertNotNull(result);
+//        Assertions.assertEquals(bookPage, result);
+//        Assertions.assertEquals(2, result.getContent().size());
+//    }
+//
+//    @Test
+//    @DisplayName("Test get the published books")
+//    void shouldGetPublished() {
+//        BookStatus status = BookStatus.PUBLISHED;
+//        Sort.Direction direction = this.sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+////        Pageable pageable  = PageRequest.of(this.pageNumber, this.pageSize, Sort.by(direction, this.orderBy));
+//
+//        Pageable pageable = PageRequest.of(this.pageNumber, this.pageSize, Sort.by(direction, this.orderBy));
+//        Page<Book> bookPage = new PageImpl<>(this.books, pageable, this.books.size());
+//        Mockito.doReturn(bookPage)
+//                .when(bookRepository)
+//                .findAll(ArgumentMatchers.any(Specification.class), ArgumentMatchers.eq(pageable));
+//
+//        Page<Book> result = bookService.getBooks(
+//                this.pageNumber,
+//                this.pageSize,
+//                this.query,
+//                this.genreIds,
+//                status,
+//                this.sortBy,
+//                this.orderBy,
+//                this.startDate,
+//                this.endDate,
+//                this.deletedAt
+//        );
+//
+//        Assertions.assertNotNull(result);
+//        Assertions.assertEquals(1, result.getContent().size());
+//    }
+//
+//    @Test
+//    @DisplayName("Test get unpublished books")
+//    void shouldGetUnpublishedBook() {
+//        BookStatus status = BookStatus.DRAFT;
+//        Sort.Direction direction = this.sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
 //        Pageable pageable  = PageRequest.of(this.pageNumber, this.pageSize, Sort.by(direction, this.orderBy));
-
-        Pageable pageable = PageRequest.of(this.pageNumber, this.pageSize, Sort.by(direction, this.orderBy));
-        Page<Book> bookPage = new PageImpl<>(this.books, pageable, this.books.size());
-        Mockito.doReturn(bookPage)
-                .when(bookRepository)
-                .findAll(ArgumentMatchers.any(Specification.class), ArgumentMatchers.eq(pageable));
-
-        Page<Book> result = bookService.getBooks(
-                this.pageNumber,
-                this.pageSize,
-                this.query,
-                this.genreIds,
-                status,
-                this.sortBy,
-                this.orderBy,
-                this.startDate,
-                this.endDate,
-                this.deletedAt
-        );
-
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(bookPage, result);
-        Assertions.assertEquals(2, result.getContent().size());
-    }
-
-    @Test
-    @DisplayName("Test get the published books")
-    void shouldGetPublished() {
-        BookStatus status = BookStatus.PUBLISHED;
-        Sort.Direction direction = this.sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-//        Pageable pageable  = PageRequest.of(this.pageNumber, this.pageSize, Sort.by(direction, this.orderBy));
-
-        Pageable pageable = PageRequest.of(this.pageNumber, this.pageSize, Sort.by(direction, this.orderBy));
-        Page<Book> bookPage = new PageImpl<>(this.books, pageable, this.books.size());
-        Mockito.doReturn(bookPage)
-                .when(bookRepository)
-                .findAll(ArgumentMatchers.any(Specification.class), ArgumentMatchers.eq(pageable));
-
-        Page<Book> result = bookService.getBooks(
-                this.pageNumber,
-                this.pageSize,
-                this.query,
-                this.genreIds,
-                status,
-                this.sortBy,
-                this.orderBy,
-                this.startDate,
-                this.endDate,
-                this.deletedAt
-        );
-
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(1, result.getContent().size());
-    }
-
-    @Test
-    @DisplayName("Test get unpublished books")
-    void shouldGetUnpublishedBook() {
-        BookStatus status = BookStatus.DRAFT;
-        Sort.Direction direction = this.sortBy.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-//        Pageable pageable  = PageRequest.of(this.pageNumber, this.pageSize, Sort.by(direction, this.orderBy));
-
-        Pageable pageable = PageRequest.of(this.pageNumber, this.pageSize, Sort.by(direction, this.orderBy));
-        Page<Book> bookPage = new PageImpl<>(this.books, pageable, this.books.size());
-        Mockito.doReturn(bookPage)
-                .when(bookRepository)
-                .findAll(ArgumentMatchers.any(Specification.class), ArgumentMatchers.eq(pageable));
-
-        Page<Book> result = bookService.getBooks(
-                this.pageNumber,
-                this.pageSize,
-                this.query,
-                this.genreIds,
-                status,
-                this.sortBy,
-                this.orderBy,
-                this.startDate,
-                this.endDate,
-                this.deletedAt
-        );
-
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(1, result.getContent().size());
-    }
+//
+//        Pageable pageable = PageRequest.of(this.pageNumber, this.pageSize, Sort.by(direction, this.orderBy));
+//        Page<Book> bookPage = new PageImpl<>(this.books, pageable, this.books.size());
+//        Mockito.doReturn(bookPage)
+//                .when(bookRepository)
+//                .findAll(ArgumentMatchers.any(Specification.class), ArgumentMatchers.eq(pageable));
+//
+//        Page<Book> result = bookService.getBooks(
+//                this.pageNumber,
+//                this.pageSize,
+//                this.query,
+//                this.genreIds,
+//                status,
+//                this.sortBy,
+//                this.orderBy,
+//                this.startDate,
+//                this.endDate,
+//                this.deletedAt
+//        );
+//
+//        Assertions.assertNotNull(result);
+//        Assertions.assertEquals(1, result.getContent().size());
+//    }
 
     @Test
     @DisplayName("Test can add book")

@@ -2,6 +2,7 @@ package com.bsit.uniread.domain.entities.library;
 
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.user.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -10,9 +11,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(indexes = {
-        @Index(name = "idx_user_library_id", columnList="user_id"),
-        @Index(name = "idx_book_library_id", columnList="book_id")
+@Table(name = "libraries", indexes = {
+        @Index(name = "idx_libraries_user_id", columnList = "user_id"),
+        @Index(name = "idx_libraries_book_id", columnList = "book_id")
 })
 public class Library {
 
@@ -20,13 +21,17 @@ public class Library {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(mappedBy = "library", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference
     private User user;
 
-    @OneToOne(mappedBy = "library", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @ManyToOne
+    @JoinColumn(name = "book_id")
+    @JsonBackReference
     private Book book;
-    
+
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

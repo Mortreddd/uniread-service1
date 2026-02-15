@@ -3,13 +3,12 @@ package com.bsit.uniread.application.controllers.book;
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.book.BookCreationRequest;
+import com.bsit.uniread.application.dto.request.book.BookSearchFilter;
 import com.bsit.uniread.application.dto.response.book.BookDetailDto;
 import com.bsit.uniread.application.dto.response.book.BookDto;
 import com.bsit.uniread.application.dto.response.book.DetailedBookDto;
 import com.bsit.uniread.application.services.book.BookService;
-import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
-import jakarta.annotation.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -23,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -36,32 +34,14 @@ public class BookController {
 
     /**
      * Get the books
-     * @param pageNo
-     * @param pageSize
-     * @param query
-     * @param genres
-     * @param status
-     * @param sortBy
-     * @param orderBy
-     * @param startDate
-     * @param endDate
-     * @param deletedAt
+     * @param filter
      * @return page of books
      */
     @GetMapping
     public ResponseEntity<Page<BookDto>> getBooks(
-            @RequestParam(name = "pageNo", defaultValue = "0", required = false) int pageNo,
-            @RequestParam(name = "pageSize", defaultValue = "10", required = false) int pageSize,
-            @RequestParam(name = "query", defaultValue = "", required = false) String query,
-            @RequestParam(name = "genres", required = false) List<Integer> genres,
-            @RequestParam(name = "status", required = false) BookStatus status,
-            @RequestParam(name = "sortBy", defaultValue = "asc", required = false) String sortBy,
-            @RequestParam(name = "orderBy", defaultValue = "createdAt", required = false) String orderBy,
-            @RequestParam(name = "startDate", required = false) String startDate,
-            @RequestParam(name = "endDate", required = false) String endDate,
-            @RequestParam(name = "deletedAt", required = false) String deletedAt
+            @ModelAttribute BookSearchFilter filter
     ) {
-        Page<BookDto> books = bookService.getBooks(pageNo, pageSize, query, genres, status, sortBy, orderBy, startDate, endDate, deletedAt)
+        Page<BookDto> books = bookService.getBooks(filter)
                 .map(BookDto::new);
         return ResponseEntity.ok()
                         .body(books);

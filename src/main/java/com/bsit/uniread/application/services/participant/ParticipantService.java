@@ -3,12 +3,14 @@ package com.bsit.uniread.application.services.participant;
 import com.bsit.uniread.domain.entities.message.Conversation;
 import com.bsit.uniread.domain.entities.message.Participant;
 import com.bsit.uniread.domain.entities.user.User;
+import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.repositories.message.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +18,21 @@ public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
 
+    @Transactional
+    public void updateLastReadAtByConversationAndUser(Conversation conversation, User user) {
+        updateLastReadAtByConversationIdAndUserId(conversation.getId(), user.getId());
+    }
+
+    @Transactional
+    public void updateLastReadAtByConversationIdAndUserId(UUID conversationId, UUID userId) {
+        participantRepository.updateLastReadAtByConversationIdAndUserId(conversationId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public Participant getParticipantByConversationAndUser(Conversation conversation, User user) {
+        return participantRepository.findByConversationIdAndUserId(conversation.getId(), user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User is not found in conversation"));
+    }
     /**
      * Get the list of participants based on user
      * @param user

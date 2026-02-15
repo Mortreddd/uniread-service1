@@ -15,9 +15,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@Table(name = "collaborator", indexes = {
-        @Index(name = "idx_book_id", columnList = "book_id"),
-        @Index(name = "idx_user_id", columnList = "user_id"),
+@Table(name = "collaborators", indexes = {
+        @Index(name = "idx_collaborators_book_id", columnList = "book_id"),
+        @Index(name = "idx_collaborators_user_id", columnList = "user_id"),
 })
 @Entity
 @Data
@@ -35,7 +35,7 @@ public class Collaborator {
     @JsonBackReference
     private Book book;
 
-    @OneToOne(targetEntity = User.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id")
     @JsonManagedReference
     private User user;

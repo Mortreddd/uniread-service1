@@ -13,7 +13,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Table
+@Table(name = "notifications", indexes = {
+        @Index(name = "idx_notifications_user_id", columnList = "user_id")
+})
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -37,11 +39,9 @@ public class Notification {
     private Boolean isRead;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 
 }

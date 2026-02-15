@@ -3,6 +3,7 @@ package com.bsit.uniread.domain.entities.user;
 import com.bsit.uniread.domain.entities.book.Bookmark;
 import com.bsit.uniread.domain.entities.collaborator.Collaborator;
 import com.bsit.uniread.domain.entities.Follow;
+import com.bsit.uniread.domain.entities.library.Library;
 import com.bsit.uniread.domain.entities.notification.Notification;
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.book.BookComment;
@@ -16,11 +17,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,10 +38,9 @@ import java.util.UUID;
 })
 @Builder
 @Data
-@Entity(name = "users")
+@Entity(name = "User")
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -66,11 +68,9 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime emailVerifiedAt;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
@@ -142,6 +142,12 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Bookmark> bookmarks = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Library> libraries = new ArrayList<>();
+
 
     public Long getFollowersCount() {
         return (long) followers.size();

@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-@Table(indexes = {
-        @Index(name = "idx_chapter_id", columnList = "chapter_id")
+@Table(name = "paragraphs", indexes = {
+        @Index(name = "idx_paragraphs_chapter_id", columnList = "chapter_id")
 })
 @Entity
 @AllArgsConstructor
@@ -58,8 +58,7 @@ public class Paragraph {
     @JsonManagedReference
     private List<ParagraphComment> paragraphComments = new ArrayList<>();
 
-    @OneToOne(targetEntity = Bookmark.class, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private Bookmark bookmark;
+    @OneToMany(mappedBy = "paragraph", cascade = CascadeType.REMOVE)
+    private List<Bookmark> bookmarks = new ArrayList<>();
 
 }

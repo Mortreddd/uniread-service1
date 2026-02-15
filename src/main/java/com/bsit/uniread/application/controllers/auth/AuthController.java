@@ -7,16 +7,26 @@ import com.bsit.uniread.application.dto.request.auth.RefreshTokenRequest;
 import com.bsit.uniread.application.dto.response.auth.LoginResponse;
 import com.bsit.uniread.application.services.auth.AuthService;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
  * Api Endpoint - /api/v1/auth
  */
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path = ApiEndpoints.AUTH)
@@ -31,10 +41,29 @@ public class AuthController {
      */
     @PostMapping(path = "/login")
     public ResponseEntity<LoginResponse> verifyLogin(
-            @Valid @RequestBody LoginRequest loginRequest
+            @Valid @RequestBody LoginRequest loginRequest,
+            HttpServletResponse httpServletResponse
     ) {
         LoginResponse response = authService.loginUser(loginRequest.getEmail(), loginRequest.getPassword());
-        return ResponseEntity.ok().body(response);
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", response.getAccessToken())
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", response.getRefreshToken())
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .build();
+
+        httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -53,11 +82,43 @@ public class AuthController {
 
     @PostMapping(path = "/refresh-token")
     public ResponseEntity<LoginResponse> refreshToken(
-            @RequestBody RefreshTokenRequest request
+            HttpServletRequest httpServletRequest,
+            HttpServletResponse httpServletResponse
     ) {
-        LoginResponse response = authService.refreshToken(request.getRefreshToken());
+        Cookie[] cookies = httpServletRequest.getCookies();
+        if (cookies == null) {
+            clearAuthCookies(httpServletResponse);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value()).build();
+        }
+
+        String refreshToken = Arrays.stream(cookies)
+                .filter(c -> "refresh_token".equals(c.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElse(null);
+
+        LoginResponse response = authService.refreshToken(refreshToken);
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", response.getAccessToken())
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", response.getRefreshToken())
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ofDays(7))
+                .build();
+
+        httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        httpServletResponse.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
         return ResponseEntity.ok()
-                .body(response);
+                .build();
     }
 
     /**
@@ -66,10 +127,37 @@ public class AuthController {
      * @return ResponseEntity
      */
     @GetMapping(path = "/forgot-password")
-    public ResponseEntity<String> verifyForgotPassword(
+    public ResponseEntity verifyForgotPassword(
             @RequestParam("id") UUID id
     ) {
         authService.verifyEmailByOtpId(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(path = "/logout")
+    public ResponseEntity logout(
+            HttpServletResponse httpServletResponse
+    ) {
+        clearAuthCookies(httpServletResponse);
+        return ResponseEntity.ok().build();
+    }
+
+    private void clearAuthCookies(HttpServletResponse response) {
+        ResponseCookie c1 = ResponseCookie.from("access_token", "")
+                .maxAge(0)
+                .path("/")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .build();
+        ResponseCookie c2 = ResponseCookie.from("refresh_token", "")
+                .maxAge(0)
+                .path("/")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, c1.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, c2.toString());
     }
 }
