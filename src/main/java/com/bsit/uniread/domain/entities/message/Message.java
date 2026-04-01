@@ -1,24 +1,19 @@
 package com.bsit.uniread.domain.entities.message;
 
 import com.bsit.uniread.domain.entities.user.User;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.sql.Types;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @Table(name = "messages", indexes = {
         @Index(name = "idx_messages_conversation_id", columnList = "conversation_id"),
         @Index(name = "idx_messages_sender_id", columnList = "sender_id"),
@@ -32,20 +27,29 @@ public class Message {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 5000)
     private String message;
 
     @Enumerated(EnumType.STRING)
     private MessageType messageType;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private MessageStatus status = MessageStatus.SENT;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant deliveredAt;
+
+    @Version
+    private Long version;
+
+    @CreationTimestamp
+    private Instant createdAt;
 }

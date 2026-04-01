@@ -95,8 +95,23 @@ public class AuthExceptionHandler {
                 .build();
 
         return ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .status(HttpStatus.UNAUTHORIZED)
                 .body(details);
 
     }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponse> invalidTokenException(InvalidTokenException exception, WebRequest request) {
+        ErrorResponse details = ErrorResponse.builder()
+                .code(HttpStatus.UNAUTHORIZED.value())
+                .message(exception.getMessage())
+                .date(new Date())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(details);
+
+    }
+
 }

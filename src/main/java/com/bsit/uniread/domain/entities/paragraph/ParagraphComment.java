@@ -11,15 +11,13 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Builder
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "paragraph_comments", indexes = {
         @Index(name = "idx_paragraph_comments_user_id", columnList = "user_id"),
         @Index(name = "idx_paragraph_comments_paragraph_id", columnList = "paragraph_id")
@@ -44,10 +42,10 @@ public class ParagraphComment {
     private String content;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Builder.Default
     @OneToMany(mappedBy = "paragraphComment", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

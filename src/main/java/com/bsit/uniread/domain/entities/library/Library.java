@@ -2,39 +2,41 @@ package com.bsit.uniread.domain.entities.library;
 
 import com.bsit.uniread.domain.entities.book.Book;
 import com.bsit.uniread.domain.entities.user.User;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
-@Entity
+@Getter
+@Setter
+@Entity(name = "Library")
 @Table(name = "libraries", indexes = {
         @Index(name = "idx_libraries_user_id", columnList = "user_id"),
         @Index(name = "idx_libraries_book_id", columnList = "book_id")
 })
+@Builder
 public class Library {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id")
-    @JsonBackReference
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "book_id")
-    @JsonBackReference
     private Book book;
 
-
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 }

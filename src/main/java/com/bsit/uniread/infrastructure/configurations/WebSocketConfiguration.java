@@ -1,7 +1,7 @@
 package com.bsit.uniread.infrastructure.configurations;
 
-import com.bsit.uniread.infrastructure.security.interceptors.JsonWebTokenChannelInterceptor;
-import com.bsit.uniread.infrastructure.security.interceptors.JsonWebTokenHandshakeInterceptor;
+import com.bsit.uniread.infrastructure.security.interceptors.WebSocketChannelInterceptor;
+import com.bsit.uniread.infrastructure.security.interceptors.WebSocketHandshakeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -18,9 +18,8 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
     @Value("${client.url}")
     private String clientUrl;
-    private final JsonWebTokenChannelInterceptor jsonWebTokenChannelInterceptor;
-    private final JsonWebTokenHandshakeInterceptor jsonWebTokenHandshakeInterceptor;
-//    private final CustomHandshakeHandler customHandshakeHandler;
+    private final WebSocketChannelInterceptor webSocketChannelInterceptor;
+    private final WebSocketHandshakeInterceptor webSocketHandshakeInterceptor;
 
 
     /**
@@ -42,13 +41,13 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .addInterceptors(jsonWebTokenHandshakeInterceptor)
+                .addInterceptors(webSocketHandshakeInterceptor)
                 .setAllowedOriginPatterns(clientUrl);
     }
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(jsonWebTokenChannelInterceptor);
+        registration.interceptors(webSocketChannelInterceptor);
     }
 
 }

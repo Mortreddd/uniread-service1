@@ -1,47 +1,31 @@
 package com.bsit.uniread.application.services.book;
 
+import com.bsit.uniread.application.dto.response.book.GenreDto;
 import com.bsit.uniread.domain.entities.book.Genre;
-import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
+import com.bsit.uniread.domain.mappers.book.GenreMapper;
 import com.bsit.uniread.infrastructure.repositories.book.GenreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class GenreService {
 
-    private final GenreRepository genreRepository;
-    /**
-     * Get all the genres
-     * @return list of Genres
-     */
-    @Transactional(readOnly = true)
-    public List<Genre> getGenres() {
-        return genreRepository.findAll();
+    private final GenreMapper mapper;
+    private final GenreRepository repository;
+
+    public List<GenreDto> getBookGenres(UUID bookId) {
+        return repository.findByBookId(bookId)
+                .stream()
+                .map(mapper::toDto)
+                .toList();
+
     }
 
-    /**
-     * Get the genre based on id
-     * @param genreId
-     * @return Genre
-     */
-    @Transactional(readOnly = true)
-    public Genre getGenreById(int genreId) {
-        return genreRepository.findById(genreId)
-                .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve selected genre"));
+    public List<GenreDto> mapToDto(List<Genre> genres) {
+        return genres.stream().map(mapper::toDto).toList();
     }
-
-    /**
-     * Get all the genres by matched id
-     * @param genreIds
-     * @return list of genres
-     */
-    @Transactional(readOnly = true)
-    public List<Genre> getGenresByIds(List<Integer> genreIds) {
-        return genreRepository.findAllById(genreIds);
-    }
-
 }

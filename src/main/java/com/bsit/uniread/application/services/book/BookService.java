@@ -1,26 +1,16 @@
 package com.bsit.uniread.application.services.book;
 
-import com.bsit.uniread.application.dto.request.book.BookCreationRequest;
 import com.bsit.uniread.application.dto.request.book.BookSearchFilter;
-import com.bsit.uniread.application.dto.request.user.AuthorBookFilter;
-import com.bsit.uniread.application.dto.response.book.BookDetailDto;
-import com.bsit.uniread.application.services.user.UserService;
+import com.bsit.uniread.application.dto.request.book.UpdateBookRequest;
+import com.bsit.uniread.application.dto.response.book.BookDetailsDto;
+import com.bsit.uniread.application.dto.response.book.BookDto;
 import com.bsit.uniread.domain.entities.book.Book;
-import com.bsit.uniread.domain.entities.book.BookStatus;
-import com.bsit.uniread.domain.entities.book.Genre;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
-import com.bsit.uniread.domain.entities.user.User;
+import com.bsit.uniread.domain.mappers.book.BookMapper;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
-import com.bsit.uniread.infrastructure.handler.exceptions.book.AlreadyPublishedBookException;
-import com.bsit.uniread.infrastructure.handler.publishers.book.BookEventPublisher;
 import com.bsit.uniread.infrastructure.repositories.book.BookRepository;
 import com.bsit.uniread.infrastructure.specifications.book.BookSpecification;
-import com.bsit.uniread.infrastructure.utils.DateUtil;
-import com.bsit.uniread.infrastructure.utils.ImageDirectory;
-import com.bsit.uniread.infrastructure.utils.ImageUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,198 +19,70 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.util.UUID;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class BookService {
 
-    private final ImageUtils imageUtils;
+    private final BookMapper mapper;
     private final BookRepository bookRepository;
-    private final BookEventPublisher publisher;
     private final GenreService genreService;
-    private final UserService userService;
 
-    /**
-     * Get the books based on pageNumber, pageSize, and query if not empty or null.
-     * The books queried that matches the query
-     * @param filter
-     * @return Pagination of Books
-     */
-    @Transactional(readOnly = true)
-    @Cacheable(
-            value = "books",
-            key = """
-                    T(java.util.Objects).hash(
-                        #filter.pageNo,
-                        #filter.pageSize,
-                        #filter.query,
-                        #filter.genres != null ? #filter.genres.stream().sorted().toList().toString() : '',
-                        #filter.status,
-                        #filter.sortBy,
-                        #filter.orderBy,
-                        #filter.startDate,
-                        #filter.endDate,
-                        #filter.deletedAt
-                )"""
-    )
-    public Page<Book> getBooks(
-            BookSearchFilter filter
-    ) {
+    public Page<BookDto> searchBooks(CustomUserDetails userDetails, BookSearchFilter filter) {
+        Sort.Direction direction = "desc".equalsIgnoreCase(filter.getOrderBy())
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
 
-        Sort.Direction direction =
-                "desc".equalsIgnoreCase(filter.getOrderBy())
-                        ? Sort.Direction.DESC
-                        : Sort.Direction.ASC;
-
-        Sort sort = Sort.by(direction, filter.getOrderBy());
+        Sort sort = Sort.by(direction, filter.getSortBy());
         Pageable pageable = PageRequest.of(filter.getPageNo(), filter.getPageSize(), sort);
-        Specification<Book> bookSpecification = Specification.where(BookSpecification.hasDeleted(filter.getDeletedAt()));
-        if(filter.getGenres() != null) {
+
+        Specification<Book> bookSpecification =
+                Specification.where(BookSpecification.hasDeleted(filter.getDeletedAt()))
+                        .and(BookSpecification.hasGenres(filter.getGenres()))
+                        .and(BookSpecification.hasStatus(filter.getStatus()))
+                        .and(BookSpecification.hasQuery(filter.getQuery()))
+                        .and(BookSpecification.hasAuthorById(filter.getAuthorId()));
+        if(filter.getGenres() != null && !filter.getGenres().isEmpty()) {
+
             bookSpecification = bookSpecification.and(BookSpecification.hasGenres(filter.getGenres()));
         }
-        if(filter.getStatus() != null) {
-            bookSpecification = bookSpecification.and(BookSpecification.hasStatus(filter.getStatus()));
-        }
-        String query = filter.getQuery();
-        if (query != null && !query.isBlank()) {
-            bookSpecification = bookSpecification.and(
-                    BookSpecification.hasQuery(query)
-            );
-        }
-        return bookRepository.findAll(bookSpecification, pageable);
+        return bookRepository.findAll(bookSpecification, pageable)
+                .map(b -> {
+                    var book = mapper.toDto(b);
+                    var tempGenres = b.getGenres();
+                    book.setGenres(genreService.mapToDto(tempGenres));
+                    return book;
+                });
+
     }
 
-    /**
-     * Get the user books based on given userId
-     * @param userId
-     * @param filter
-     * @return Pageable of books
-     */
-    @Transactional(readOnly = true)
-    public Page<Book> getUserBooks(UUID userId, AuthorBookFilter filter) {
-        Sort.Direction direction = "asc".equalsIgnoreCase(filter.getSortBy()) ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, filter.getOrderBy());
-        Pageable pageable = PageRequest.of(filter.getPageNo(), filter.getPageSize(), sort);
+    public BookDetailsDto findBookById(CustomUserDetails userDetails, UUID bookId) {
+        UUID authUserId = userDetails != null ? userDetails.getId() : null;
+        var book = bookRepository.findBookDetailsById(bookId, authUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Book does not found"));
+        var genres = genreService.getBookGenres(book.getId());
+        book.setGenres(genres);
 
-        Specification<Book> bookSpecification = Specification.where(BookSpecification.hasAuthorById(userId));
-        String query = filter.getQuery();
-        if(query != null && query.isBlank()) {
-            bookSpecification = bookSpecification.and(BookSpecification.hasQuery(query));
-        }
-
-        if(filter.getStatus() != null) {
-            bookSpecification = bookSpecification.and(BookSpecification.hasStatus(filter.getStatus()));
-        }
-
-        return bookRepository.findAll(bookSpecification, pageable);
+        return book;
     }
 
-    /**
-     * Get the book based on id
-     * @param bookId
-     * @return book
-     */
-    @Transactional(readOnly = true)
-    public Book getBookById(UUID bookId) {
+    public void updateBook(UUID bookId, UpdateBookRequest bookRequest) {
+        // TODO : Add a operation for update and might involved with collaborator
+    }
+
+    @Transactional
+    public void deleteBook(UUID bookId) {
+        var book = getBookByIdOrThrow(bookId);
+        // if the selected book is already soft deleted
+        var isDeleted = book != null && book.getDeletedAt() != null;
+        if(isDeleted) return;
+
+        bookRepository.softDeleteBook(bookId);
+    }
+
+    public Book getBookByIdOrThrow(UUID bookId) {
         return bookRepository.findById(bookId)
-                .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the book"));
+                .orElseThrow(() -> new ResourceNotFoundException("Book does not found"));
     }
-
-    @Transactional(readOnly = true)
-    public BookDetailDto getBookDetailById(UUID bookId, UUID userId) {
-        if(userId == null) {
-            return bookRepository.findBookDetailById(bookId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Unable to get the book detail"));
-        }
-        return bookRepository.findBookDetailByIdAndUserId(bookId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Unable to get the book detail"));
-    }
-
-    /**
-     * Create a book
-     * @description if any exception occurs, all the created will be deleted
-     * @param request
-     * @return book
-     * @throws IOException
-     */
-    @Transactional
-    @CacheEvict(key = "books", allEntries = true)
-    public Book createBook(BookCreationRequest request, CustomUserDetails userDetails) throws IOException {
-        String fileUrl = imageUtils.saveImage(ImageDirectory.COVER, request.getPhoto());
-        User user = userService.getUserById(userDetails.getId());
-        List<Genre> genres = genreService.getGenresByIds(request.getGenreIds());
-        Book book = Book.builder()
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .matured(request.getMatured())
-                .genres(genres)
-                .user(user)
-                .coverPhoto(fileUrl)
-                .status(BookStatus.DRAFT)
-                .readCount(0)
-                .completed(false)
-                .createdAt(DateUtil.now())
-                .build();
-
-        return save(book);
-    }
-
-    /**
-     * Update the book for published
-     * @param bookId
-     * @return book
-     */
-    @Transactional
-    @CacheEvict(key = "books", allEntries = true)
-    public Book publishedBookById(UUID bookId) {
-        Book book = getBookById(bookId);
-
-        // Checks the book if already published
-        if(book.getIsPublished()) {
-            throw new AlreadyPublishedBookException("This book is already published");
-        }
-
-        book.setStatus(BookStatus.PUBLISHED);
-        book.setUpdatedAt(DateUtil.now());
-
-        publisher.newPublishBook(book);
-
-        return save(book);
-    }
-
-    @Transactional
-    public Book save(Book book) {
-        return bookRepository.save(book);
-    }
-
-    /**
-     * Safe delete the book
-     * @param bookId
-     */
-    @Transactional
-    @CacheEvict(key = "books", allEntries = true)
-    public void deleteBookById(UUID bookId) {
-        Book book = getBookById(bookId);
-        book.setDeletedAt(DateUtil.now());
-
-        // TODO: Add the removal of collaborators and sending notifications
-        save(book);
-    }
-
-    /**
-     * Force delete the book
-     * @param bookId
-     */
-    @Transactional
-    @CacheEvict(key = "books", allEntries = true)
-    public void forceDeleteBookById(UUID bookId) {
-        Book book = getBookById(bookId);
-        // TODO: Add the removal of collaborators in a book and sending notifications
-        bookRepository.delete(book);
-    }
-
-
 }

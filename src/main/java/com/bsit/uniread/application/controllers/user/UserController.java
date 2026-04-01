@@ -3,10 +3,9 @@ package com.bsit.uniread.application.controllers.user;
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
 import com.bsit.uniread.application.dto.request.user.SetupUsernameRequest;
-import com.bsit.uniread.application.dto.response.user.AuthorDto;
+import com.bsit.uniread.application.dto.request.user.UserFilter;
 import com.bsit.uniread.application.dto.response.user.CurrentUser;
 import com.bsit.uniread.application.dto.response.user.UserDto;
-import com.bsit.uniread.application.services.auth.JsonWebTokenService;
 import com.bsit.uniread.application.services.user.UserService;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -24,41 +23,32 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final JsonWebTokenService jsonWebTokenService;
     private final UserService userService;
 
 
     @GetMapping
     public ResponseEntity<Page<UserDto>> getUsers(
-            @RequestParam(name = "pageNo", required = false, defaultValue = "0") Integer pageNo,
-            @RequestParam(name = "pageSize", required = false, defaultValue = "10") Integer pageSize,
-            @RequestParam(name = "query", required = false) String query,
-            @RequestParam(name = "sortBy", required = false, defaultValue = "asc") String sortBy,
-            @RequestParam(name = "orderBy", required = false, defaultValue = "createdAt") String orderBy,
-            @RequestParam(name = "startDate", required = false) String startDate,
-            @RequestParam(name = "endDate", required = false) String endDate,
-            @RequestParam(name = "bannedAt", required = false) String bannedAt,
-            @RequestParam(name = "deletedAt", required = false) String deletedAt
+            @ModelAttribute UserFilter filter,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Page<UserDto> users = userService.getUsers(pageNo, pageSize, query, sortBy, orderBy, startDate, endDate, bannedAt, deletedAt)
-                .map(UserDto::new);
+        Page<UserDto> users = userService.searchUsers(userDetails, filter);
         return ResponseEntity.ok()
                 .body(users);
     }
 
-    /**
-     * Get the user info based in given id
-     * @param userId
-     * @return user
-     */
-    @GetMapping(path = "/{userId}")
-    public ResponseEntity<AuthorDto> getUserById(
-            @PathVariable(name = "userId") UUID userId
-    ) {
-        AuthorDto user = new AuthorDto(userService.getUserById(userId));
-        return ResponseEntity.ok()
-                .body(user);
-    }
+//    /**
+//     * Get the user info based in given id
+//     * @param userId
+//     * @return user
+//     */
+//    @GetMapping(path = "/{userId}")
+//    public ResponseEntity<AuthorDto> getUserById(
+//            @PathVariable(name = "userId") UUID userId
+//    ) {
+//        AuthorDto user = userService.getUserById(userId));
+//        return ResponseEntity.ok()
+//                .body(user);
+//    }
 
     /**
      * Update the username of the user
@@ -87,7 +77,8 @@ public class UserController {
      */
     @GetMapping(path = "/me")
     public ResponseEntity<CurrentUser> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        CurrentUser currentUser = userService.getCurrentUser(customUserDetails.getId());
         return ResponseEntity.ok()
-                .body(new CurrentUser(customUserDetails));
+                .body(currentUser);
     }
 }

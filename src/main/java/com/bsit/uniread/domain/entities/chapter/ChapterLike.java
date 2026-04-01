@@ -4,20 +4,16 @@ import com.bsit.uniread.domain.entities.Reaction;
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @Table(name = "chapter_likes", indexes = {
         @Index(name = "idx_chapter_likes_chapter_id", columnList = "chapter_id"),
         @Index(name = "idx_chapter_likes_user_id", columnList = "user_id")
@@ -29,11 +25,11 @@ public class ChapterLike {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(targetEntity = Chapter.class, fetch = FetchType.LAZY)
+    @ManyToOne(targetEntity = Chapter.class, fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "chapter_id", unique = true)
     private Chapter chapter;
 
-    @ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY)
+    @ManyToOne(targetEntity = User.class, fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
@@ -42,9 +38,9 @@ public class ChapterLike {
     private Reaction reaction;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
 }

@@ -37,6 +37,11 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+        if (isRefreshPath(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         Cookie[] cookies = request.getCookies();
         String accessToken = getTokenFromCookies(cookies);
 
@@ -75,10 +80,13 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        String path = request.getRequestURI();
-        return path.contains("/api/v1/auth/refresh-token") ||
-                path.contains("/api/v1/auth/login") ||
-                path.contains("/api/v1/auth/register");
+        return isRefreshPath(request) ||
+                request.getRequestURI().contains("/api/v1/auth/login") ||
+                request.getRequestURI().contains("/api/v1/auth/register");
+    }
+
+    private boolean isRefreshPath(HttpServletRequest request) {
+        return request.getRequestURI().contains("/api/v1/auth/refresh-token");
     }
 
     private String getTokenFromCookies(Cookie[] cookies) {

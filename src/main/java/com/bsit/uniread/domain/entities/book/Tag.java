@@ -1,23 +1,22 @@
 package com.bsit.uniread.domain.entities.book;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.sql.Types;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
 @Builder
-@Table(name = "tags")
+@Table(name = "tags", indexes = {
+        @Index(name = "idx_tags_name", columnList = "name"),
+})
 @Entity
 public class Tag {
 
@@ -28,16 +27,21 @@ public class Tag {
     @Column(unique = true)
     private String name;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "book_id")
-    @JsonBackReference
-    private Book book;
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
+    @JoinTable(name = "book_tags", joinColumns = {
+            @JoinColumn(name = "tag_id")
+    }, inverseJoinColumns = {
+            @JoinColumn(name = "book_id")
+    }, indexes = {
+            @Index(name = "idx_book_tags_book_id", columnList = "book_id"),
+            @Index(name = "idx_book_tags_tag_id", columnList = "tag_id")
+    })
+    private List<Book> books = new ArrayList<>();
 
-    @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 }

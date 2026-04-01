@@ -4,16 +4,14 @@ import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.sql.Types;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,11 +23,11 @@ import java.util.UUID;
 @Table(name = "book_comments", indexes = {
     @Index(name = "idx_book_comments_book_id", columnList = "book_id"),
     @Index(name = "idx_book_comments_user_id", columnList = "user_id"),
-    @Index(name = "idx_book_comments_parent_book_comment_id", columnList = "parent_book_comment_id")
+    @Index(name = "idx_book_comments_parent_book_comment_id", columnList = "parent_book_comment_id"),
+    @Index(name = "idx_book_comments_created_at", columnList = "created_at"),
 })
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
 @Builder
 public class BookComment {
 
@@ -37,22 +35,21 @@ public class BookComment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "book_id")
     @JsonBackReference
     private Book book;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "parent_book_comment_id")
     @JsonManagedReference
     private BookComment parentBookComment;
 
-    private Integer rating;
     private String content;
 
     @Builder.Default
@@ -61,16 +58,10 @@ public class BookComment {
     private List<BookCommentLike> bookCommentLikes = new ArrayList<>();
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
-    @Transient
-    private Long totalLikes;
-
-    public Long getTotalLikes() {
-        return (long) bookCommentLikes.size();
-    }
 
 }

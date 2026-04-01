@@ -1,6 +1,6 @@
 package com.bsit.uniread.application.dto.request.collaborator;
 
-import com.bsit.uniread.application.controllers.collaborator.RequestStatus;
+import com.bsit.uniread.domain.entities.collaborator.CollaboratorRequestStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EditBookCollaboratorRequest {
 
-    private RequestStatus status;
+    private CollaboratorRequestStatus status;
 }

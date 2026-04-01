@@ -3,6 +3,8 @@ package com.bsit.uniread.infrastructure.persistence;
 import com.bsit.uniread.domain.entities.user.Gender;
 import com.bsit.uniread.domain.entities.user.Role;
 import com.bsit.uniread.domain.entities.user.User;
+import com.bsit.uniread.domain.entities.user.UserProfile;
+import com.bsit.uniread.infrastructure.repositories.user.UserProfileRepository;
 import com.bsit.uniread.infrastructure.repositories.user.UserRepository;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.Locale;
 public class UserSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -25,32 +28,48 @@ public class UserSeeder implements CommandLineRunner {
         if(userRepository.count() == 0) {
             Role superAdminRole = Role.SUPER_ADMIN;
             Role userRole = Role.USER;
-            List<User> users = List.of(
-                    User.builder()
-                            .username("mortreddd".toLowerCase(Locale.ROOT))
-                            .emailVerifiedAt(DateUtil.now())
-                            .firstName("Emmanuel")
-                            .lastName("Male")
-                            .createdAt(DateUtil.now())
-                            .gender(Gender.MALE)
-                            .email("emmanmale@gmail.com")
-                            .role(superAdminRole) // SUPER_ADMIN
-                            .password(new BCryptPasswordEncoder().encode("12345678"))
-                            .build(),
-                    User.builder()
-                            .username("edlyn".toLowerCase(Locale.ROOT))
-                            .firstName("Edlyn")
-                            .lastName("Male")
-                            .createdAt(DateUtil.now())
-                            .gender(Gender.FEMALE)
-                            .email("edlynmale@gmail.com")
-                            .emailVerifiedAt(DateUtil.now())
-                            .role(userRole)
-                            .password(new BCryptPasswordEncoder().encode("12345678"))
-                            .build()
-            );
 
-            userRepository.saveAll(users);
+            User user1 = userRepository.save(User.builder()
+                    .emailVerifiedAt(DateUtil.now())
+                    .username("mortreddd".toLowerCase(Locale.ROOT))
+                    .createdAt(DateUtil.now())
+                    .email("emmanmale@gmail.com")
+                    .role(superAdminRole)
+                    .password(new BCryptPasswordEncoder().encode("12345678"))
+                    .build());
+
+            UserProfile userProfile1 = UserProfile.builder()
+                    .firstName("Emmanuel")
+                    .lastName("Male")
+                    .gender(Gender.MALE)
+                    .user(user1)
+                    .displayName("Emmanuel Male")
+                    .bio("")
+                    .coverPhoto(null)
+                    .avatarPhoto(null)
+                    .build();
+
+            User user2 = userRepository.save(User.builder()
+                    .username("edlyn".toLowerCase(Locale.ROOT))
+                    .createdAt(DateUtil.now())
+                    .email("edlynmale@gmail.com")
+                    .emailVerifiedAt(DateUtil.now())
+                    .role(userRole)
+                    .password(new BCryptPasswordEncoder().encode("12345678"))
+                    .build());
+
+            UserProfile userProfile2 = UserProfile.builder()
+                    .firstName("Edlyn")
+                    .lastName("Male")
+                    .gender(Gender.FEMALE)
+                    .user(user2)
+                    .displayName("Edlyn Male")
+                    .bio("")
+                    .coverPhoto(null)
+                    .avatarPhoto(null)
+                    .build();
+
+            userProfileRepository.saveAll(List.of(userProfile1, userProfile2));
         }
     }
 }

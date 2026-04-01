@@ -1,212 +1,167 @@
 package com.bsit.uniread.application.services.user;
 
-import com.bsit.uniread.domain.entities.book.Book;
-import com.bsit.uniread.domain.entities.book.BookStatus;
+import com.bsit.uniread.application.dto.request.user.UserFilter;
+import com.bsit.uniread.application.dto.response.auth.GoogleUserInfoResponse;
+import com.bsit.uniread.application.dto.response.user.CurrentUser;
+import com.bsit.uniread.application.dto.response.user.UserDto;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
+import com.bsit.uniread.domain.entities.user.Role;
 import com.bsit.uniread.domain.entities.user.User;
+import com.bsit.uniread.domain.mappers.user.UserMapper;
+import com.bsit.uniread.infrastructure.handler.exceptions.DuplicateResourceException;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
 import com.bsit.uniread.infrastructure.repositories.user.UserRepository;
-import com.bsit.uniread.infrastructure.specifications.book.BookSpecification;
 import com.bsit.uniread.infrastructure.specifications.user.UserSpecification;
 import com.bsit.uniread.infrastructure.utils.DateUtil;
-import io.netty.util.internal.StringUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.util.StringUtils;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
+    private static final int DEFAULT_PASSWORD_LENGTH = 16;
+
+    private final UserMapper userMapper;
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    /**
-     * Get the users or authors will be based on pageNumber, pageSize, and query if not empty or null.
-     * The authors queried that matches the query
-     * @param pageNo
-     * @param pageSize
-     * @param query
-     * @param sortBy
-     * @param orderBy
-     * @param startDate
-     * @param endDate
-     * @param bannedAt
-     * @param deletedAt
-     * @return Pagination of Books
-     */
     @Transactional(readOnly = true)
-    @Cacheable(
-            value = "books",
-            key = "T(java.util.Objects).hash(#pageNo, #pageSize, #query, #sortBy, #orderBy, #startDate, #endDate, #bannedAt, #deletedAt)"
-    )
-    public Page<User> getUsers(
-            int pageNo,
-            int pageSize,
-            String query,
-            String sortBy,
-            String orderBy,
-            String startDate,
-            String endDate,
-            String bannedAt,
-            String deletedAt
-    ) {
+    public Page<UserDto> searchUsers(CustomUserDetails userDetails, UserFilter filter) {
+        UUID authUserId = userDetails != null ? userDetails.getId() : null;
 
-        Sort.Direction direction = sortBy.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Specification<User> spec = Specification.where(UserSpecification.hasQuery(filter.getQuery()))
+                .and(UserSpecification.hasAuthUser(authUserId))
+                .and(UserSpecification.hasBanned(filter.getBannedAt()))
+                .and(UserSpecification.hasDeleted(filter.getDeletedAt()))
+                .and(UserSpecification.hasEmailVerified(filter.getEmailVerified()));
 
-        Sort sort = Sort.by(direction, orderBy);
-        Specification<User> userSpecification = Specification
-                .where(UserSpecification.hasDeleted(deletedAt))
-                .and(UserSpecification.hasBanned(bannedAt))
-                .and(UserSpecification.hasQuery(query));
+        Sort.Direction direction = "desc".equalsIgnoreCase(filter.getSortBy())
+                ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(
+                filter.getPageNo(),
+                filter.getPageSize(),
+                Sort.by(direction, filter.getOrderBy())
+        );
 
-        return userRepository.findAll(userSpecification, PageRequest.of(pageNo, pageSize, sort));
-    }
-
-    /**
-     * Get the user based on googleUuid
-     * @param googleUuid
-     * @return user or null
-     */
-    @Transactional(readOnly = true)
-    public Optional<User> getUserByGoogleUuid(String googleUuid) {
-        return userRepository.findByGoogleUuid(googleUuid);
-    }
-
-    /**
-     * Get the user based on provided id
-     * @param userId
-     * @return User
-     * @throws ResourceNotFoundException
-     */
-    @Transactional(readOnly = true)
-    public User getUserById(UUID userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Unable to find user"));
-    }
-
-    /**
-     * Get the users based on list of ids
-     * @param userIds
-     * @return list of users
-     */
-    @Transactional(readOnly = true)
-    public List<User> getUsersById(List<UUID> userIds) {
-        return userRepository.findAllById(userIds);
-
-    }
-
-    /**
-     * Get the user by email
-     * @param user
-     * @return User
-     */
-    @Transactional(readOnly = true)
-    public User saveIfExistsByEmail(User user) {
-        return userRepository.findByEmail(user.getEmail())
-                .orElse(userRepository.save(user));
-    }
-    /**
-     * Get the user based on email
-     * @params email
-     * @return User
-     * @throws ResourceNotFoundException
-     */
-    @Transactional(readOnly = true)
-    public User getUserByEmailOrThrow(final String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Unable to find user"));
+        return userRepository.findAll(spec, pageable)
+                .map(userMapper::toDto);
     }
 
     @Transactional(readOnly = true)
-    public Optional<User> getUserByEmail(final String email) {
+    public UserDto getUserById(UUID userId) {
+        User user = findUserById(userId);
+        return userMapper.toDto(user);
+    }
+
+    @Transactional(readOnly = true)
+    public CurrentUser getCurrentUser(UUID currentUserId) {
+        return userRepository.findCurrentUserById(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + currentUserId));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    /**
-     * Get the user by using username
-     * @param username
-     * @return user
-     */
     @Transactional(readOnly = true)
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsernameContainingIgnoreCase(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Unable to find " + username));
+    public User getUserByEmailOrThrow(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 
-    /**
-     * Accepts a User as a parameter to save in a repository
-     * @param user
-     * @return User
-     */
+    @Transactional(readOnly = true)
+    public boolean isEmailExists(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isUsernameExists(String username) {
+        return userRepository.findByUsernameContainingIgnoreCase(username).isPresent();
+    }
+
     @Transactional
-    public User save(User user) {
-        return userRepository.save(user);
+    public User createGoogleUser(GoogleUserInfoResponse userInfo) {
+        validateGoogleUserInfo(userInfo);
+
+        if (isEmailExists(userInfo.getEmail())) {
+            throw new DuplicateResourceException("User with email " + userInfo.getEmail() + " already exists");
+        }
+
+        User user = User.builder()
+                .email(userInfo.getEmail())
+                .username(generateTemporaryUsername(userInfo.getEmail()))
+                .password(passwordEncoder.encode(generateRandomPassword()))
+                .emailVerifiedAt(DateUtil.now())
+                .googleUuid(userInfo.getSub())
+                .role(Role.USER)
+                .build();
+
+        User savedUser = userRepository.save(user);
+        log.info("Created new Google user: {} with email: {}", savedUser.getId(), savedUser.getEmail());
+
+        return savedUser;
     }
 
-    /**
-     * Verify the user's email
-     * @param user
-     * @return User
-     */
+    @Transactional
     public User verifyUserEmail(User user) {
         user.setEmailVerifiedAt(DateUtil.now());
         user.setUpdatedAt(DateUtil.now());
-        return save(user);
+        return userRepository.save(user);
     }
 
-    /**
-     * Update the username of selected user id
-     * @param userId
-     * @param username
-     * @return
-     */
-    public User updateUsername(UUID userId, String username) {
-        User user = getUserById(userId);
+    @Transactional
+    public void updateUsername(UUID userId, String username) {
+        if (isUsernameExists(username)) {
+            throw new DuplicateResourceException("Username '" + username + "' is already taken");
+        }
+
+        User user = findUserById(userId);
         user.setUsername(username);
-        return save(user);
+        user.setUpdatedAt(DateUtil.now());
+        userRepository.save(user);
 
-    }
-    /**
-     * Check the email if already exists
-     * @param email
-     * @return Boolean
-     */
-    @Transactional(readOnly = true)
-    public Boolean emailExists(String email) {
-         return userRepository.findByEmail(email)
-                 .isPresent();
+        log.info("Updated username for user {} to: {}", userId, username);
     }
 
-    /**
-     * Check if the email does not exist
-     * @param email
-     * @return Boolean
-     */
-    public Boolean emailNotExists(String email) {
-        return !emailExists(email);
+    private User findUserById(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
     }
 
-    /**
-     * Check the username if already taken
-     * @param username
-     * @return Boolean
-     */
-    public Boolean usernameExists(String username) {
-        return userRepository.findByUsernameContainingIgnoreCase(username)
-                .isPresent();
+    private void validateGoogleUserInfo(GoogleUserInfoResponse userInfo) {
+        if (userInfo == null) {
+            throw new IllegalArgumentException("Google user information cannot be null");
+        }
+        if (userInfo.getEmail() == null || userInfo.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Email is required for Google user registration");
+        }
+        if (userInfo.getSub() == null || userInfo.getSub().isBlank()) {
+            throw new IllegalArgumentException("Google user ID (sub) is required");
+        }
     }
 
+    private String generateTemporaryUsername(String email) {
+        String baseUsername = email.split("@")[0];
+        String uniqueSuffix = UUID.randomUUID().toString().substring(0, 8);
+        return baseUsername + "_" + uniqueSuffix;
+    }
 
-
+    private String generateRandomPassword() {
+        return StringUtils.randomAlphanumeric(DEFAULT_PASSWORD_LENGTH);
+    }
 }

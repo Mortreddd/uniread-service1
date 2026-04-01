@@ -2,12 +2,14 @@ package com.bsit.uniread.application.controllers.user;
 
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.api.SuccessResponse;
+import com.bsit.uniread.application.dto.request.follow.FollowerFilter;
+import com.bsit.uniread.application.dto.request.follow.FollowingFilter;
+import com.bsit.uniread.application.dto.response.follow.AuthUserFollowDto;
 import com.bsit.uniread.application.dto.response.follow.FollowDto;
 import com.bsit.uniread.application.dto.response.follow.FollowUserDto;
-import com.bsit.uniread.application.services.FollowService;
-import com.bsit.uniread.domain.entities.Follow;
+import com.bsit.uniread.application.services.follow.FollowService;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
-import com.bsit.uniread.domain.entities.user.User;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -15,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -28,109 +29,67 @@ public class FollowController {
 
     private final FollowService followService;
 
-    /**
-     * Get the followings of user
-     * @param userId
-     * @param pageNo
-     * @param pageSize
-     * @param query
-     * @return page of followings
-     */
-    @GetMapping(path = "/{userId}/follow/followings")
+    @GetMapping(path = "/{userId}/followings")
+    @Operation(summary = "Get the followings of specified user", description = "Get the followings of specified user which supports filtering")
     public ResponseEntity<Page<FollowUserDto>> getUserFollowings(
             @PathVariable(name = "userId") UUID userId,
-            @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
-            @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(name = "query", required = false) String query,
+            @ModelAttribute FollowingFilter filter,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Page<User> users = followService.getFollowingsByUserId(userId, pageNo, pageSize, query)
-                .map(Follow::getFollowing);
-        List<Follow> follows = userDetails == null ? List.of() : followService.getCurrentUserFollows(userDetails);
-        Page<FollowUserDto> followings = users
-                .map(u -> {
-
-                    boolean isFollowing = false;
-                    boolean isFollower = false;
-
-                    if(userDetails != null) {
-
-                        isFollowing = follows
-                                .stream()
-                                .anyMatch(follow -> follow.getFollowing().getId().equals(u.getId()));
-
-                        isFollower = follows
-                                .stream()
-                                .anyMatch(follow -> follow.getFollower().getId().equals(u.getId()));
-
-                    }
-                    boolean isMutualFollowing = isFollowing && isFollower;
-                    return new FollowUserDto(u, isFollowing, isMutualFollowing);
-                });
+        var authUserId = userDetails != null ? userDetails.getId() : null;
+        var followings = followService.getUserFollowings(userId, authUserId, filter);
 
         return ResponseEntity.ok()
                 .body(followings);
     }
 
-    /**
-     * Get the followers of user
-     * @param userId
-     * @param pageNo
-     * @param pageSize
-     * @param query
-     * @return page of followers
-     */
-    @GetMapping(path = "/{userId}/follow/followers")
+    @GetMapping(path = "/{userId}/followers")
+    @Operation(summary = "Get the followers of specified user", description = "Get the followers of specified user which supports filtering")
     public ResponseEntity<Page<FollowUserDto>> getUserFollowers(
             @PathVariable(name = "userId") UUID userId,
-            @RequestParam(name = "pageNo", required = false, defaultValue = "0") int pageNo,
-            @RequestParam(name = "pageSize", required = false, defaultValue = "10") int pageSize,
-            @RequestParam(name = "query", required = false) String query,
+            @ModelAttribute FollowerFilter filter,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Page<User> users = followService.getFollowersByUserId(userId, pageNo, pageSize, query)
-                .map(Follow::getFollower);
-        List<Follow> follows = userDetails == null ? List.of() : followService.getCurrentUserFollows(userDetails);
-        Page<FollowUserDto> followers = users
-                .map(u -> {
-
-                    boolean isFollowing = false;
-                    boolean isFollower = false;
-                    if(userDetails != null) {
-
-                        isFollowing = follows
-                                .stream()
-                                .anyMatch(follow -> follow.getFollowing().getId().equals(u.getId()));
-
-                        isFollower = follows
-                                .stream()
-                                .anyMatch(follow -> follow.getFollower().getId().equals(u.getId()));
-
-                    }
-
-                    boolean isMutualFollowing = isFollowing && isFollower;
-                    return new FollowUserDto(u, isFollowing, isMutualFollowing);
-                });
+        var authUserId = userDetails != null ? userDetails.getId() : null;
+        var followers = followService.getUserFollowers(userId, authUserId, filter);
 
         return ResponseEntity.ok()
                 .body(followers);
     }
 
-    /**
-     * Create a new follow transaction
-     * @param followedUserId
-     * @param userDetails
-     * @return Follow
-     */
+    @GetMapping(path = "/me/followings")
+    @Operation(summary = "Get the followings of auth user", description = "Get the followings of auth user which supports filtering")
+    public ResponseEntity<Page<AuthUserFollowDto>> getAuthUserFollowings(
+        @ModelAttribute FollowingFilter filter,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        var authUserId = userDetails != null ? userDetails.getId() : null;
+        var followings = followService.getAuthUserFollowings(authUserId, filter);
+        return ResponseEntity.ok().body(followings);
+    }
+
+    @GetMapping(path = "/me/followers")
+    @Operation(summary = "Get the followers of auth user", description = "Get the followers of auth user which supports filtering")
+    public ResponseEntity<Page<AuthUserFollowDto>> getAuthUserFollowers(
+            @ModelAttribute FollowerFilter filter,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        var authUserId = userDetails != null ? userDetails.getId() : null;
+        var followers = followService.getAuthUserFollowers(authUserId, filter);
+        return ResponseEntity.ok().body(followers);
+    }
+
     @PostMapping(path = "/{userId}/follow")
+    @Operation(summary = "Auth user creates follow to given user")
     public ResponseEntity<FollowDto> createNewFollowing(
             @PathVariable(name = "userId") UUID followedUserId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
 
-        FollowDto newFollow = new FollowDto(followService.createFollow(userDetails.getId(), followedUserId));
-        return ResponseEntity.ok()
-                .body(newFollow);
+        var follow = followService.createFollow(userDetails.getId(), followedUserId);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(follow);
     }
 
     /**
@@ -144,14 +103,8 @@ public class FollowController {
             @PathVariable(name = "userId") UUID unfollowedUserId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-
         followService.unfollowUser(userDetails.getId(), unfollowedUserId);
-        SuccessResponse response = SuccessResponse.builder()
-                .code(HttpStatus.OK.value())
-                .message("Successfully unfollowed the user")
-                .build();
-
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.ok().build();
     }
 
 }

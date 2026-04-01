@@ -3,6 +3,8 @@ package com.bsit.uniread.application.controllers.message;
 import com.bsit.uniread.application.constants.ApiEndpoints;
 import com.bsit.uniread.application.dto.request.message.ConversationFilter;
 import com.bsit.uniread.application.dto.request.message.ConversationMessageFilter;
+import com.bsit.uniread.application.dto.request.message.ExistingConversationFilter;
+import com.bsit.uniread.application.dto.response.message.ConversationDetailDto;
 import com.bsit.uniread.application.dto.response.message.ConversationInfo;
 import com.bsit.uniread.application.dto.response.message.ConversationPreviewDto;
 import com.bsit.uniread.application.dto.response.message.MessageDto;
@@ -12,6 +14,7 @@ import com.bsit.uniread.domain.entities.message.Conversation;
 import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +42,10 @@ public class ConversationController {
             @ModelAttribute ConversationFilter filter,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+
+        if(userDetails == null) return null;
+
+
         Page<ConversationPreviewDto> conversations = conversationService
                 .getUserConversationsById(userDetails.getId(), filter);
 
@@ -47,12 +54,13 @@ public class ConversationController {
     }
 
     @GetMapping(path = "/{conversationId}")
-    public ResponseEntity<ConversationInfo> getUserConversationById(
-            @PathVariable("conversationId") UUID conversationId
+    public ResponseEntity<ConversationDetailDto> getUserConversationById(
+            @PathVariable("conversationId") UUID conversationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Conversation conversation = conversationService.getConversationById(conversationId);
+        if(userDetails == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok()
-                .body(new ConversationInfo(conversation.getId(), conversation.getName()));
+                .body(conversationService.getConversationById(conversationId, userDetails.getId()));
     }
     /**
      * * Get all the messages on selected conversation
@@ -66,11 +74,25 @@ public class ConversationController {
             @ModelAttribute ConversationMessageFilter filter,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+        if(userDetails == null) return null;
+
         Page<MessageDto> messages = messageService
-                .getUserConversationMessages(conversationId, filter)
-                .map(MessageDto::new);
+                .getUserConversationMessages(conversationId, filter, userDetails.getId());
 
         return ResponseEntity.ok()
                 .body(messages);
+    }
+
+    @GetMapping(path = "/recipient/{receiverId}")
+    public ResponseEntity<ConversationInfo> getExistingConversationByRecipientId(
+            @PathVariable("receiverId") UUID receiverId,
+            @ModelAttribute  ExistingConversationFilter filter,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        if(userDetails == null) return null;
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(conversationService.getOneToOneConversation(receiverId, filter, userDetails.getId()));
+
     }
 }

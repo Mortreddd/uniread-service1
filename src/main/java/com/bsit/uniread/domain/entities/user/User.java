@@ -12,35 +12,27 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.sql.Types;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 @Table(name = "users", indexes = {
-        @Index(name = "idx_first_name", columnList = "first_name"),
-        @Index(name = "idx_last_name", columnList = "last_name"),
-        @Index(name = "idx_username", columnList = "username"),
-        @Index(name = "idx_email", columnList = "email")
+        @Index(name = "idx_users_username", columnList = "username"),
+        @Index(name = "idx_users_email", columnList = "email")
 })
 @Builder
 @Data
 @Entity(name = "User")
-@AllArgsConstructor
-@NoArgsConstructor
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -49,13 +41,7 @@ public class User implements UserDetails {
     private String facebookUuid;
     private String googleUuid;
 
-    private String firstName;
-    private String lastName;
-
     private String username;
-
-    @Enumerated(EnumType.STRING)
-    private Gender gender;
 
     @Column(unique = true)
     private String email;
@@ -63,51 +49,29 @@ public class User implements UserDetails {
     @JsonIgnore
     private String password;
 
-    private String photoUrl;
-
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private LocalDateTime emailVerifiedAt;
+    private Instant emailVerifiedAt;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
-    private LocalDateTime bannedAt;
-    private LocalDateTime unbannedAt;
+    private Instant bannedAt;
+    private Instant unbannedAt;
 
-    private LocalDateTime deletedAt;
-
-    @Transient
-    private Boolean isEmailVerified;
-    @Transient
-    private Boolean isUser;
-    @Transient
-    private Boolean isSuperAdmin;
-    @Transient
-    private Boolean isAdmin;
-    @Transient
-    private Boolean isBanned;
-    @Transient
-    private Long followersCount;
-    @Transient
-    private Long followingsCount;
-    @Transient
-    private Long storiesCount;
-    @Transient
-    private Long publishedStoriesCount;
-    @Transient
-    private Long draftedStoriesCount;
-    @Transient
-    private String fullName;
+    private Instant deletedAt;
 
     @Builder.Default
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Book> books = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private UserProfile profile;
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonBackReference
@@ -149,32 +113,6 @@ public class User implements UserDetails {
     private List<Library> libraries = new ArrayList<>();
 
 
-    public Long getFollowersCount() {
-        return (long) followers.size();
-    }
-
-    public Long getFollowingsCount() {
-        return (long) followings.size();
-    }
-
-    public Long getStoriesCount() {
-        return (long) books.size();
-    }
-
-    public Long getPublishedStoriesCount() {
-        return (long) books
-                .stream()
-                .filter(Book::getIsPublished)
-                .count();
-    }
-
-    public Long getDraftedStoriesCount() {
-        return (long) books
-                .stream()
-                .filter((b) -> !b.getIsPublished())
-                .count();
-    }
-
     public Boolean getIsEmailVerified() {
         return emailVerifiedAt != null;
     }
@@ -195,23 +133,29 @@ public class User implements UserDetails {
         return bannedAt != null;
     }
 
-    public String getFullName() {
-        return firstName + " " + lastName;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.toString()));
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.toString()));
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return this.bannedAt == null;
+        return deletedAt == null;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return bannedAt == null;
     }
 
     @Override
@@ -221,6 +165,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.deletedAt == null && emailVerifiedAt != null;
+        return emailVerifiedAt != null && deletedAt == null && bannedAt == null;
     }
 }

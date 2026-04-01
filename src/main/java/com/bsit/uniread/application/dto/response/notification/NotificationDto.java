@@ -2,12 +2,14 @@ package com.bsit.uniread.application.dto.response.notification;
 
 import com.bsit.uniread.application.dto.response.user.AuthorDto;
 import com.bsit.uniread.domain.entities.notification.Notification;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
+@AllArgsConstructor
 public class NotificationDto {
 
     private UUID id;
@@ -20,17 +22,5 @@ public class NotificationDto {
 
     private Boolean isRead;
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
-    public NotificationDto(Notification notification) {
-        this.id = notification.getId();
-        this.user = new AuthorDto(notification.getUser());
-        this.title = notification.getTitle();
-        this.description = notification.getDescription();
-        this.isRead = notification.getIsRead();
-        this.createdAt = notification.getCreatedAt();
-        this.updatedAt = notification.getUpdatedAt();
-    }
+    private Instant createdAt;
 }

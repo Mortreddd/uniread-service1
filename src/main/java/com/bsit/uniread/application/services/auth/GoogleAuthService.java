@@ -2,53 +2,61 @@ package com.bsit.uniread.application.services.auth;
 
 import com.bsit.uniread.application.dto.response.auth.GoogleUserInfoResponse;
 import com.bsit.uniread.application.dto.response.auth.LoginResponse;
+import com.bsit.uniread.application.services.user.UserProfileService;
 import com.bsit.uniread.application.services.user.UserService;
-import com.bsit.uniread.domain.entities.user.Gender;
-import com.bsit.uniread.domain.entities.user.Role;
 import com.bsit.uniread.domain.entities.user.User;
-import com.bsit.uniread.infrastructure.handler.publishers.auth.UserRegistrationPublisher;
-import com.bsit.uniread.infrastructure.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.util.StringUtils;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class GoogleAuthService {
+@Slf4j
+public class GoogleAuthService implements OAuthService {
 
     @Value("${client.url}")
     private String clientUrl;
 
-    private final UserRegistrationPublisher userRegistrationPublisher;
     private final UserService userService;
     private final JsonWebTokenService jsonWebTokenService;
-    private final BCryptPasswordEncoder encoder;
+    private final UserProfileService userProfileService;
+    private final TokenValidationService tokenValidationService;
 
-    public LoginResponse googleLogin(GoogleUserInfoResponse userInfo) {
+    @Override
+    public LoginResponse handleOAuthLogin(String accessToken) {
+        GoogleUserInfoResponse userInfo = tokenValidationService.validateGoogleToken(accessToken);
 
-        Optional<User> optionalUser = userService.getUserByEmail(userInfo.getEmail());
-        User user = optionalUser.orElseGet(() -> userService.save(User.builder()
-                .firstName(userInfo.getGivenName())
-                .lastName(userInfo.getFamilyName())
-                .email(userInfo.getEmail())
-                .username(null)
-                .password(encoder.encode(StringUtils.randomAlphanumeric(16)))
-                .emailVerifiedAt(DateUtil.now())
-                .gender(Gender.OTHER)
-                .googleUuid(userInfo.getSub())
-                .photoUrl(userInfo.getPicture())
-                .role(Role.USER)
-                .build()
-        ));
+        User user = findOrCreateUser(userInfo);
 
-        String accessToken = jsonWebTokenService.generateAccessToken(user.getId(), userInfo.getEmail());
+        String accessTokenJwt = jsonWebTokenService.generateAccessToken(user.getId(), userInfo.getEmail());
         String refreshToken = jsonWebTokenService.generateRefreshToken(user.getId(), userInfo.getEmail());
-        return LoginResponse
-                .builder()
+
+        log.debug("Generated tokens for user: {}", user.getEmail());
+
+        return buildLoginResponse(accessTokenJwt, refreshToken);
+    }
+
+    private void validateUserInfo(GoogleUserInfoResponse userInfo) {
+        if (userInfo == null || userInfo.getEmail() == null) {
+            throw new IllegalArgumentException("Invalid Google user information");
+        }
+    }
+
+    private User findOrCreateUser(GoogleUserInfoResponse userInfo) {
+        return userService.getUserByEmail(userInfo.getEmail())
+                .orElseGet(() -> createNewUser(userInfo));
+    }
+
+    private User createNewUser(GoogleUserInfoResponse userInfo) {
+        User user = userService.createGoogleUser(userInfo);
+        userProfileService.createUserProfile(user, userInfo);
+        log.info("Created new user from Google OAuth: {}", user.getEmail());
+        return user;
+    }
+
+    private LoginResponse buildLoginResponse(String accessToken, String refreshToken) {
+        return LoginResponse.builder()
                 .iat(System.currentTimeMillis())
                 .iss(clientUrl)
                 .refreshToken(refreshToken)

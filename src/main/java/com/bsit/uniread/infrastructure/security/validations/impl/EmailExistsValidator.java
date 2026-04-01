@@ -1,21 +1,19 @@
 package com.bsit.uniread.infrastructure.security.validations.impl;
 
-import com.bsit.uniread.application.services.user.UserService;
+import com.bsit.uniread.application.services.user.UserValidator;
 import com.bsit.uniread.infrastructure.security.validations.constraints.EmailExists;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class EmailExistsValidator implements ConstraintValidator<EmailExists, String> {
 
-    private final UserService userService;
+    private final UserValidator userValidator;
 
-    @Autowired
-    public EmailExistsValidator(UserService userService) {
-        this.userService = userService;
-    }
 
     /**
      * Check if the email exist in credentials or records
@@ -26,6 +24,6 @@ public class EmailExistsValidator implements ConstraintValidator<EmailExists, St
 
     @Override
     public boolean isValid(String email, ConstraintValidatorContext constraintValidatorContext) {
-        return userService.emailExists(email);
+        return userValidator.emailExists(email);
     }
 }

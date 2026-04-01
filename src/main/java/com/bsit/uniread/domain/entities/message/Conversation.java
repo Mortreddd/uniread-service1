@@ -2,45 +2,41 @@ package com.bsit.uniread.domain.entities.message;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
 
-import java.sql.Types;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Table(name = "conversations",
     indexes = {
-        @Index(name = "idx_conversations_conversation_name", columnList = "name")
+        @Index(name = "idx_conversations_conversation_name", columnList = "name"),
+        @Index(name = "idx_conversations_conversation_last_message_id", columnList = "last_message_id")
     })
-@Data
+@Getter
+@Setter
 @Builder
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
 public class Conversation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String avatar;
+    private String avatarPhoto;
     private String name;
 
     @Builder.Default
-    @OneToMany(mappedBy = "conversation", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "conversation", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JsonManagedReference
     private List<Participant> participants = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "conversation", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "conversation", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JsonManagedReference
     private List<Message> messages = new ArrayList<>();
 
@@ -48,7 +44,7 @@ public class Conversation {
     private Message lastMessage;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     private Boolean isGroup;
 }

@@ -1,8 +1,6 @@
 package com.bsit.uniread.infrastructure.utils;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 /**
  * Utility class for handling date and time operations.
@@ -10,13 +8,11 @@ import java.time.ZoneId;
  */
 public class DateUtil {
     /**
-     * Returns the current LocalDateTime in UTC.
+     * Returns the current Instant in UTC.
      *
-     * @return LocalDateTime in UTC
+     * @return Instant in UTC
      */
-    public static LocalDateTime now() {
-        Instant instant = Instant.now();
-        ZoneId zoneId = ZoneId.of("UTC");
-        return LocalDateTime.ofInstant(instant, zoneId);
+    public static Instant now() {
+        return Instant.now();
     }
 }
