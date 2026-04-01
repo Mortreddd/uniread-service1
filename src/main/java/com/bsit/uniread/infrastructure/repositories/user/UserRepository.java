@@ -42,7 +42,7 @@ public interface UserRepository
     // Search the users based on given email
     Optional<CustomUserDetails> findByEmailOrUsername(String email);
     // Search the users based on given username
-    Optional<User> findByUsernameContainingIgnoreCase(String username);
+    Boolean existsByUsernameContainingIgnoreCase(String username);
 
     @Query("""
             SELECT com.bsit.uniread.domain.entities.user.CustomUserDetails(
