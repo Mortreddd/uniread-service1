@@ -5,17 +5,13 @@ import com.bsit.uniread.domain.entities.paragraph.Paragraph;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -24,9 +20,8 @@ import java.util.UUID;
         @Index(name = "idx_chapters_book_id", columnList = "book_id"),
         @Index(name = "idx_chapters_status", columnList = "status")
 })
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
 @Builder
 public class Chapter {
 
@@ -44,24 +39,22 @@ public class Chapter {
     @Enumerated(EnumType.STRING)
     private ChapterStatus status;
 
-    private Long readCount;
+    @Builder.Default
+    private Long readCount = 0L;
+
+    @Builder.Default
+    private Long likesCount = 0L;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
-    private LocalDateTime publishedAt;
-
-    @Transient
-    private Boolean isPublished;
-
-    public Boolean getIsPublished() {
-        return status == ChapterStatus.PUBLISHED;
-    }
+    private Instant publishedAt;
+    private Instant unpublishedAt;
 
     @Builder.Default
     @OneToMany(targetEntity = Paragraph.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
@@ -76,7 +69,7 @@ public class Chapter {
     private List<ChapterComment> chapterComments = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(targetEntity = ChapterComment.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToMany(targetEntity = ChapterLike.class, fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "chapter_like_id")
     @JsonManagedReference
     private List<ChapterLike> chapterLikes = new ArrayList<>();

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -15,10 +16,10 @@ public class BookSearchFilter {
     private String query = "";
 
     private List<Integer> genres;
+    private UUID authorId;
     private BookStatus status;
-
-    private String sortBy = "asc";
-    private String orderBy = "createdAt";
+    private String sortBy = "createdAt";
+    private String orderBy = "asc";
 
     private String startDate;
     private String endDate;

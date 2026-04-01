@@ -4,19 +4,15 @@ import com.bsit.uniread.domain.entities.Reaction;
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
 @Table(name = "chapter_comment_likes", indexes = {
         @Index(name = "idx_chapter_comment_likes_chapter_comment_id", columnList = "chapter_comment_id"),
@@ -43,8 +39,8 @@ public class ChapterCommentLike {
     private Reaction reaction;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 }

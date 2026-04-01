@@ -3,14 +3,14 @@ package com.bsit.uniread.domain.entities;
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Table(name = "follows", indexes = {
@@ -18,9 +18,8 @@ import java.util.UUID;
         @Index(name = "idx_follows_follower_id", columnList = "follower_id")
 })
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
+@Getter
+@Setter
 @Builder
 public class Follow {
 
@@ -39,12 +38,9 @@ public class Follow {
     private User following;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
-
-    @Transient
-    private Boolean isMutualFollow;
+    private Instant updatedAt;
 
 }

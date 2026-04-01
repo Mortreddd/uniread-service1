@@ -2,6 +2,7 @@ package com.bsit.uniread.infrastructure.configurations;
 
 import com.bsit.uniread.application.services.user.CustomUserDetailsService;
 import com.bsit.uniread.infrastructure.security.JsonWebTokenFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,7 +56,6 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
-//                .cors(Customizer.withDefaults())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource.corsConfiguration()))
                 .authorizeHttpRequests(authorize ->
                         authorize
@@ -64,12 +64,18 @@ public class SecurityConfiguration {
                                 .anyRequest()
                                 .authenticated()
                 )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Authentication required\"}");
+                        })
+                )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .userDetailsService(customUserDetailsService)
                 .addFilterBefore(jsonWebTokenFilter, UsernamePasswordAuthenticationFilter.class)
-//                .anonymous(AnonymousConfigurer::disable)
                 .build();
     }
 

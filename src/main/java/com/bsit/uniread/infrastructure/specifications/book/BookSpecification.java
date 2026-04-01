@@ -5,6 +5,7 @@ import com.bsit.uniread.domain.entities.book.BookStatus;
 import com.bsit.uniread.domain.entities.book.Genre;
 import com.bsit.uniread.domain.entities.user.User;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
@@ -25,9 +26,9 @@ public class BookSpecification {
             String likeQuery = "%" + query.toLowerCase() + "%";
             return cb.or(
                     cb.like(cb.lower(root.get("title")), likeQuery),
-                    cb.like(cb.lower(root.get("user").get("username")), likeQuery),
-                    cb.like(cb.lower(root.get("user").get("lastName")), likeQuery),
-                    cb.like(cb.lower(root.get("user").get("firstName")), likeQuery)
+                    cb.like(cb.lower(root.get("user").get("profile").get("username")), likeQuery),
+                    cb.like(cb.lower(root.get("user").get("profile").get("lastName")), likeQuery),
+                    cb.like(cb.lower(root.get("user").get("profile").get("firstName")), likeQuery)
             );
         };
     }
@@ -39,7 +40,7 @@ public class BookSpecification {
      * @return org.springframework.data.jpa.domain.Specification
      */
     public static Specification<Book> hasStatus(BookStatus status) {
-        return (root, query1, cb) -> status == null ? cb.conjunction() : cb.equal(root.get("status"), status);
+        return (root, query1, cb) -> status == null ? null : cb.equal(root.get("status"), status);
     }
 
     /**
@@ -66,20 +67,14 @@ public class BookSpecification {
      */
     public static Specification<Book> hasGenres(List<Integer> ids) {
         return (root, query, cb) -> {
-            if(ids == null || ids.isEmpty()) return cb.conjunction();
-            Join<Book, Genre> join = root.join("genres");
+            if (ids == null || ids.isEmpty()) return null;
+
             query.distinct(true);
+
+            Join<Book, Genre> join = root.join("genres", JoinType.INNER);
+
             return join.get("id").in(ids);
         };
-    }
-
-    /**
-     * Create a condition for book matching the provided user
-     * @param user
-     * @return org.springframework.data.jpa.domain.Specification
-     */
-    public static Specification<Book> hasAuthor(User user) {
-        return (root, query, builder) -> builder.equal(root.get("user"), user);
     }
 
     /**
@@ -88,6 +83,6 @@ public class BookSpecification {
      * @return org.springframework.data.jpa.domain.Specification
      */
     public static Specification<Book> hasAuthorById(UUID userId) {
-        return (root, query, builder) -> builder.equal(root.get("user").get("id"), userId);
+        return (root, query, builder) -> userId != null ? builder.equal(root.get("user").get("id"), userId) : null;
     }
 }

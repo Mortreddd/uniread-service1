@@ -1,96 +1,61 @@
 package com.bsit.uniread.infrastructure.repositories.book;
 
-import com.bsit.uniread.application.dto.response.book.BookDetailDto;
+import com.bsit.uniread.application.dto.response.book.BookDetailsDto;
 import com.bsit.uniread.domain.entities.book.Book;
-import com.bsit.uniread.domain.entities.book.BookStatus;
-import com.bsit.uniread.domain.entities.book.Genre;
-import com.bsit.uniread.domain.entities.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * The custom methods are based on documentation
- * @source https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
- */
 @Repository
 public interface BookRepository
         extends JpaRepository<Book, UUID>, CrudRepository<Book, UUID>, JpaSpecificationExecutor<Book> {
 
-    @Query("""
-        SELECT 
-        new com.bsit.uniread.application.dto.response.book.BookDetailDto(
-            (SELECT COALESCE(COUNT(c.id), 0)
-             FROM Chapter c
-             WHERE c.book.id = :bookId AND c.status = 'PUBLISHED'),
-             
-             (SELECT COALESCE(SUM(bc.rating), 0)
-             FROM BookComment bc
-             WHERE bc.book.id = :bookId),
-                      
-            (SELECT COALESCE(COUNT(bl.id), 0) 
-             FROM BookLike bl 
-             WHERE bl.book.id = :bookId),
-             
-             book.readCount,
-                          
-            (SELECT CASE 
-                      WHEN COUNT(b.id) > 0 THEN true ELSE false 
-                    END
-             FROM Book b 
-             WHERE b.id = :bookId AND b.user.id = :userId),
-             
-             
-            (SELECT CASE 
-                      WHEN COUNT(c.id) > 0 THEN true ELSE false
-                    END
-             FROM Collaborator c 
-             WHERE c.book.id = :bookId AND c.user.id = :userId),
-             
-            (SELECT CASE 
-                      WHEN COUNT(bm.id) > 0 THEN true ELSE false 
-                    END
-             FROM Bookmark bm
-             JOIN bm.paragraph p
-             JOIN p.chapter c
-             WHERE c.book.id = :bookId AND bm.user.id = :userId
-             )
-        )
-        FROM Book book
-        WHERE book.id = :bookId
-    """)
-    Optional<BookDetailDto> findBookDetailByIdAndUserId(@Param("bookId") UUID bookId, @Param("userId") UUID userId);
+    @EntityGraph(attributePaths = {"user", "user.profile", "genres"})
+    Page<Book> findAll(Specification<Book> spec, Pageable pageable);
+
 
     @Query("""
-        SELECT 
-        new com.bsit.uniread.application.dto.response.book.BookDetailDto(
-            (SELECT COALESCE(COUNT(c.id), 0)
-             FROM Chapter c
-             WHERE c.book.id = :bookId AND c.status = 'PUBLISHED'),
-             
-             (SELECT COALESCE(SUM(bc.rating), 0)
-             FROM BookComment bc
-             WHERE bc.book.id = :bookId),
-                      
-            (SELECT COALESCE(COUNT(bl.id), 0) 
-             FROM BookLike bl 
-             WHERE bl.book.id = :bookId),
-             book.readCount,              
-            false, 
-            false,
-            false
-        )
-        FROM Book book
-        WHERE book.id = :bookId
+    SELECT com.bsit.uniread.application.dto.response.book.BookDetailsDto(
+    b.id,
+    b.title,
+    com.bsit.uniread.application.dto.response.user.SimpleUserInfo(
+        author.id,
+        author.username,
+        CONCAT(userProfile.firstName, ' ', userProfile.lastName),
+        userProfile.displayName,
+        userProfile.avatarUrl
+    ),
+    (SELECT AVG(r.ratingValue) FROM BookRating r WHERE r.book.id = b.id),
+    (SELECT COUNT(r.id) FROM BookRating r WHERE r.book.id = b.id),
+    b.readCount,
+    b.coverPhoto,
+    b.description,
+    (SELECT COUNT(l.id) FROM BookLike l WHERE l.book.id = b.id),
+    (SELECT COUNT(c.id) FROM Chapter c WHERE c.book.id = b.id),
+    b.status,
+    b.completed,
+    b.matured,
+    NULL,
+    (SELECT COUNT(l.id) > 0 FROM Library l WHERE l.book_id = :id AND l.user_id = :authUserId)
+    b.createdAt
+    )
+    FROM Book b
+    JOIN b.user author
+    JOIN author.profile userProfile
+    WHERE b.id = :id
     """)
-    Optional<BookDetailDto> findBookDetailById(@Param("bookId") UUID bookId);
+    Optional<BookDetailsDto> findBookDetailsById(@Param("id") UUID bookId, @Param("authUserId") UUID authUserId);
+
+
+    @Modifying
+    @Query("UPDATE Book SET deletedAt = NOW() WHERE id = :bookId")
+    void softDeleteBook(@Param("bookId") UUID bookId);
+
 }

@@ -1,30 +1,28 @@
 package com.bsit.uniread.application.dto.response.message;
 
 import com.bsit.uniread.application.dto.response.user.SimpleUserInfo;
-import com.bsit.uniread.domain.entities.message.Participant;
+import com.bsit.uniread.domain.entities.message.ParticipantRole;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Getter
+@AllArgsConstructor
 public class ParticipantDto {
     private UUID id;
     private UUID conversationId;
-    private SimpleUserInfo user;
+    private UUID userId;
+    private ParticipantRole role;
+    private String nickname;
+    private String fullName;
+    private Long unreadCount;
     private Boolean muted;
+    private Instant mutedUntil;
+    private Instant joinedAt;
+    private Instant leftAt;
     private Boolean archived;
-    private LocalDateTime lastReadAt;
-    private LocalDateTime addedAt;
-
-    public ParticipantDto(Participant participant) {
-        this.id = participant.getId();
-        this.conversationId = participant.getConversation().getId();
-        this.user = new SimpleUserInfo(participant.getUser());
-        this.muted =  participant.getMuted();
-        this.archived = participant.getArchived();
-        this.lastReadAt = participant.getLastReadAt();
-        this.addedAt = participant.getAddedAt();
-    }
-
+    private Instant lastReadAt;
+    private Instant addedAt;
 }

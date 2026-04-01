@@ -1,30 +1,22 @@
 package com.bsit.uniread.application.dto.response.message;
 
-import com.bsit.uniread.application.dto.response.user.SimpleUserInfo;
-import com.bsit.uniread.domain.entities.message.Message;
+import com.bsit.uniread.domain.entities.message.MessageType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Getter
+@AllArgsConstructor
 public class MessageDto {
 
-    private final UUID id;
-    private final UUID conversationId;
-    private final SimpleUserInfo sender;
-    private final String message;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
-
-    public MessageDto(Message message) {
-        this.id = message.getId();
-        this.conversationId = message.getConversation().getId();
-        this.sender = new SimpleUserInfo(message.getSender());
-        this.message = message.getMessage();
-        this.createdAt = message.getCreatedAt();
-        this.updatedAt = message.getUpdatedAt();
-    }
-
-
+    private UUID id;
+    private UUID conversationId;
+    private UUID senderId;
+    private String senderName;
+    private MessageType type;
+    private String message;
+    private Instant deliveredAt;
+    private Instant createdAt;
 }

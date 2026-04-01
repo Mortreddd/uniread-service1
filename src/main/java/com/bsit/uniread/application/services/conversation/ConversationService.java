@@ -1,43 +1,37 @@
 package com.bsit.uniread.application.services.conversation;
 
 import com.bsit.uniread.application.dto.request.message.ConversationFilter;
+import com.bsit.uniread.application.dto.request.message.ExistingConversationFilter;
+import com.bsit.uniread.application.dto.response.message.ConversationDetailDto;
+import com.bsit.uniread.application.dto.response.message.ConversationInfo;
 import com.bsit.uniread.application.dto.response.message.ConversationPreviewDto;
-import com.bsit.uniread.application.dto.response.message.ReaderParticipant;
-import com.bsit.uniread.application.services.user.UserService;
+import com.bsit.uniread.application.services.participant.ParticipantService;
 import com.bsit.uniread.domain.entities.message.Conversation;
-import com.bsit.uniread.domain.entities.message.Participant;
+import com.bsit.uniread.domain.entities.message.ParticipantRole;
+import com.bsit.uniread.domain.mappers.message.ConversationMapper;
 import com.bsit.uniread.infrastructure.handler.exceptions.ResourceNotFoundException;
-import com.bsit.uniread.infrastructure.handler.exceptions.message.ConversationNotAllowedException;
 import com.bsit.uniread.infrastructure.repositories.message.ConversationRepository;
-import com.bsit.uniread.infrastructure.repositories.message.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConversationService {
-    private final ConversationRepository conversationRepository;
-    private final ParticipantRepository participantRepository;
-    private final UserService userService;
-    private final SimpMessagingTemplate messagingTemplate;
 
-    /**
-     * Get the conversation for the user associated with
-     * @param userId
-     * @param filter
-     * @return List of Conversation
-     */
-    @Transactional(readOnly = true)
+    private final ConversationMapper conversationMapper;
+    private final ConversationRepository conversationRepository;
+    private final ParticipantService participantService;
+
     public Page<ConversationPreviewDto> getUserConversationsById(UUID userId, ConversationFilter filter) {
         Sort sort = Sort.by(Sort.Direction.DESC, "c.lastMessage.createdAt");
         Pageable pageable = PageRequest.of(filter.getPageNo(), filter.getPageSize(), sort);
@@ -45,28 +39,70 @@ public class ConversationService {
     }
 
     @Transactional
-    public void markConversationAsReadAndNotify(UUID conversationId, UUID readerId) {
-        Participant readerParticipant = participantRepository.findByConversationIdAndUserId(conversationId, readerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cannot find user in conversation"));
-        participantRepository.updateLastReadAtByConversationIdAndUserId(conversationId, readerId);
+    public Conversation createGroupChat(String name, UUID creatorId, List<UUID> memberIds) {
 
-        messagingTemplate.convertAndSend("/topic/chat." + conversationId + ".read",
-                new ReaderParticipant(readerParticipant.getId(), readerParticipant.getLastReadAt()));
+        var conversation = conversationRepository.save(
+                Conversation.builder()
+                .isGroup(true)
+                .avatarPhoto(null)
+                .name(name)
+                .build()
+        );
+
+        participantService.createParticipant(conversation.getId(), creatorId, ParticipantRole.OWNER);
+        participantService.addParticipants(conversation.getId(), memberIds);
+
+
+        log.trace("New created conversation {} with name of {}", conversation.getId(), conversation.getName());
+
+        return conversation;
+
     }
 
-    @Transactional(readOnly = true)
-    public Conversation getConversationById(UUID conversationId) {
-        return conversationRepository.findById(conversationId)
+
+    public ConversationDetailDto getConversationWithParticipantsMessage(UUID conversationId) {
+        var convo = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the preview for conversation"));
+
+        return conversationMapper.toDetailDto(convo);
+    }
+
+    public ConversationDetailDto getConversationById(UUID conversationId, UUID receiverId) {
+        return conversationRepository.findUserConversationById(conversationId, receiverId)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the conversation"));
     }
 
     @Transactional(readOnly = true)
-    public List<Participant> getConversationParticipants(Conversation conversation) {
-        return participantRepository.findByConversation(conversation);
+    public ConversationInfo getOneToOneConversation(UUID receiverId, ExistingConversationFilter filter, UUID currentUserId) {
+        Conversation conversation = conversationRepository.findOneOnOneConversation(currentUserId, receiverId, filter.getIsGroup())
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation with user does not exist"));
+
+        return new ConversationInfo(conversation.getId());
+    }
+
+
+
+    @Transactional
+    public Conversation createGroupConversation(UUID creatorId, List<UUID> memberIds) {
+        var convo = conversationRepository.save(Conversation.builder().isGroup(true).build());
+
+
+        participantService.createParticipant(convo.getId(), creatorId, ParticipantRole.ADMIN);
+        participantService.addParticipants(convo.getId(), memberIds);
+
+        return convo;
     }
 
     @Transactional
-    public Conversation save(Conversation conversation) {
-        return conversationRepository.save(conversation);
+    public Conversation createOneToOneConversation(UUID creatorId, UUID receiverId) {
+        var conv = conversationRepository.save(Conversation.builder().isGroup(false).build());
+
+
+        participantService.createParticipant(conv.getId(), creatorId);
+        participantService.createParticipant(conv.getId(), receiverId);
+
+        log.debug("Conversation {} has been created", conv.getId());
+        return conv;
     }
+
 }

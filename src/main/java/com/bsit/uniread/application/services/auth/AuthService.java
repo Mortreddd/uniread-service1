@@ -1,30 +1,21 @@
 package com.bsit.uniread.application.services.auth;
 
-import com.bsit.uniread.application.dto.api.SuccessResponse;
-import com.bsit.uniread.application.dto.request.auth.UserRegistrationRequest;
 import com.bsit.uniread.application.dto.response.auth.LoginResponse;
-import com.bsit.uniread.application.services.otp.OtpService;
-import com.bsit.uniread.domain.entities.auth.Otp;
-import com.bsit.uniread.domain.entities.user.CustomUserDetails;
-import com.bsit.uniread.domain.entities.user.Role;
-import com.bsit.uniread.domain.entities.user.User;
+import com.bsit.uniread.application.dto.response.user.UserDto;
 import com.bsit.uniread.application.services.user.UserService;
+import com.bsit.uniread.domain.entities.user.CustomUserDetails;
 import com.bsit.uniread.infrastructure.handler.exceptions.auth.InvalidCredentialsException;
+import com.bsit.uniread.infrastructure.handler.exceptions.auth.InvalidTokenException;
 import com.bsit.uniread.infrastructure.handler.exceptions.auth.TokenExpiredException;
-import com.bsit.uniread.infrastructure.handler.publishers.auth.UserRegistrationPublisher;
-import com.bsit.uniread.infrastructure.utils.DateUtil;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -32,121 +23,81 @@ import java.util.UUID;
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
-    private final UserRegistrationPublisher userRegistrationPublisher;
     private final UserService userService;
-    private final OtpService otpService;
-    private final EmailService emailService;
     private final JsonWebTokenService jsonWebTokenService;
 
     @Value("${client.url}")
     private String clientUrl;
 
-    /**
-     * Authenticate the user using email and password
-     * @param email
-     * @param password
-     * @return loginResponse
-     */
+    @Transactional(readOnly = true)
     public LoginResponse loginUser(String email, String password) {
-        log.info("Email received {}", email);
+        try {
+            var authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, password)
+            );
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        email,
-                        password
-                )
-        );
+            var userDetails = (CustomUserDetails) authentication.getPrincipal();
+            var user = userService.getUserById(userDetails.getId());
 
-        if(!authentication.isAuthenticated()) {
-            throw new InvalidCredentialsException("Invalid credentials");
+            String accessToken = jsonWebTokenService.generateAccessToken(user.getId(), user.getEmail());
+            String refreshToken = jsonWebTokenService.generateRefreshToken(user.getId(), user.getEmail());
+
+            log.info("User logged in successfully: {}", email);
+
+            return buildLoginResponse(user, accessToken, refreshToken);
+
+        } catch (BadCredentialsException e) {
+            log.warn("Failed login attempt for email: {}", email);
+            throw new InvalidCredentialsException("Invalid email or password");
         }
-        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-        String accessToken = jsonWebTokenService.generateAccessToken(user.getId(), user.getEmail());
-        String refreshToken = jsonWebTokenService.generateRefreshToken(user.getId(), user.getEmail());
+    }
 
-        return LoginResponse
-                .builder()
+    @Transactional(readOnly = true)
+    public LoginResponse refreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new InvalidTokenException("Refresh token is required");
+        }
+
+        if (jsonWebTokenService.isTokenExpired(refreshToken)) {
+            log.warn("Expired refresh token used");
+            throw new TokenExpiredException("Session expired. Please log in again.");
+        }
+
+        try {
+            var userId = jsonWebTokenService.extractUserId(refreshToken);
+            UserDto user = userService.getUserById(userId);
+
+            String newAccessToken = jsonWebTokenService.generateAccessToken(user.getId(), user.getEmail());
+            String newRefreshToken = jsonWebTokenService.generateRefreshToken(user.getId(), user.getEmail());
+
+            log.debug("Token refreshed successfully for user: {}", user.getEmail());
+
+            return buildLoginResponse(user, newAccessToken, newRefreshToken);
+
+        } catch (Exception e) {
+            log.error("Error refreshing token", e);
+            throw new InvalidTokenException("Invalid refresh token");
+        }
+    }
+
+    @Transactional
+    public void initiatePasswordReset(String email) {
+        // Implementation for password reset
+        // Generate token, save to database, send email
+    }
+
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        // Implementation for password reset
+        // Validate token, update password
+    }
+
+    private LoginResponse buildLoginResponse(UserDto user, String accessToken, String refreshToken) {
+        return LoginResponse.builder()
                 .iat(System.currentTimeMillis())
                 .iss(clientUrl)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
     }
-
-    public LoginResponse refreshToken(String refreshToken) {
-        if(jsonWebTokenService.isTokenExpired(refreshToken)) {
-            throw new TokenExpiredException("Session is expired. Please log in.");
-        }
-
-        User user = userService.getUserById(jsonWebTokenService.extractUserId(refreshToken));
-        String newAccessToken = jsonWebTokenService.generateAccessToken(user.getId(), user.getEmail());
-        String newRefreshToken = jsonWebTokenService.generateRefreshToken(user.getId(), user.getEmail());
-
-        return LoginResponse
-                .builder()
-                .iat(System.currentTimeMillis())
-                .iss(clientUrl)
-                .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
-                .build();
-    }
-
-    /**
-     * Accepts a UserRegistrationRequest object for handling user registration
-     * Additionally, it publishes the userRegistrationEvent
-     * @param userRegistrationRequest
-     */
-    public void registerUser(UserRegistrationRequest userRegistrationRequest) {
-        User newUser = userService.save(
-                User.builder()
-                    .firstName(userRegistrationRequest.getFirstName())
-                    .lastName(userRegistrationRequest.getLastName())
-                    .username(userRegistrationRequest.getUsername())
-                    .email(userRegistrationRequest.getEmail())
-                    .gender(userRegistrationRequest.getGender())
-                    .role(Role.USER)
-                    .password(new BCryptPasswordEncoder().encode(userRegistrationRequest.getPassword()))
-                    .emailVerifiedAt(DateUtil.now())
-                    .build()
-        );
-
-        userService.save(newUser);
-    }
-
-    /**
-     * Sends an email confirmation for the requested forgot passwords
-     * @param email
-     * @throws MessagingException
-     */
-    public void sendForgotPassword(String email) throws MessagingException {
-        Otp otp = otpService.generateOtp(email);
-        emailService.sendForgotPasswordEmail(email, otp.getId());
-    }
-
-    /**
-     * Verify the email of user
-     * @param otpUuid
-     * @return User
-     */
-    public void verifyEmailByOtpId(UUID otpUuid) {
-        Otp otp = otpService.getOtpById(otpUuid);
-        User user = userService.getUserByEmailOrThrow(otp.getEmail());
-
-        userService.verifyUserEmail(user);
-    }
-
-    /**
-     * Update username of the user
-     * @param userId
-     * @param username
-     * @return SuccessResponse
-     */
-    public SuccessResponse setupUsername(UUID userId, String username) {
-        userService.updateUsername(userId, username);
-        return SuccessResponse.builder()
-                .code(HttpStatus.OK.value())
-                .message("Username updated")
-                .build();
-    }
-
 }

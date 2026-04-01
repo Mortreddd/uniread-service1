@@ -3,28 +3,25 @@ package com.bsit.uniread.domain.entities.paragraph;
 import com.bsit.uniread.domain.entities.book.Bookmark;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Table(name = "paragraphs", indexes = {
         @Index(name = "idx_paragraphs_chapter_id", columnList = "chapter_id")
 })
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
 public class Paragraph {
 
@@ -48,17 +45,18 @@ public class Paragraph {
     private String content;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Builder.Default
-    @OneToMany(mappedBy = "paragraph", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "paragraph", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JsonManagedReference
     private List<ParagraphComment> paragraphComments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "paragraph", cascade = CascadeType.REMOVE)
+    @Builder.Default
+    @OneToMany(mappedBy = "paragraph", cascade = CascadeType.MERGE)
     private List<Bookmark> bookmarks = new ArrayList<>();
 
 }

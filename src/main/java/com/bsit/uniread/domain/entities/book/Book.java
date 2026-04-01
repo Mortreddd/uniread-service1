@@ -2,23 +2,18 @@ package com.bsit.uniread.domain.entities.book;
 
 import com.bsit.uniread.domain.entities.collaborator.Collaborator;
 import com.bsit.uniread.domain.entities.chapter.Chapter;
-import com.bsit.uniread.domain.entities.chapter.ChapterStatus;
 import com.bsit.uniread.domain.entities.collaborator.CollaboratorRequest;
 import com.bsit.uniread.domain.entities.library.Library;
 import com.bsit.uniread.domain.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.sql.Types;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -29,8 +24,6 @@ import java.util.UUID;
         @Index(name = "idx_books_user_id", columnList = "user_id")
 })
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
 public class Book {
 
@@ -50,6 +43,11 @@ public class Book {
     private Boolean completed;
     private Boolean matured;
 
+    @Builder.Default
+    private Long ratingCount = 0L;
+    @Builder.Default
+    private Long likeCount = 0L;
+
     @Enumerated(EnumType.STRING)
     private BookStatus status;
 
@@ -61,16 +59,16 @@ public class Book {
     private List<Genre> genres;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
-    private LocalDateTime deletedAt;
+    private Instant deletedAt;
 
-    private LocalDateTime bannedAt;
+    private Instant bannedAt;
 
-    private LocalDateTime publishedAt;
+    private Instant publishedAt;
 
     @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
@@ -98,8 +96,12 @@ public class Book {
     private List<CollaboratorRequest> collaboratorRequests = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "book_tags", joinColumns = {
+            @JoinColumn(name = "book_id")
+    }, inverseJoinColumns = {
+            @JoinColumn(name = "tag_id")
+    })
     @JsonManagedReference
     private List<Tag> tags = new ArrayList<>();
 
@@ -108,64 +110,4 @@ public class Book {
     @JsonManagedReference
     private List<Library> libraries = new ArrayList<>();
 
-    @Transient
-    public Boolean isPublished;
-
-    @Transient
-    private Integer totalChapterPublishedCount;
-
-    @Transient
-    private Integer totalChapterDraftsCount;
-
-    @Transient
-    private Integer totalChaptersCount;
-
-    @Transient
-    private Long totalLikesCount;
-
-    @Transient
-    private Long totalReadsCount;
-
-    @Transient
-    private Long totalRatingsCount;
-
-    public Boolean getIsPublished() {
-        return status == BookStatus.PUBLISHED;
-    }
-
-    public Integer getTotalChaptersCount() {
-        return chapters.size();
-    }
-
-    public Long getTotalLikesCount() {
-        return (long) bookLikes.size();
-    }
-
-    public Long getTotalRatingsCount() {
-        return bookComments
-                .stream()
-                .mapToLong(BookComment::getRating)
-                .sum();
-    }
-
-    public Long getTotalReadsCount() {
-        return chapters
-                .stream()
-                .mapToLong(Chapter::getReadCount)
-                .sum();
-    }
-
-    public Integer getTotalChapterPublishedCount() {
-        return Math.toIntExact(chapters
-                .stream()
-                .filter((chapter) -> chapter.getStatus() == ChapterStatus.PUBLISHED)
-                .count());
-    }
-
-    public Integer getTotalChapterDraftsCount() {
-        return Math.toIntExact(chapters
-                .stream()
-                .filter((chapter) -> chapter.getStatus() == ChapterStatus.DRAFT)
-                .count());
-    }
 }
