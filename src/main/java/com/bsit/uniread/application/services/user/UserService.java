@@ -61,46 +61,36 @@ public class UserService {
                 .map(userMapper::toDto);
     }
 
-    @Transactional(readOnly = true)
     public UserDto getUserById(UUID userId) {
         User user = findUserById(userId);
         return userMapper.toDto(user);
     }
 
-    @Transactional(readOnly = true)
     public CurrentUser getCurrentUser(UUID currentUserId) {
         return userRepository.findCurrentUserById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + currentUserId));
     }
 
-    @Transactional(readOnly = true)
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    @Transactional(readOnly = true)
     public User getUserByEmailOrThrow(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 
-    @Transactional(readOnly = true)
     public boolean isEmailExists(String email) {
         return userRepository.findByEmail(email).isPresent();
     }
 
-    @Transactional(readOnly = true)
     public boolean isUsernameExists(String username) {
-        return userRepository.findByUsernameContainingIgnoreCase(username).isPresent();
+        return userRepository.existsByUsernameContainingIgnoreCase(username);
     }
 
     @Transactional
     public User createGoogleUser(GoogleUserInfoResponse userInfo) {
         validateGoogleUserInfo(userInfo);
-
-        if (isEmailExists(userInfo.getEmail())) {
-            throw new DuplicateResourceException("User with email " + userInfo.getEmail() + " already exists");
-        }
 
         User user = User.builder()
                 .email(userInfo.getEmail())
@@ -115,13 +105,6 @@ public class UserService {
         log.info("Created new Google user: {} with email: {}", savedUser.getId(), savedUser.getEmail());
 
         return savedUser;
-    }
-
-    @Transactional
-    public User verifyUserEmail(User user) {
-        user.setEmailVerifiedAt(DateUtil.now());
-        user.setUpdatedAt(DateUtil.now());
-        return userRepository.save(user);
     }
 
     @Transactional
@@ -152,6 +135,9 @@ public class UserService {
         }
         if (userInfo.getSub() == null || userInfo.getSub().isBlank()) {
             throw new IllegalArgumentException("Google user ID (sub) is required");
+        }
+        if (isEmailExists(userInfo.getEmail())) {
+            throw new DuplicateResourceException("User with email " + userInfo.getEmail() + " already exists");
         }
     }
 
