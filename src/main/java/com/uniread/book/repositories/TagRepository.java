@@ -1,0 +1,11 @@
+package com.uniread.book.repositories;
+
+import com.uniread.book.domain.entities.Tag;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface TagRepository
+        extends JpaRepository<Tag, Integer>, CrudRepository<Tag, Integer> {
+}
