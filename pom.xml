@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>com.bsit</groupId>
 	<artifactId>uniread</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>uniread</name>
 	<description>UniRead is a collaborative platform designed for book enthusiasts to come together and create engaging stories. Whether you prefer solo projects or want to collaborate with others, UniRead offers a seamless experience for crafting, editing, and publishing books.</description>
 	<url/>

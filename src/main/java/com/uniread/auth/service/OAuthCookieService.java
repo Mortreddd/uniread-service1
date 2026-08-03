@@ -49,7 +49,7 @@ public class OAuthCookieService {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
-                .path("/auth/refresh-token")
+                .path("/")
                 .maxAge(0)
                 .build();
                 
@@ -74,7 +74,7 @@ public class OAuthCookieService {
                 .httpOnly(true)
                 .secure(cookieConfig.isSecure())
                 .sameSite(cookieConfig.getSameSite())
-                .path("/auth/refresh-token")
+                .path("/")
                 .maxAge(Duration.ofDays(cookieConfig.getRefreshTokenMaxAgeDays()))
                 .build();
     }

@@ -6,6 +6,7 @@ import com.uniread.chat.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
@@ -20,7 +21,8 @@ public class ChatWebsocketController {
 
     private final ChatService chatService;
 
-    @SubscribeMapping("/chat.{conversationId}.read")
+
+    @SubscribeMapping("/chats.{conversationId}")
     public void newConversationReaderEvent(
             @DestinationVariable(value = "conversationId") UUID conversationId,
             Principal principal
@@ -31,7 +33,7 @@ public class ChatWebsocketController {
         chatService.markParticipantAsRead(conversationId, authUserId);
     }
 
-    @SubscribeMapping("/chat.{conversationId}.typing")
+    @SubscribeMapping("/chats.{conversationId}.typing")
     public void newConversationParticipantTyping(
             @DestinationVariable(value = "conversationId") UUID conversationId,
             @Payload TypingParticipantRequest request,
@@ -42,8 +44,20 @@ public class ChatWebsocketController {
         chatService.markParticipantAsTyping(conversationId, authUserId, request.getTyping());
     }
 
-    @SubscribeMapping("/chat.{conversationId}.messages")
-    public void newOneToOneConversationMessage(
+    @MessageMapping("/send")
+    public void sendConversationMessage(
+            @Payload NewMessageRequest request,
+            Principal principal
+    ) {
+        if(principal == null || request == null) return;
+
+        UUID authUserId = UUID.fromString(principal.getName());
+        chatService.insertNewMessage(request, authUserId);
+
+    }
+
+    /*@SubscribeMapping("/chat.{conversationId}")
+    public void newConversa(
             @DestinationVariable(value = "conversationId") UUID conversationId,
             @Payload NewMessageRequest request,
             Principal principal
@@ -52,7 +66,5 @@ public class ChatWebsocketController {
         var authUserId = UUID.fromString(principal.getName());
 
         chatService.insertNewOneToOneConversationMessage(request, conversationId, authUserId);
-    }
-
-
+    }*/
 }

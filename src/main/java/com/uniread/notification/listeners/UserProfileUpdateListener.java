@@ -1,5 +1,6 @@
 package com.uniread.notification.listeners;
 
+import com.uniread.notification.domain.entities.NotificationType;
 import com.uniread.notification.service.EmailService;
 import com.uniread.user.domain.events.UpdateEmailEvent;
 import com.uniread.user.repositories.UserRepository;
@@ -19,7 +20,10 @@ public class UserProfileUpdateListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onUpdateEmail(UpdateEmailEvent event) {
         emailService.sendEmailConfirmation(
-                event.getUserId()
+                event.getUserId(),
+                event.getEmail(),
+                event.getUsername(),
+                NotificationType.EMAIL_UPDATE_CONFIRMATION
         );
     }
 }

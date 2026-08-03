@@ -28,7 +28,7 @@ public interface FollowRepository extends JpaRepository<Follow, UUID> {
             up.lastName,
             CONCAT(up.firstName, ' ', up.lastName),
             up.gender,
-            up.avatarPhoto,
+            up.avatarUrl,
             (SELECT COUNT(f1) > 0 FROM Follow f1 WHERE f1.following.id = u.id AND f1.follower.id = :authUserId),
             (SELECT COUNT(f2) > 0 FROM Follow f2 WHERE f2.follower.id = u.id AND f2.following.id = :authUserId),
             (SELECT COUNT(f3) > 0 FROM Follow f3 WHERE f3.following.id = u.id AND f3.follower.id = :authUserId 
@@ -52,7 +52,7 @@ public interface FollowRepository extends JpaRepository<Follow, UUID> {
             up.lastName,
             CONCAT(up.firstName, ' ', up.lastName),
             up.gender,
-            up.avatarPhoto,
+            up.avatarUrl,
             (SELECT COUNT(f1) > 0 FROM Follow f1 WHERE f1.following.id = u.id AND f1.follower.id = :authUserId),
             (SELECT COUNT(f2) > 0 FROM Follow f2 WHERE f2.follower.id = u.id AND f2.following.id = :authUserId),
             (SELECT COUNT(f3) > 0 FROM Follow f3 WHERE f3.follower.id = :authUserId AND f3.following.id = u.id
@@ -76,7 +76,7 @@ public interface FollowRepository extends JpaRepository<Follow, UUID> {
             COALESCE(up.lastName, ''),
             CONCAT(COALESCE(up.firstName, ''), ' ', COALESCE(up.lastName, '')),
             COALESCE(up.gender, com.uniread.user.domain.entities.Gender.OTHER),
-            COALESCE(up.avatarPhoto, '')
+            COALESCE(up.avatarUrl, '')
         )
         FROM Follow f
         LEFT JOIN f.following u
@@ -97,7 +97,7 @@ public interface FollowRepository extends JpaRepository<Follow, UUID> {
             COALESCE(up.lastName, ''),
             CONCAT(COALESCE(up.firstName, ''), ' ', COALESCE(up.lastName, '')),
             COALESCE(up.gender, com.uniread.user.domain.entities.Gender.OTHER),
-            COALESCE(up.avatarPhoto, '')
+            COALESCE(up.avatarUrl, '')
         )
         FROM Follow f
         LEFT JOIN f.follower u

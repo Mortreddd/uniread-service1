@@ -1,12 +1,11 @@
 package com.uniread.chat.controllers;
 
+import com.uniread.auth.exceptions.InvalidTokenException;
 import com.uniread.chat.dto.request.ConversationFilter;
 import com.uniread.chat.dto.request.ConversationMessageFilter;
+import com.uniread.chat.dto.request.DirectConversationRequest;
 import com.uniread.chat.dto.request.ExistingConversationFilter;
-import com.uniread.chat.dto.response.ConversationDetailDto;
-import com.uniread.chat.dto.response.ConversationInfo;
-import com.uniread.chat.dto.response.ConversationPreviewDto;
-import com.uniread.chat.dto.response.MessageDto;
+import com.uniread.chat.dto.response.*;
 import com.uniread.chat.service.ConversationService;
 import com.uniread.chat.service.MessageService;
 import com.uniread.auth.domain.entities.CustomUserDetails;
@@ -40,10 +39,7 @@ public class ConversationController {
             @ModelAttribute ConversationFilter filter,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-
-        if(userDetails == null) return null;
-
-
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
         Page<ConversationPreviewDto> conversations = conversationService
                 .getUserConversationsById(userDetails.getId(), filter);
 
@@ -56,10 +52,21 @@ public class ConversationController {
             @PathVariable("conversationId") UUID conversationId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        if(userDetails == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
         return ResponseEntity.ok()
                 .body(conversationService.getConversationById(conversationId, userDetails.getId()));
     }
+
+    @GetMapping(path = "/direct")
+    public ResponseEntity<ConversationDto> getDirectConversation(
+            @ModelAttribute DirectConversationRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
+        var conversation = conversationService.getOrCreateDirectConversation(userDetails, request);
+        return ResponseEntity.ok(conversation);
+    }
+
     /**
      * * Get all the messages on selected conversation
      * @param conversationId

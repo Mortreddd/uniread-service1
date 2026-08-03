@@ -1,10 +1,10 @@
 package com.uniread.chat.service;
 
+import com.uniread.auth.domain.entities.CustomUserDetails;
 import com.uniread.chat.dto.request.ConversationFilter;
+import com.uniread.chat.dto.request.DirectConversationRequest;
 import com.uniread.chat.dto.request.ExistingConversationFilter;
-import com.uniread.chat.dto.response.ConversationDetailDto;
-import com.uniread.chat.dto.response.ConversationInfo;
-import com.uniread.chat.dto.response.ConversationPreviewDto;
+import com.uniread.chat.dto.response.*;
 import com.uniread.chat.domain.entities.Conversation;
 import com.uniread.chat.domain.entities.ParticipantRole;
 import com.uniread.chat.mappers.ConversationMapper;
@@ -32,9 +32,9 @@ public class ConversationService {
     private final ParticipantService participantService;
 
     public Page<ConversationPreviewDto> getUserConversationsById(UUID userId, ConversationFilter filter) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "c.lastMessage.createdAt");
+        Sort sort = Sort.by(Sort.Direction.DESC, "c.updatedAt");
         Pageable pageable = PageRequest.of(filter.getPageNo(), filter.getPageSize(), sort);
-        return conversationRepository.findConversationsByParticipantId(userId, filter.getIsArchived(), pageable);
+        return conversationRepository.findConversationsByParticipantId(userId, pageable);
     }
 
     @Transactional
@@ -71,6 +71,33 @@ public class ConversationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the conversation"));
     }
 
+    @Transactional
+    public ConversationDto getOrCreateDirectConversation(
+            CustomUserDetails userDetails,
+            DirectConversationRequest request
+    ) {
+        var currentUserId = userDetails.getId();
+        var receiverId = request.getReceiverId();
+        var conversation = conversationRepository.findDirectConversation(currentUserId, receiverId)
+                .orElseGet(() -> createDirectConversation(currentUserId, receiverId));
+
+        return conversationMapper.toDto(conversation);
+    }
+
+
+    @Transactional
+    public Conversation createDirectConversation(UUID creatorId, UUID receiverId) {
+        var conv = conversationRepository.save(Conversation.builder().isGroup(false).build());
+
+
+        participantService.createParticipant(conv.getId(), creatorId);
+        participantService.createParticipant(conv.getId(), receiverId);
+
+        log.debug("Conversation {} has been created", conv.getId());
+        return conv;
+    }
+
+
     @Transactional(readOnly = true)
     public ConversationInfo getOneToOneConversation(UUID receiverId, ExistingConversationFilter filter, UUID currentUserId) {
         Conversation conversation = conversationRepository.findOneOnOneConversation(currentUserId, receiverId, filter.getIsGroup())
@@ -80,6 +107,10 @@ public class ConversationService {
     }
 
 
+    @Transactional
+    public void changeConversationLastMessage(ConversationDetailDto conversation, MessageDto message) {
+        conversationRepository.updateConversationLastMessage(conversation.getConversationId(), message.getId());
+    }
 
     @Transactional
     public Conversation createGroupConversation(UUID creatorId, List<UUID> memberIds) {
@@ -90,18 +121,6 @@ public class ConversationService {
         participantService.addParticipants(convo.getId(), memberIds);
 
         return convo;
-    }
-
-    @Transactional
-    public Conversation createOneToOneConversation(UUID creatorId, UUID receiverId) {
-        var conv = conversationRepository.save(Conversation.builder().isGroup(false).build());
-
-
-        participantService.createParticipant(conv.getId(), creatorId);
-        participantService.createParticipant(conv.getId(), receiverId);
-
-        log.debug("Conversation {} has been created", conv.getId());
-        return conv;
     }
 
 }

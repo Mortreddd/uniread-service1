@@ -1,38 +1,107 @@
 package com.uniread.user.service;
 
-import com.uniread.user.dto.request.UserProfileFilter;
-import com.uniread.user.dto.response.ProfileDashboardDto;
-import com.uniread.book.domain.entities.Book;
-import com.uniread.book.domain.entities.BookStatus;
+import com.uniread.common.exceptions.ResourceNotFoundException;
+import com.uniread.common.services.CloudinaryService;
+import com.uniread.user.domain.entities.UserProfile;
+import com.uniread.user.dto.request.UpdateUserProfileRequest;
 import com.uniread.auth.domain.entities.CustomUserDetails;
-import com.uniread.book.repositories.BookRepository;
-import com.uniread.user.repositories.UserRepository;
-import com.uniread.book.specifications.BookSpecification;
+import com.uniread.user.dto.response.ProfileDetailsDto;
+import com.uniread.user.dto.response.UserProfileDto;
+import com.uniread.user.repositories.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
 
-    private final UserRepository userRepository;
-    private final BookRepository bookRepository;
+    private final UserProfilePhotoService profilePhotoService;
+    private final UserProfileRepository profileRepository;
 
-    @Transactional(readOnly = true)
-    public Page<Book> getUserBooks(CustomUserDetails userDetails, UserProfileFilter filter) {
-        Sort.Direction direction = "asc".equalsIgnoreCase(filter.getSortBy()) ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Sort sort = Sort.by(direction, filter.getOrderBy());
-        BookStatus status = "ALL".equalsIgnoreCase(filter.getCategory()) ? null : BookStatus.valueOf(filter.getCategory().toUpperCase());
-        Specification<Book> bookSpecification = Specification
-                .where(BookSpecification.hasAuthorById(userDetails.getId()))
-                .and(BookSpecification.hasQuery(filter.getQuery()))
-                .and(BookSpecification.hasStatus(status));
 
-        return bookRepository.findAll(bookSpecification, PageRequest.of(filter.getPageNo(), filter.getPageSize(), sort));
+    public ProfileDetailsDto getProfile(CustomUserDetails userDetails) {
+        var profile = profileRepository.findByUserId(userDetails.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve user details"));
+
+        return buildUserProfile(profile);
+    }
+
+    @Transactional
+    public UserProfileDto updateProfile(
+            UpdateUserProfileRequest request,
+            CustomUserDetails userDetails
+    ) {
+        var profile = getProfile(userDetails.getId());
+
+        profile.setBio(request.getBio());
+        profile.setDisplayName(request.getDisplayName());
+        profile.setFirstName(request.getFirstName());
+        profile.setLastName(request.getLastName());
+        profile.setGender(request.getGender());
+
+        return buildUserProfileDto(profile);
+    }
+
+    @Transactional
+    public void updateAvatarPhoto(
+            CustomUserDetails userDetails,
+            String secureUrl,
+            String publicId
+    ) {
+        var profile = getProfile(userDetails.getId());
+        profilePhotoService.deleteAvatar(profile);
+
+        profile.setAvatarUrl(secureUrl);
+        profile.setAvatarPublicId(publicId);
+        profileRepository.save(profile);
+    }
+
+    @Transactional
+    public void updateCoverPhoto(
+            CustomUserDetails userDetails,
+            String secureUrl,
+            String publicId
+    ) {
+        var profile = getProfile(userDetails.getId());
+        profilePhotoService.deleteCoverPhoto(profile);
+
+        profile.setCoverUrl(secureUrl);
+        profile.setCoverPublicId(publicId);
+        profileRepository.save(profile);
+    }
+
+    private UserProfile getProfile(UUID userId) {
+        return profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Unable to find the profile"));
+    }
+
+    private ProfileDetailsDto buildUserProfile(UserProfile profile) {
+        return ProfileDetailsDto.builder()
+                .id(profile.getId())
+                .userId(profile.getUser().getId())
+                .firstName(profile.getFirstName())
+                .lastName(profile.getLastName())
+                .displayName(profile.getDisplayName())
+                .gender(profile.getGender())
+                .bio(profile.getBio())
+                .avatarUrl(profile.getAvatarUrl())
+                .avatarPublicId(profile.getAvatarPublicId())
+                .coverUrl(profile.getCoverUrl())
+                .coverPublicId(profile.getCoverPublicId())
+                .build();
+    }
+
+    private UserProfileDto buildUserProfileDto(UserProfile profile) {
+        return UserProfileDto.builder()
+                .displayName(profile.getDisplayName())
+                .firstName(profile.getFirstName())
+                .lastName(profile.getLastName())
+                .bio(profile.getBio())
+                .gender(profile.getGender())
+                .updatedAt(profile.getUpdatedAt())
+                .build();
     }
 }

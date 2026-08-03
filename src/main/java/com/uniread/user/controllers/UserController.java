@@ -8,6 +8,7 @@ import com.uniread.user.dto.request.UpdateUsernameRequest;
 import com.uniread.user.dto.request.UserFilter;
 import com.uniread.user.dto.response.CurrentUser;
 import com.uniread.user.dto.response.UserDto;
+import com.uniread.user.dto.response.UserSearchDto;
 import com.uniread.user.service.UserService;
 import com.uniread.auth.domain.entities.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -31,10 +32,22 @@ public class UserController {
             @ModelAttribute UserFilter filter,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Page<UserDto> users = userService.searchUsers(userDetails, filter);
+        Page<UserDto> users = userService.getUsers(userDetails, filter);
         return ResponseEntity.ok()
                 .body(users);
     }
+
+    @GetMapping(path = "/search")
+    public ResponseEntity<Page<UserSearchDto>> searchUsers(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @ModelAttribute UserFilter filter
+    ) {
+
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
+        var publicUsers = userService.searchUsers(userDetails, filter);
+        return ResponseEntity.ok(publicUsers);
+    }
+
     /**
      * Update the username of the user
      * @param request
@@ -60,17 +73,5 @@ public class UserController {
         var response = userService.updateEmail(userDetails.getId(), request.getEmail(), userDetails.getUsername());
         return ResponseEntity.ok().body(response);
     }
-    /**
-     * Extract the user based on access token or jwt token of the user
-     * @param customUserDetails
-     * @return User
-     */
-    @GetMapping(path = "/me")
-    public ResponseEntity<CurrentUser> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        if(customUserDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
 
-        CurrentUser currentUser = userService.getCurrentUser(customUserDetails.getId());
-        return ResponseEntity.ok()
-                .body(currentUser);
-    }
 }

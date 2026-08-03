@@ -28,7 +28,6 @@ public class ParticipantService {
     @Transactional
     public void markParticipantAsRead(UUID conversationId, UUID userId) {
         int rows = participantRepository.updateLastReadAtByConversationIdAndUserId(conversationId, userId);
-        log.debug("Participant mark as read are {}", rows);
     }
 
     public List<ParticipantDto> getConversationParticipants(UUID conversationId) {

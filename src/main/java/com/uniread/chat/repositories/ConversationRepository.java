@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -22,46 +23,85 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     @Query(value = """
     SELECT new com.uniread.chat.dto.response.ConversationPreviewDto(
         c.id,
-        CASE 
-            WHEN c.isGroup = false 
-            THEN (SELECT CONCAT(p.user.profile.firstName, ' ', p.user.profile.lastName) 
-                  FROM Participant p 
-                  WHERE p.conversation.id = c.id AND p.user.id <> :currentUserId)
-            ELSE c.name 
+        CASE
+            WHEN c.isGroup = false
+            THEN COALESCE((
+                SELECT CONCAT(p.user.profile.firstName, ' ', p.user.profile.lastName)
+                FROM Participant p
+                WHERE p.conversation.id = c.id
+                  AND p.user.id <> :currentUserId
+            ), 'Unknown')
+            ELSE c.name
         END,
-        c.avatarPhoto,
+        CASE
+            WHEN c.isGroup = false THEN MAX(selfProfile.avatarUrl)
+            ELSE c.avatarPhoto
+        END,
         COUNT(DISTINCT u.id),
-        COUNT(DISTINCT u.id) > 0,
+        CASE WHEN COUNT(DISTINCT u.id) > 0 THEN true ELSE false END,
         self.muted,
         self.archived,
         c.isGroup,
-        lm.createdAt
+        new com.uniread.chat.dto.response.MessageDto(
+            MAX(lm.id),
+            c.id,
+            MAX(lmSender.id),
+            MAX(lmSenderProfile.displayName),
+            MAX(lm.messageType),
+            MAX(lm.message),
+            MAX(lm.deliveredAt),
+            MAX(lm.createdAt)
+        )
     )
     FROM Conversation c
-    JOIN c.participants self 
+    JOIN c.participants self
+    JOIN self.user selfUser
+    JOIN selfUser.profile selfProfile
     LEFT JOIN c.lastMessage lm
-    LEFT JOIN c.messages u ON u.createdAt > self.lastReadAt 
-                          AND u.sender.id <> :currentUserId
-    WHERE self.user.id = :currentUserId 
-      AND self.archived = :archived
-    GROUP BY 
-        c.id, c.name, c.avatarPhoto, self.muted, self.archived, c.isGroup, lm.createdAt
+    LEFT JOIN lm.sender lmSender
+    LEFT JOIN lmSender.profile lmSenderProfile
+    LEFT JOIN c.messages u
+        ON (self.lastReadAt IS NULL OR u.createdAt > self.lastReadAt)
+       AND u.sender.id <> :currentUserId
+    WHERE self.user.id = :currentUserId
+    GROUP BY
+        c.id, c.name, c.avatarPhoto, self.muted, self.archived, c.isGroup, c.updatedAt
     """,
     countQuery = """
     SELECT COUNT(c.id)
     FROM Conversation c
     JOIN c.participants p
-    WHERE p.user.id = :currentUserId AND p.archived = :archived
+    WHERE p.user.id = :currentUserId
     """
     )
     Page<ConversationPreviewDto> findConversationsByParticipantId(
         @Param("currentUserId") UUID userId,
-        @Param("archived") boolean isArchived,
         Pageable pageable
     );
 
     @EntityGraph(attributePaths = {"participants", "lastMessage.sender.profile"})
     Optional<Conversation> findById(UUID id);
+
+    @Query(value = """
+    SELECT c.*
+    FROM conversations c
+    WHERE c.is_group = false
+    AND EXISTS (
+        SELECT 1 FROM participants p1 
+        WHERE p1.conversation_id = c.id 
+        AND p1.user_id = :currentUserId
+    )
+    AND EXISTS (
+        SELECT 1 FROM participants p2 
+        WHERE p2.conversation_id = c.id 
+        AND p2.user_id = :receiverId
+    )
+    LIMIT 1
+    """, nativeQuery = true)
+    Optional<Conversation> findDirectConversation(
+            @Param("currentUserId") UUID currentUserId,
+            @Param("receiverId") UUID receiverId
+    );
 
 
     @Query(value = """
@@ -76,44 +116,56 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     Optional<Conversation> findOneOnOneConversation(@Param("userId1") UUID senderId, @Param("userId2") UUID receiverId, @Param("isGroup") Boolean isGroup);
 
     @Query("""
-        SELECT new com.uniread.chat.dto.response.ConversationDetailDto(
+    SELECT new com.uniread.chat.dto.response.ConversationDetailDto(
+        c.id,
+        CASE 
+            WHEN c.isGroup = false 
+            THEN CONCAT(friend.user.profile.firstName, ' ', friend.user.profile.lastName) 
+            ELSE c.name 
+        END,
+        c.avatarPhoto,
+        self.muted,
+        self.archived,
+        c.isGroup,
+        new com.uniread.chat.dto.response.MessageDto(
+            lastMessage.id,
+            friend.user.id,
             c.id,
             CASE 
                 WHEN c.isGroup = false 
                 THEN CONCAT(friend.user.profile.firstName, ' ', friend.user.profile.lastName) 
                 ELSE c.name 
             END,
-            c.avatarPhoto,
-            self.muted,
-            self.archived,
-            c.isGroup,
-            new com.uniread.chat.dto.response.MessageDto(
-                lastMessage.id,
-                friend.user.id,
-                c.id,
-                CASE 
-                    WHEN c.isGroup = false 
-                    THEN CONCAT(friend.user.profile.firstName, ' ', friend.user.profile.lastName) 
-                    ELSE c.name 
-                END,
-                lastMessage.messageType,
-                lastMessage.message,
-                lastMessage.deliveredAt,
-                lastMessage.createdAt
-            )
+            lastMessage.messageType,
+            lastMessage.message,
+            lastMessage.deliveredAt,
+            lastMessage.createdAt
         )
-        FROM Conversation c
-        JOIN c.participants self
-        JOIN c.participants friend
-        JOIN c.lastMessage lastMessage
-        WHERE c.id = :id
-          AND self.user.id = :receiverId
-          AND friend.user.id <> :receiverId
-          AND c.isGroup = false
+    )
+    FROM Conversation c
+    JOIN c.participants self
+    LEFT JOIN c.participants friend ON friend.user.id <> :currentUserId
+    LEFT JOIN c.lastMessage lastMessage
+    WHERE c.id = :conversationId
+      AND self.user.id = :currentUserId
+      AND c.isGroup = false
+      AND EXISTS (
+          SELECT p FROM c.participants p
+          WHERE p.user.id <> :currentUserId
+      )
     """)
     Optional<ConversationDetailDto> findUserConversationById(
-            @Param("id") UUID id,
-            @Param("receiverId") UUID receiverId
+            @Param("conversationId") UUID conversationId,
+            @Param("currentUserId") UUID currentUserId
     );
-    
+
+    @Modifying
+    @Query(
+            value = "UPDATE conversations SET last_message_id = :messageId WHERE id = :convoId",
+            nativeQuery = true
+    )
+    int updateConversationLastMessage(
+            @Param("convoId") UUID convoId,
+            @Param("messageId") UUID messageId
+    );
 }
