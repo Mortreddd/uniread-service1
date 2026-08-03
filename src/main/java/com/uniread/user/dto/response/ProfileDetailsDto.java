@@ -1,23 +1,31 @@
 package com.uniread.user.dto.response;
 
 import com.uniread.user.domain.entities.Gender;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.UUID;
 
 @Getter
-@AllArgsConstructor
 @Builder
-public class UserProfileDto {
+public class ProfileDetailsDto {
 
+    private UUID id;
+    private UUID userId;
     private String firstName;
     private String lastName;
     private String displayName;
-    private String bio;
     private Gender gender;
-    private Instant updatedAt;
+    private String bio;
+
+
+    private String avatarUrl;
+    private String avatarPublicId;
+
+    private String coverUrl;
+    private String coverPublicId;
+
+
+
+
 }

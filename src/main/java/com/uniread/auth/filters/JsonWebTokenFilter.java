@@ -21,6 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -31,66 +32,79 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
     private final JsonWebTokenService jsonWebTokenService;
     private final CustomUserDetailsService customUserDetailsService;
 
+    private static final List<String> EXCLUDED_PATHS = Arrays.asList(
+            "/auth/refresh-token",
+            "/auth/login",
+            "/auth/register"
+    );
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+
+
+        // Check if this is a refresh token request
         if (isRefreshPath(request)) {
+            log.info("Skipping JWT filter for refresh token request");
             filterChain.doFilter(request, response);
             return;
         }
 
+        // Log all cookies
         Cookie[] cookies = request.getCookies();
+
         String accessToken = getTokenFromCookies(cookies);
 
-
         if (accessToken == null) {
+            log.warn("No access token found in cookies");
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
             UUID userId = jsonWebTokenService.extractUserId(accessToken);
+
             if (SecurityContextHolder.getContext().getAuthentication() == null
                     && jsonWebTokenService.validateToken(accessToken, userId)) {
 
                 UserDetails userDetails = customUserDetailsService.loadUserById(userId);
+                log.info("Loaded user details for user: {}", userDetails.getUsername());
+
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.info("Authentication set successfully for user: {}", userId);
+            } else {
+                log.warn("Authentication not set - either already authenticated or token validation failed");
             }
         } catch (ExpiredJwtException e) {
-            response.setContentType("application/json");
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.getWriter().write("{\"error\":\"JWT expired\",\"message\":\"" + e.getMessage() + "\"}");
-            return;
+            log.error("JWT token expired: {}", e.getMessage());
         } catch (Exception e) {
-            response.setContentType("application/json");
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.getWriter().write("{\"error\":\"Authentication failed\",\"message\":\"" + e.getMessage() + "\"}");
-            return;
+            log.error("JWT Authentication Failed: {}", e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return isRefreshPath(request) ||
-                request.getRequestURI().contains("/auth/login") ||
-                request.getRequestURI().contains("/auth/register");
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        String path = request.getRequestURI();
+        boolean shouldSkip = EXCLUDED_PATHS.stream().anyMatch(path::contains);
+        log.debug("shouldNotFilter for path {}: {}", path, shouldSkip);
+        return shouldSkip;
     }
 
     private boolean isRefreshPath(HttpServletRequest request) {
-        return request.getRequestURI().contains("/auth/refresh-token");
+        return request.getRequestURI().contains("/api/v1/auth/refresh-token");
     }
 
     private String getTokenFromCookies(Cookie[] cookies) {
-        if(cookies == null) return null;
+        if (cookies == null) return null;
 
         return Arrays.stream(cookies)
                 .filter(c -> "access_token".equals(c.getName()))
@@ -98,5 +112,4 @@ public class JsonWebTokenFilter extends OncePerRequestFilter {
                 .findFirst()
                 .orElse(null);
     }
-
 }

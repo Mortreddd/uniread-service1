@@ -46,7 +46,7 @@ public class AuthCookieService {
                 
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", "")
                 .maxAge(0)
-                .path("/auth/refresh-token")
+                .path("/")
                 .httpOnly(true)
                 .secure(cookieConfig.isSecure())
                 .sameSite(cookieConfig.getSameSite())
@@ -84,7 +84,7 @@ public class AuthCookieService {
                 .httpOnly(true)
                 .secure(cookieConfig.isSecure())
                 .sameSite(cookieConfig.getSameSite())
-                .path("/auth/refresh-token")
+                .path("/")
                 .maxAge(Duration.ofDays(cookieConfig.getRefreshTokenMaxAgeDays()))
                 .build();
     }

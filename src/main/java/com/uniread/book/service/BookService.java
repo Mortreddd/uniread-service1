@@ -102,7 +102,7 @@ public class BookService {
                             book.getUser().getProfile().getFirstName(),
                             book.getUser().getProfile().getLastName(),
                             book.getUser().getProfile().getGender(),
-                            book.getUser().getProfile().getAvatarPhoto()
+                            book.getUser().getProfile().getAvatarUrl()
                     ))
                     .averageRating(stats != null ? stats.getAverageRating().floatValue() : 0.0f)
                     .totalRating(stats != null ? stats.getTotalRating().floatValue() : 0.0f)

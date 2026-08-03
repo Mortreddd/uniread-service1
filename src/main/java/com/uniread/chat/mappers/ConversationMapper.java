@@ -2,6 +2,7 @@ package com.uniread.chat.mappers;
 
 
 import com.uniread.chat.dto.response.ConversationDetailDto;
+import com.uniread.chat.dto.response.ConversationDto;
 import com.uniread.chat.dto.response.MessageDto;
 import com.uniread.chat.domain.entities.Conversation;
 import com.uniread.chat.domain.entities.Message;
@@ -16,6 +17,15 @@ import java.util.UUID;
 public class ConversationMapper {
 
     private final MessageMapper messageMapper;
+
+    public ConversationDto toDto(Conversation conversation) {
+        return ConversationDto.builder()
+                .id(conversation.getId())
+                .name(conversation.getName())
+                .avatarPhoto(conversation.getAvatarPhoto())
+                .isGroup(conversation.getIsGroup())
+                .build();
+    }
 
     public ConversationDetailDto toDetailDto(Conversation conversation, UUID currentUserId) {
         if (conversation == null) {

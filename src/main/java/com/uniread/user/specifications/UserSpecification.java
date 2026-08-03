@@ -19,7 +19,7 @@ public class UserSpecification {
     public static Specification<User> hasQuery(String search) {
         return (root, query, builder) -> {
             if(search == null || search.isBlank()) return null;
-            String pattern = "%" + search.toLowerCase() + "%";
+            String pattern = search.toLowerCase() + "%";
             return builder.or(
                     builder.like(builder.lower(root.get("profile").get("firstName")), pattern),
                     builder.like(builder.lower(root.get("profile").get("lastName")), pattern),

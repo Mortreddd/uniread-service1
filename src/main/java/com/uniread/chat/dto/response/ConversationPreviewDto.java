@@ -22,6 +22,5 @@ public class ConversationPreviewDto {
     private Boolean isArchived;
     private Boolean isGroup;
 
-    private Instant lastMessageAt;
-
+    private MessageDto lastMessage;
 }

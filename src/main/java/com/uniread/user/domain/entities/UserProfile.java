@@ -34,8 +34,12 @@ public class UserProfile {
     private String lastName;
     private String displayName;
     private String bio;
-    private String coverPhoto;
-    private String avatarPhoto;
+
+    private String coverUrl;
+    private String coverPublicId;
+
+    private String avatarUrl;
+    private String avatarPublicId;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;

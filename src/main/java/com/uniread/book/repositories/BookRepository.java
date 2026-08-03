@@ -45,7 +45,7 @@ public interface BookRepository
             userProfile.firstName,
             userProfile.lastName,
             userProfile.gender,
-            userProfile.avatarPhoto
+            userProfile.avatarUrl
         ),
         (SELECT AVG(r.rating) FROM BookRating r WHERE r.book.id = b.id),
         (SELECT COUNT(r.id) FROM BookRating r WHERE r.book.id = b.id),

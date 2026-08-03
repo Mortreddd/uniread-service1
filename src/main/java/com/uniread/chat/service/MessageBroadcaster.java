@@ -1,5 +1,6 @@
 package com.uniread.chat.service;
 
+import com.uniread.chat.domain.entities.Participant;
 import com.uniread.chat.dto.response.ConversationDetailDto;
 import com.uniread.chat.dto.response.MessageDto;
 import com.uniread.chat.dto.response.ParticipantDto;
@@ -17,25 +18,25 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MessageBroadcaster {
 
-    private static final String CHAT_NOTIFICATIONS_QUEUE = "/queue/chat-notifications";
-    private static final String CHAT_MESSAGES_READ_TOPIC = "/topic/chat.%s.read";
-
-
+    private static final String CHATS_QUEUE = "/queue/chats";
+    private static final String CHAT_MESSAGES_READ_TOPIC = "/topic/chats.%s";
     private final SimpMessagingTemplate messagingTemplate;
 
 
-    public void broadcastMessage(ConversationDetailDto conversation, MessageDto message, List<ParticipantDto> participants) {
-        participants.forEach((p) -> {
-           sendToUser(p.getUserId(), CHAT_NOTIFICATIONS_QUEUE, conversation);
-        });
+    public void broadcastToConversation(
+            ConversationDetailDto conversation,
+            MessageDto message,
+            List<ParticipantDto> participants
+    ) {
+        participants.forEach((p) -> sendToUser(p.getUserId(), CHATS_QUEUE, conversation));
+
         String topic = String.format(CHAT_MESSAGES_READ_TOPIC, conversation.getConversationId());
-        messagingTemplate.convertAndSend(topic, message);
-        log.debug("Broadcasted message {} to conversation {}", conversation.getLastMessage().getId(), conversation.getConversationId());
+        send(topic, message);
+
     }
 
-
     public void broadcastTypingIndicator(UUID conversationId, UUID userId, Boolean isTyping) {
-        String topic = String.format("/topic/chat.%s.typing", conversationId);
+        String topic = String.format("/topic/chats.%s.typing", conversationId);
         Map<String, Object> typingEvent = Map.of(
                 "userId", userId,
                 "isTyping", isTyping,
@@ -45,7 +46,7 @@ public class MessageBroadcaster {
     }
 
     public void broadcastNewParticipantReader(UUID conversationId, UUID readerId) {
-        String topic = String.format("/topic/chat.%s.read", conversationId);
+        String topic = String.format("/topic/chats.%s", conversationId);
         Map<String, Object> readerEvent = Map.of(
                 "userId", readerId,
                 "timestamp", System.currentTimeMillis()
@@ -60,5 +61,10 @@ public class MessageBroadcaster {
         final String userDestination = String.format("/user/%s%s", userId, destination);
         messagingTemplate.convertAndSend(userDestination, payload);
         log.trace("Sent message to user {} on destination {}", userId, userDestination);
+    }
+
+    public void send(String destination, Object payload) {
+        messagingTemplate.convertAndSend(destination, payload);
+        log.trace("Sent message on destination {}", destination);
     }
 }

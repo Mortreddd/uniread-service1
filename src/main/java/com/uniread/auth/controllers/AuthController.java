@@ -60,7 +60,6 @@ public class AuthController {
     ) {
         String refreshToken = cookieService.extractRefreshToken(httpServletRequest)
                 .orElseThrow(() -> new InvalidTokenException("Refresh token not found"));
-
         var response = authService.refreshToken(refreshToken);
         cookieService.setAuthCookies(httpServletResponse, response);
 

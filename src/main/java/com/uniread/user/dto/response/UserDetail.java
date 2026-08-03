@@ -15,7 +15,9 @@ public class UserDetail {
     private String lastName;
     private String fullName;
     private Gender gender;
-    private String photoUrl;
+
+    private String avatarUrl;
+
     private Long followersCount;
     private Long followingsCount;
     private Long publishedStoriesCount;

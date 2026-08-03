@@ -11,6 +11,7 @@ import com.uniread.user.dto.response.CurrentUser;
 import com.uniread.user.dto.response.UserDto;
 import com.uniread.auth.domain.entities.CustomUserDetails;
 import com.uniread.user.domain.entities.User;
+import com.uniread.user.dto.response.UserSearchDto;
 import com.uniread.user.mappers.UserMapper;
 import com.uniread.common.exceptions.DuplicateResourceException;
 import com.uniread.common.exceptions.ResourceNotFoundException;
@@ -31,6 +32,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.util.StringUtils;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,7 +50,7 @@ public class UserService {
     private final ApplicationEventPublisher publisher;
 
     @Transactional(readOnly = true)
-    public Page<UserDto> searchUsers(CustomUserDetails userDetails, UserFilter filter) {
+    public Page<UserDto> getUsers(CustomUserDetails userDetails, UserFilter filter) {
         UUID authUserId = userDetails != null ? userDetails.getId() : null;
 
         Specification<User> spec = Specification.where(UserSpecification.hasQuery(filter.getQuery()))
@@ -68,14 +71,28 @@ public class UserService {
                 .map(userMapper::toDto);
     }
 
+    public Page<UserSearchDto> searchUsers(CustomUserDetails userDetails, UserFilter filter) {
+        Sort.Direction direction = "desc".equalsIgnoreCase(filter.getSortBy())
+                ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(
+                filter.getPageNo(),
+                filter.getPageSize(),
+                Sort.by(direction, filter.getOrderBy())
+        );
+        return userRepository.findPublicProfiles(userDetails.getId(), filter.getQuery(), pageable)
+                .map(userMapper::toSearchDto);
+    }
+
     public UserDto getUserById(UUID userId) {
         User user = findUserById(userId);
         return userMapper.toDto(user);
     }
 
     public CurrentUser getCurrentUser(UUID currentUserId) {
-        return userRepository.findCurrentUserById(currentUserId)
+        var user = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + currentUserId));
+
+        return buildCurrentUser(user);
     }
 
     public Optional<User> getUserByEmail(String email) {
@@ -176,6 +193,28 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    private CurrentUser buildCurrentUser(User user) {
+
+        var profile = user.getProfile();
+        var userProfile = CurrentUser.CurrentUserProfile.builder()
+                .displayName(profile.getDisplayName())
+                .firstName(profile.getFirstName())
+                .lastName(profile.getLastName())
+                .fullName(profile.getFirstName() + " " + profile.getLastName())
+                .avatarUrl(profile.getAvatarUrl())
+                .avatarPublicId(profile.getAvatarPublicId())
+                .gender(profile.getGender())
+                .build();
+
+        return CurrentUser.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .emailVerified(user.getIsEmailVerified())
+                .profile(userProfile)
+                .build();
+    }
     private String generateTemporaryUsername(String email) {
         String baseUsername = email.split("@")[0];
         String uniqueSuffix = UUID.randomUUID().toString().substring(0, 8);

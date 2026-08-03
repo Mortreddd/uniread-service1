@@ -24,7 +24,6 @@ public class UserProfileService {
                 .firstName(userInfo.getGivenName())
                 .lastName(userInfo.getFamilyName())
                 .gender(Gender.OTHER)
-                .avatarPhoto(userInfo.getPicture())
                 .user(user)
                 .build();
 

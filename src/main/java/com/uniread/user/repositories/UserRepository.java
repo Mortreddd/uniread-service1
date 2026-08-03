@@ -25,6 +25,23 @@ public interface UserRepository
     @EntityGraph(attributePaths = {"profile"})
     Page<User> findAll(Specification<User> spec, Pageable pageable);
 
+    @Query("""
+    SELECT u
+    FROM User u 
+    JOIN u.profile p
+        WHERE (
+            u.username ILIKE CONCAT(:query, '%')
+            OR p.displayName ILIKE CONCAT(:query, '%')
+            OR p.firstName ILIKE CONCAT(:query, '%')
+            OR p.lastName ILIKE CONCAT(:query, '%')
+        )
+        AND u.id <> :authUserId
+        AND u.bannedAt IS NULL
+        AND u.deletedAt IS NULL
+        AND u.emailVerifiedAt IS NOT NULL
+    """)
+    Page<User> findPublicProfiles(@Param("authUserId") UUID userId, @Param("query") String query, Pageable pageable);
+
     @EntityGraph(attributePaths = {"profile"})
     Optional<User> findById(UUID userId);
 
@@ -49,7 +66,7 @@ public interface UserRepository
     Boolean existsByUsernameContainingIgnoreCase(String username);
 
     @Query("""
-            SELECT com.uniread.auth.domain.entities.CustomUserDetails(
+            SELECT new com.uniread.auth.domain.entities.CustomUserDetails(
                 u.id,
                 u.email,
                 u.password,
@@ -68,31 +85,6 @@ public interface UserRepository
     )
     Optional<CustomUserDetails> findCurrentUserDetailsById(@Param("userId") UUID userId);
 
-    @Query("""
-            SELECT com.uniread.auth.domain.entities.CustomUserDetails(
-                u.id,
-                profile.firstName,
-                profile.lastName,
-                CONCAT(profile.firstName, ' ', profile.lastName),
-                u.username,
-                profile.gender,
-                u.email,
-                profile.avatarPhoto,
-                u.role,
-                u.emailVerifiedAt,
-                u.createdAt,
-                u.updatedAt,
-                u.bannedAt,
-                u.unbannedAt,
-                u.deletedAt
-            )
-            FROM User u
-            LEFT JOIN UserProfile profile ON profile.user.id = u.id
-            WHERE u.id = :userId
-            """
-    )
-    Optional<CurrentUser> findCurrentUserById(@Param("userId") UUID userId);
-
     @Query(
     value = """
     SELECT new com.uniread.user.dto.response.UserDetail(
@@ -102,7 +94,7 @@ public interface UserRepository
         up.lastName,
         CONCAT(up.firstName, ' ', up.lastName),
         up.gender,
-        up.avatarPhoto,
+        up.avatarUrl,
         COUNT(DISTINCT f_all_ers),
         COUNT(DISTINCT f_all_ing),
         COUNT(DISTINCT b),
@@ -120,7 +112,7 @@ public interface UserRepository
     WHERE u.id <> :id
       AND u.bannedAt IS NULL
       AND u.deletedAt IS NULL
-    GROUP BY u.id, u.username, up.firstName, up.lastName, up.gender, up.avatarPhoto
+    GROUP BY u.id, u.username, up.firstName, up.lastName, up.gender, up.avatarUrl
     """,
     countQuery = """
     SELECT COUNT(u) FROM User u
@@ -131,7 +123,6 @@ public interface UserRepository
     )
     Page<UserDetail> findUsersDetail(@Param("id") UUID id, @Param("bookStatus") BookStatus bookStatus, Pageable pageable);
 
-
     @Query(value =
             """
             SELECT new com.uniread.user.dto.response.UserDetail(
@@ -141,7 +132,7 @@ public interface UserRepository
                     profile.lastName,
                     CONCAT(profile.firstName, ' ', profile.lastName),
                     profile.gender,
-                    profile.avatarPhoto,
+                    profile.avatarUrl,
             
                     (SELECT COUNT(f)
                      FROM Follow f

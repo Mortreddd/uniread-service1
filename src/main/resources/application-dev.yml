@@ -17,9 +17,6 @@ spring:
         format_sql: true
 
 
-client:
-  url: http://localhost:5173
-
 logging:
   level:
     org:

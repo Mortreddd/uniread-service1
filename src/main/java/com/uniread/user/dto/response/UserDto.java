@@ -13,13 +13,9 @@ import java.util.UUID;
 @AllArgsConstructor
 public class UserDto {
     private UUID id;
-    private String firstName;
-    private String lastName;
+    private ProfileDetailsDto profile;
     private String username;
-    private String displayName;
-    private Gender gender;
     private String email;
-    private String avatarUrl;
     private Role role;
     private Instant emailVerifiedAt;
     private Instant createdAt;

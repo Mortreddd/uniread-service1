@@ -30,15 +30,6 @@ public class MessageService {
     private final MessageMapper messageMapper;
     private final MessageRepository messageRepository;
 
-//    @Transactional
-//    public List<MessageDto> getUnreadMessages(UUID conversationId, UUID currentUserId) {
-//        Conversation conversation = conversationRepository.findById(conversationId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
-//
-//        conversationService.markConversationAsReadAndNotify(conversationId, currentUserId);
-//        return messageRepository.findUnreadMessages(conversation.getId(), currentUser.getId());
-//    }
-
 
     public Page<MessageDto> getUserConversationMessages(UUID conversationId, ConversationMessageFilter filter, UUID currentUserId) {
         Sort sort = Sort.by(Sort.Direction.ASC, "m.createdAt");
@@ -52,11 +43,11 @@ public class MessageService {
     }
 
     @Transactional
-    public MessageDto createNewMessage(NewMessageRequest request, UUID conversationId, UUID senderId) {
+    public MessageDto createNewMessage(NewMessageRequest request, UUID senderId) {
         var type = request.getMessageType();
         var content = request.getContent();
         var sender = User.builder().id(senderId).build();
-        var convo = Conversation.builder().id(conversationId).build();
+        var convo = Conversation.builder().id(request.getConversationId()).build();
 
         var message = Message.builder()
                 .sender(sender)

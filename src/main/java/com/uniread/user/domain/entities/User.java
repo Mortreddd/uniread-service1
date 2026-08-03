@@ -74,7 +74,7 @@ public class User implements UserDetails {
     @JsonManagedReference
     private List<Book> books = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "user")
     private UserProfile profile;
 
     @Builder.Default

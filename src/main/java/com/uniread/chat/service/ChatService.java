@@ -20,29 +20,22 @@ public class ChatService {
     private final ParticipantService participantService;
     private final BlockUserValidator blockUserValidator;
 
-
     @Transactional
-    public void insertNewOneToOneConversationMessage(
-            NewMessageRequest request,
-            UUID conversationId,
-            UUID senderId
-    ) {
-        validateConversationReader(conversationId, senderId);
-        validateNewConversationMessage(request, conversationId, senderId);
-
-        var message = messageService.createNewMessage(
-                request,
-                conversationId,
-                senderId
-        );
+    public void insertNewMessage(NewMessageRequest request, UUID senderId) {
+        validateConversationReader(request.getConversationId(), senderId);
+        validateNewConversationMessage(request, senderId);
+        var message = messageService.createNewMessage(request, senderId);
 
         var createdMessage = messageService.getMessageById(message.getId());
-        var participants = participantService.getConversationParticipants(conversationId);
-        var convo = conversationService.getConversationWithParticipantsMessage(conversationId, senderId);
+        var participants = participantService.getConversationParticipants(request.getConversationId());
+        var convo = conversationService.getConversationWithParticipantsMessage(request.getConversationId(), senderId);
 
-        broadcaster.broadcastMessage(convo, createdMessage, participants);
+        conversationService.changeConversationLastMessage(convo, createdMessage);
+        broadcaster.broadcastToConversation(convo, createdMessage, participants);
+        markParticipantAsRead(request.getConversationId(), senderId);
 
     }
+
 
     public void markParticipantAsRead(UUID conversationId, UUID readerId) {
         validateConversationReader(conversationId, readerId);
@@ -54,13 +47,17 @@ public class ChatService {
         broadcaster.broadcastTypingIndicator(conversationId, typerId, isTyping);
     }
 
-
     private void validateNewConversationMessage(NewMessageRequest request, UUID conversationId, UUID senderId) {
         if(request == null || request.getContent().isBlank()) {
             log.warn("NewMessageRequest is null or message content is blank");
             throw new IllegalArgumentException("Message content is required");
         }
     }
+
+    private void validateNewConversationMessage(NewMessageRequest request, UUID senderId) {
+        validateNewConversationMessage(request, request.getConversationId(), senderId);
+    }
+
     private void validateConversationReader(UUID conversationId, UUID readerId) {
         if(readerId == null || conversationId == null) {
             log.warn("Conversation {} or Reader {} are null", conversationId, readerId);
