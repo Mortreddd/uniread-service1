@@ -38,7 +38,6 @@ public class NewRegisteredUserListener {
                 .gender(Gender.OTHER)
                 .build();
 
-
         profileRepository.save(profile);
 
     }

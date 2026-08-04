@@ -1,5 +1,6 @@
 package com.uniread.notification.listeners;
 
+import com.uniread.auth.domain.events.GoogleRegistrationEvent;
 import com.uniread.auth.domain.events.NewVerifiedUserEvent;
 import com.uniread.auth.domain.events.UserRegisteredEvent;
 import com.uniread.notification.domain.entities.NotificationChannel;
@@ -30,6 +31,25 @@ public class UserRegistrationListener {
                 event.getRequest().getUsername(),
                 NotificationType.EMAIL_CONFIRMATION
         );
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onRegisterGoogle(GoogleRegistrationEvent event) {
+        var user = event.getUser();
+        Map<String, Object> variables = Map.of(
+                "userId", user.getId(),
+                "email", user.getEmail(),
+                "username", user.getUsername()
+        );
+        var message = NotificationMessage.builder()
+                .type(NotificationType.WELCOME)
+                .userId(user.getId())
+                .variables(variables)
+                .channels(Set.of(NotificationChannel.EMAIL))
+                .build();
+
+        emailService.broadcast(message);
     }
 
     @Async

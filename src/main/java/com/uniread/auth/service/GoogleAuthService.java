@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,12 +19,11 @@ public class GoogleAuthService implements OAuthService {
 
     @Value("${client.url}")
     private String clientUrl;
-
     private final UserService userService;
     private final ApplicationEventPublisher publisher;
-    private final JsonWebTokenService jsonWebTokenService;
     private final TokenValidationService tokenValidationService;
 
+    @Transactional
     @Override
     public LoginResponse handleOAuthLogin(String accessToken) {
         var userInfo = tokenValidationService.validateGoogleToken(accessToken);

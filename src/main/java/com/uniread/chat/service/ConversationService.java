@@ -59,11 +59,9 @@ public class ConversationService {
     }
 
 
-    public ConversationDetailDto getConversationWithParticipantsMessage(UUID conversationId, UUID senderId) {
-        var convo = conversationRepository.findById(conversationId)
+    public ConversationPreviewDto getConversationPreviewById(UUID conversationId, UUID senderId) {
+        return conversationRepository.findConvoDetailById(conversationId, senderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the preview for conversation"));
-
-        return conversationMapper.toDetailDto(convo, senderId);
     }
 
     public ConversationDetailDto getConversationById(UUID conversationId, UUID receiverId) {
@@ -108,7 +106,7 @@ public class ConversationService {
 
 
     @Transactional
-    public void changeConversationLastMessage(ConversationDetailDto conversation, MessageDto message) {
+    public void changeConversationLastMessage(ConversationPreviewDto conversation, MessageDto message) {
         conversationRepository.updateConversationLastMessage(conversation.getConversationId(), message.getId());
     }
 
