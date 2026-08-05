@@ -21,18 +21,18 @@ public class ChatService {
     private final BlockUserValidator blockUserValidator;
 
     @Transactional
-    public void insertNewMessage(NewMessageRequest request, UUID senderId) {
-        validateConversationReader(request.getConversationId(), senderId);
-        validateNewConversationMessage(request, senderId);
-        var message = messageService.createNewMessage(request, senderId);
+    public void insertNewMessage(NewMessageRequest request, UUID conversationId, UUID senderId) {
+        validateConversationReader(conversationId, senderId);
+        validateNewConversationMessage(request, conversationId, senderId);
+        var message = messageService.createNewMessage(request, conversationId, senderId);
 
         var createdMessage = messageService.getMessageById(message.getId());
-        var participants = participantService.getConversationParticipants(request.getConversationId());
-        var convo = conversationService.getConversationWithParticipantsMessage(request.getConversationId(), senderId);
+        var participants = participantService.getConversationParticipants(conversationId);
+        var convo = conversationService.getConversationPreviewById(conversationId, senderId);
 
         conversationService.changeConversationLastMessage(convo, createdMessage);
         broadcaster.broadcastToConversation(convo, createdMessage, participants);
-        markParticipantAsRead(request.getConversationId(), senderId);
+        markParticipantAsRead(conversationId, senderId);
 
     }
 
@@ -52,10 +52,6 @@ public class ChatService {
             log.warn("NewMessageRequest is null or message content is blank");
             throw new IllegalArgumentException("Message content is required");
         }
-    }
-
-    private void validateNewConversationMessage(NewMessageRequest request, UUID senderId) {
-        validateNewConversationMessage(request, request.getConversationId(), senderId);
     }
 
     private void validateConversationReader(UUID conversationId, UUID readerId) {

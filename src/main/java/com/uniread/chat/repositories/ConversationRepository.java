@@ -63,7 +63,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     LEFT JOIN c.messages u
         ON (self.lastReadAt IS NULL OR u.createdAt > self.lastReadAt)
        AND u.sender.id <> :currentUserId
-    WHERE self.user.id = :currentUserId
+    WHERE self.user.id = :currentUserId AND lm.id IS NOT NULL
     GROUP BY
         c.id, c.name, c.avatarPhoto, self.muted, self.archived, c.isGroup, c.updatedAt
     """,
@@ -79,8 +79,93 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
         Pageable pageable
     );
 
-    @EntityGraph(attributePaths = {"participants", "lastMessage.sender.profile"})
-    Optional<Conversation> findById(UUID id);
+    @Query("""
+        SELECT new com.uniread.chat.dto.response.ConversationPreviewDto(
+            c.id,
+        
+            CASE
+                WHEN c.isGroup = false THEN (
+                    SELECT p2.user.profile.displayName
+                    FROM Participant p2
+                    WHERE p2.conversation.id = c.id
+                      AND p2.user.id <> :currentUserId
+                )
+                ELSE c.name
+            END,
+        
+            CASE
+                WHEN c.isGroup = false THEN (
+                    SELECT p2.user.profile.avatarUrl
+                    FROM Participant p2
+                    WHERE p2.conversation.id = c.id
+                      AND p2.user.id <> :currentUserId
+                )
+                ELSE c.avatarPhoto
+            END,
+        
+            COUNT(DISTINCT unread.id),
+        
+            CASE WHEN COUNT(DISTINCT unread.id) > 0 THEN true ELSE false END,
+        
+            self.muted,
+            self.archived,
+            c.isGroup,
+        
+            new com.uniread.chat.dto.response.MessageDto(
+                lm.id,
+                c.id,
+                lmSender.id,
+                lmSenderProfile.displayName,
+                lm.messageType,
+                lm.message,
+                lm.deliveredAt,
+                lm.createdAt
+            )
+        )
+        FROM Conversation c
+        
+        JOIN c.participants self
+        JOIN self.user selfUser
+        JOIN selfUser.profile selfProfile
+        
+        LEFT JOIN c.participants other
+            ON other.user.id <> :currentUserId
+        LEFT JOIN other.user otherUser
+        LEFT JOIN otherUser.profile otherProfile
+        
+        LEFT JOIN c.lastMessage lm
+        LEFT JOIN lm.sender lmSender
+        LEFT JOIN lmSender.profile lmSenderProfile
+        
+        LEFT JOIN c.messages unread
+            ON (self.lastReadAt IS NULL OR unread.createdAt > self.lastReadAt)
+            AND unread.sender.id <> :currentUserId
+        
+        WHERE self.user.id = :currentUserId
+          AND c.id = :id
+          AND lm.id IS NOT NULL
+        
+        GROUP BY
+            c.id,
+            c.name,
+            c.avatarPhoto,
+            c.isGroup,
+            self.muted,
+            self.archived,
+            otherProfile.displayName,
+            otherProfile.avatarUrl,
+            lm.id,
+            lmSender.id,
+            lmSenderProfile.displayName,
+            lm.messageType,
+            lm.message,
+            lm.deliveredAt,
+            lm.createdAt
+        """)
+    Optional<ConversationPreviewDto> findConvoDetailById(
+            @Param("id") UUID id,
+            @Param("currentUserId") UUID authUserId
+    );
 
     @Query(value = """
     SELECT c.*

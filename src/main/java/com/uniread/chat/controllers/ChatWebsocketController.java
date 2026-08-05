@@ -33,7 +33,7 @@ public class ChatWebsocketController {
         chatService.markParticipantAsRead(conversationId, authUserId);
     }
 
-    @SubscribeMapping("/chats.{conversationId}.typing")
+    @MessageMapping("/chats/{conversationId}/typing")
     public void newConversationParticipantTyping(
             @DestinationVariable(value = "conversationId") UUID conversationId,
             @Payload TypingParticipantRequest request,
@@ -44,15 +44,16 @@ public class ChatWebsocketController {
         chatService.markParticipantAsTyping(conversationId, authUserId, request.getTyping());
     }
 
-    @MessageMapping("/send")
+    @MessageMapping("/chats/{conversationId}/send")
     public void sendConversationMessage(
+            @DestinationVariable(value = "conversationId") UUID conversationId,
             @Payload NewMessageRequest request,
             Principal principal
     ) {
-        if(principal == null || request == null) return;
+        if(principal == null || request == null || conversationId == null) return;
 
         UUID authUserId = UUID.fromString(principal.getName());
-        chatService.insertNewMessage(request, authUserId);
+        chatService.insertNewMessage(request, conversationId, authUserId);
 
     }
 

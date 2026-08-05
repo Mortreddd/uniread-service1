@@ -13,7 +13,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NewMessageRequest {
-    private UUID conversationId;
     private MessageType messageType;
     private String content;
 }

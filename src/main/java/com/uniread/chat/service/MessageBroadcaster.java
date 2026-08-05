@@ -1,7 +1,7 @@
 package com.uniread.chat.service;
 
-import com.uniread.chat.domain.entities.Participant;
 import com.uniread.chat.dto.response.ConversationDetailDto;
+import com.uniread.chat.dto.response.ConversationPreviewDto;
 import com.uniread.chat.dto.response.MessageDto;
 import com.uniread.chat.dto.response.ParticipantDto;
 import lombok.RequiredArgsConstructor;
@@ -19,20 +19,18 @@ import java.util.UUID;
 public class MessageBroadcaster {
 
     private static final String CHATS_QUEUE = "/queue/chats";
-    private static final String CHAT_MESSAGES_READ_TOPIC = "/topic/chats.%s";
+    private static final String CHATS_ON_READ_TOPIC = "/topic/chats.%s";
     private final SimpMessagingTemplate messagingTemplate;
 
 
     public void broadcastToConversation(
-            ConversationDetailDto conversation,
+            ConversationPreviewDto conversation,
             MessageDto message,
             List<ParticipantDto> participants
     ) {
         participants.forEach((p) -> sendToUser(p.getUserId(), CHATS_QUEUE, conversation));
-
-        String topic = String.format(CHAT_MESSAGES_READ_TOPIC, conversation.getConversationId());
+        String topic = String.format(CHATS_ON_READ_TOPIC, conversation.getConversationId());
         send(topic, message);
-
     }
 
     public void broadcastTypingIndicator(UUID conversationId, UUID userId, Boolean isTyping) {

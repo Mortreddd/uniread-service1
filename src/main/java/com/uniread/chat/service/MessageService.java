@@ -43,11 +43,11 @@ public class MessageService {
     }
 
     @Transactional
-    public MessageDto createNewMessage(NewMessageRequest request, UUID senderId) {
+    public MessageDto createNewMessage(NewMessageRequest request, UUID conversationId, UUID senderId) {
         var type = request.getMessageType();
         var content = request.getContent();
         var sender = User.builder().id(senderId).build();
-        var convo = Conversation.builder().id(request.getConversationId()).build();
+        var convo = Conversation.builder().id(conversationId).build();
 
         var message = Message.builder()
                 .sender(sender)
