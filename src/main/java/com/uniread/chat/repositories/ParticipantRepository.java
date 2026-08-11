@@ -18,12 +18,26 @@ public interface ParticipantRepository extends CrudRepository<Participant, UUID>
     List<Participant> findByUserIn(List<User> users);
     List<Participant> findByUser(User user);
 
-    @EntityGraph(attributePaths = {"user.profile"})
+    @EntityGraph(attributePaths = {"user", "user.profile"})
+    List<Participant> findAllByUserId(UUID userId);
+
+    @EntityGraph(attributePaths = {"user", "user.profile"})
     List<Participant> findByConversationId(UUID conversationId);
 
     boolean existsByConversationIdAndUserId(UUID conversationId, UUID userId);
 
     Boolean existsByConversationIdAndUserIdIn(UUID conversationId, List<UUID> userIds);
+
+    @Modifying
+    @Query(value = """
+        UPDATE participants SET deleted_at = CURRENT_TIMESTAMP, unread_count = 0
+        WHERE conversation_id = :conversationId AND user_id = :userId
+        """, nativeQuery = true)
+    void updateDeletedByConversationIdAndParticipantUserId(
+            @Param("conversationId") UUID conversationId,
+            @Param("userId") UUID userId
+    );
+
     @Modifying
     @Query("UPDATE Participant p SET p.lastReadAt = CURRENT_TIMESTAMP, p.unreadCount = 0 " +
             "WHERE p.conversation.id = :conversationId AND p.user.id = :userId")

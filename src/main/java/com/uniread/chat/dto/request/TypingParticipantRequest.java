@@ -9,5 +9,6 @@ import lombok.Setter;
 @Setter
 public class TypingParticipantRequest {
 
+    private String userAvatar;
     private Boolean typing;
 }

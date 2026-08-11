@@ -10,6 +10,7 @@ import com.uniread.user.domain.entities.User;
 import com.uniread.chat.mappers.MessageMapper;
 import com.uniread.common.exceptions.ResourceNotFoundException;
 import com.uniread.chat.repositories.MessageRepository;
+import com.uniread.user.dto.response.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,26 +32,23 @@ public class MessageService {
     private final MessageRepository messageRepository;
 
 
-    public Page<MessageDto> getUserConversationMessages(UUID conversationId, ConversationMessageFilter filter, UUID currentUserId) {
-        Sort sort = Sort.by(Sort.Direction.ASC, "m.createdAt");
+    public Page<MessageDto> getUserConversationMessages(UUID conversationId, ConversationMessageFilter filter, UUID userId) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "m.createdAt");
         Pageable pageable = PageRequest.of(filter.getPageNo(), filter.getPageSize(), sort);
-        return messageRepository.findConversationMessages(conversationId, currentUserId, pageable);
-    }
-
-    public MessageDto getMessageById(UUID messageId) {
-        return messageRepository.findMessageById(messageId)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("Message %s is not found", messageId)));
+        return messageRepository.findConversationMessages(conversationId, pageable, userId);
     }
 
     @Transactional
-    public MessageDto createNewMessage(NewMessageRequest request, UUID conversationId, UUID senderId) {
+    public MessageDto createNewMessage(NewMessageRequest request, UUID conversationId, CurrentUser userSender) {
         var type = request.getMessageType();
         var content = request.getContent();
-        var sender = User.builder().id(senderId).build();
+        var sender = User.builder().id(userSender.getId()).build();
         var convo = Conversation.builder().id(conversationId).build();
 
         var message = Message.builder()
                 .sender(sender)
+                .senderName(userSender.getProfile().getDisplayName())
+                .senderPhoto(userSender.getProfile().getAvatarUrl())
                 .conversation(convo)
                 .message(content)
                 .messageType(type)
@@ -58,7 +56,7 @@ public class MessageService {
                 .status(MessageStatus.SENT)
                 .build();
 
-        return messageMapper.toMessageDto(messageRepository.save(message));
+        return messageMapper.toDto(messageRepository.save(message));
     }
 
 }

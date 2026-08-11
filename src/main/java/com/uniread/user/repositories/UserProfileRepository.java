@@ -1,5 +1,6 @@
 package com.uniread.user.repositories;
 
+import com.uniread.user.domain.entities.User;
 import com.uniread.user.domain.entities.UserProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
@@ -13,4 +14,5 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, UUID>,
 
     Optional<UserProfile> findByUserId(UUID userId);
 
+    UUID user(User user);
 }

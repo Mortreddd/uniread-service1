@@ -41,7 +41,7 @@ public class ChatWebsocketController {
     ) {
         if(principal == null || request == null) return;
         var authUserId = UUID.fromString(principal.getName());
-        chatService.markParticipantAsTyping(conversationId, authUserId, request.getTyping());
+        chatService.markParticipantAsTyping(conversationId, authUserId, request);
     }
 
     @MessageMapping("/chats/{conversationId}/send")

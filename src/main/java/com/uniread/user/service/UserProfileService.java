@@ -1,6 +1,7 @@
 package com.uniread.user.service;
 
 import com.uniread.auth.dto.response.GoogleUserInfoResponse;
+import com.uniread.common.exceptions.ResourceNotFoundException;
 import com.uniread.user.domain.entities.Gender;
 import com.uniread.user.domain.entities.User;
 import com.uniread.user.domain.entities.UserProfile;
@@ -10,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -17,6 +20,11 @@ public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
 
+
+    public UserProfile getUserProfileById(UUID userId) {
+        return userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Unable to load the user details"));
+    }
 
     @Transactional
     public UserProfile createUserProfile(User user, GoogleUserInfoResponse userInfo) {
