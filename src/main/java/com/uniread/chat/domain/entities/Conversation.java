@@ -29,6 +29,8 @@ public class Conversation {
     private UUID id;
 
     private String avatarPhoto;
+    private String avatarPublicId;
+
     private String name;
 
     @Builder.Default
@@ -41,13 +43,18 @@ public class Conversation {
     @JsonManagedReference
     private List<Message> messages = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Message lastMessage;
-
     @CreationTimestamp
     private Instant createdAt;
     @UpdateTimestamp
     private Instant updatedAt;
 
     private Boolean isGroup;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Message lastMessage;
+
+    private String lastMessageText;
+    private Instant lastMessageAt;
+    private String lastSenderName;
+    private UUID lastSenderId;
 }

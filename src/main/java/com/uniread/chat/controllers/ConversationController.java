@@ -4,7 +4,6 @@ import com.uniread.auth.exceptions.InvalidTokenException;
 import com.uniread.chat.dto.request.ConversationFilter;
 import com.uniread.chat.dto.request.ConversationMessageFilter;
 import com.uniread.chat.dto.request.DirectConversationRequest;
-import com.uniread.chat.dto.request.ExistingConversationFilter;
 import com.uniread.chat.dto.response.*;
 import com.uniread.chat.service.ConversationService;
 import com.uniread.chat.service.MessageService;
@@ -48,13 +47,13 @@ public class ConversationController {
     }
 
     @GetMapping(path = "/{conversationId}")
-    public ResponseEntity<ConversationDetailDto> getUserConversationById(
+    public ResponseEntity<ConversationPreviewDto> getUserConversationById(
             @PathVariable("conversationId") UUID conversationId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
         return ResponseEntity.ok()
-                .body(conversationService.getConversationById(conversationId, userDetails.getId()));
+                .body(conversationService.getConversationPreviewById(conversationId, userDetails));
     }
 
     @GetMapping(path = "/direct")
@@ -65,6 +64,16 @@ public class ConversationController {
         if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
         var conversation = conversationService.getOrCreateDirectConversation(userDetails, request);
         return ResponseEntity.ok(conversation);
+    }
+
+    @DeleteMapping(path = "/{conversationId}")
+    public ResponseEntity softDeleteConversation(
+            @PathVariable(name = "conversationId") UUID conversationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
+        conversationService.markDeleteConversation(conversationId, userDetails);
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -79,25 +88,11 @@ public class ConversationController {
             @ModelAttribute ConversationMessageFilter filter,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        if(userDetails == null) return null;
-
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
         Page<MessageDto> messages = messageService
                 .getUserConversationMessages(conversationId, filter, userDetails.getId());
 
         return ResponseEntity.ok()
                 .body(messages);
-    }
-
-    @GetMapping(path = "/recipient/{receiverId}")
-    public ResponseEntity<ConversationInfo> getExistingConversationByRecipientId(
-            @PathVariable("receiverId") UUID receiverId,
-            @ModelAttribute  ExistingConversationFilter filter,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        if(userDetails == null) return null;
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(conversationService.getOneToOneConversation(receiverId, filter, userDetails.getId()));
-
     }
 }

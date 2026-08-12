@@ -57,6 +57,8 @@ public class Participant {
     @Column(name = "muted_until")
     private Instant mutedUntil;
 
+    private Instant deletedAt;
+
     @Column(name = "joined_at", nullable = false, updatable = false)
     @CreationTimestamp
     private Instant joinedAt;
@@ -69,4 +71,5 @@ public class Participant {
 
     @Version
     private Long version;
+
 }

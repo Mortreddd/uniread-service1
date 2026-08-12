@@ -1,9 +1,11 @@
 package com.uniread.chat.service;
 
+import com.uniread.chat.domain.entities.Participant;
 import com.uniread.chat.dto.response.ConversationDetailDto;
 import com.uniread.chat.dto.response.ConversationPreviewDto;
 import com.uniread.chat.dto.response.MessageDto;
 import com.uniread.chat.dto.response.ParticipantDto;
+import com.uniread.common.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,35 +25,39 @@ public class MessageBroadcaster {
     private final SimpMessagingTemplate messagingTemplate;
 
 
+    public void broadcastToParticipants(
+        ConversationPreviewDto conversation,
+        List<Participant> participants
+    ) {
+        participants.forEach((p) -> sendToUser(p.getUser().getId(), CHATS_QUEUE, conversation));
+    }
     public void broadcastToConversation(
             ConversationPreviewDto conversation,
-            MessageDto message,
-            List<ParticipantDto> participants
+            MessageDto message
     ) {
-        participants.forEach((p) -> sendToUser(p.getUserId(), CHATS_QUEUE, conversation));
         String topic = String.format(CHATS_ON_READ_TOPIC, conversation.getConversationId());
         send(topic, message);
     }
 
-    public void broadcastTypingIndicator(UUID conversationId, UUID userId, Boolean isTyping) {
+    public void broadcastTypingIndicator(UUID conversationId, UUID userId, String avatarPhoto, Boolean isTyping) {
         String topic = String.format("/topic/chats.%s.typing", conversationId);
         Map<String, Object> typingEvent = Map.of(
                 "userId", userId,
                 "isTyping", isTyping,
-                "timestamp", System.currentTimeMillis()
+                "avatarPhoto", avatarPhoto,
+                "timestamp", DateUtil.now()
         );
         messagingTemplate.convertAndSend(topic, typingEvent);
     }
 
-    public void broadcastNewParticipantReader(UUID conversationId, UUID readerId) {
-        String topic = String.format("/topic/chats.%s", conversationId);
+    public void broadcastNewParticipantReader(UUID conversationId, UUID readerId, String avatarPhoto) {
+        String topic = String.format("/topic/chats.%s.reader", conversationId);
         Map<String, Object> readerEvent = Map.of(
                 "userId", readerId,
-                "timestamp", System.currentTimeMillis()
+                "avatarPhoto", avatarPhoto,
+                "timestamp", DateUtil.now()
         );
-
         messagingTemplate.convertAndSend(topic, readerEvent);
-
     }
 
 

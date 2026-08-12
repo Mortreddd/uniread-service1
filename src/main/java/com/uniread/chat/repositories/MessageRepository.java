@@ -18,73 +18,38 @@ import java.util.UUID;
 public interface MessageRepository extends JpaRepository<Message, UUID>,
         CrudRepository<Message, UUID> {
 
-    @Query("""
-    SELECT new com.uniread.chat.dto.response.MessageDto(
-        m.id,
-        m.conversation.id,
-        sender.id,
-        CONCAT(sender.profile.firstName, ' ', sender.profile.lastName),
-        m.messageType,
-        m.message,
-        m.deliveredAt,
-        m.createdAt
-    )
-    FROM Message m
-    JOIN m.sender sender
-    JOIN m.conversation c
-    JOIN c.participants p
-    WHERE c.id = :conversationId
-      AND p.user.id = :receiverId
-      AND m.createdAt > p.lastReadAt
-    ORDER BY m.createdAt DESC
-    LIMIT 15
-    """)
-    List<MessageDto> findUnreadMessages(
-            @Param("conversationId") UUID conversationId,
-            @Param("receiverId") UUID receiverId
-    );
-
-    @Query("""
-    SELECT new com.uniread.chat.dto.response.MessageDto(
-        m.id,
-        m.conversation.id,
-        sender.id,
-        CONCAT(profile.firstName, ' ', profile.lastName),
-        m.messageType,
-        m.message,
-        m.deliveredAt,
-        m.createdAt
-    )
-    FROM Message m
-    JOIN m.sender sender
-    JOIN sender.profile profile
-    WHERE m.id = :messageId
-    """)
-    Optional<MessageDto> findMessageById(@Param("messageId") UUID messageId);
-
     @Query(
         value = """
         SELECT new com.uniread.chat.dto.response.MessageDto(
             m.id,
             m.conversation.id,
-            sender.id,
-            CONCAT(sender.profile.firstName, ' ', sender.profile.lastName),
+            m.sender.id,
+            m.senderName,
+            m.senderPhoto,
             m.messageType,
             m.message,
             m.deliveredAt,
             m.createdAt
         )
         FROM Message m
-        JOIN m.sender sender
+        JOIN m.conversation.participants p
         WHERE m.conversation.id = :conversationId
+        AND p.user.id = :userId
+        AND (p.deletedAt IS NULL OR m.createdAt > p.deletedAt)
         """,
         countQuery = """
-        SELECT COUNT(m) FROM Message m WHERE m.conversation.id = :conversationId
+        SELECT COUNT(m)
+        FROM Message m
+        JOIN Participant p
+          ON m.conversation.id = p.conversation.id
+          AND p.user.id = :userId
+        WHERE m.conversation.id = :conversationId
+        AND (p.deletedAt IS NULL OR m.createdAt > p.deletedAt)
         """
     )
     Page<MessageDto> findConversationMessages(
             @Param("conversationId") UUID conversationId,
-            @Param("currentUserId") UUID currentUserId,
-            Pageable pageable
+            Pageable pageable,
+            @Param("userId") UUID userId
     );
 }

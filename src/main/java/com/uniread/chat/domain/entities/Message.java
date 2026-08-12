@@ -33,6 +33,9 @@ public class Message {
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
+    private String senderPhoto;
+    private String senderName;
+
     @Column(nullable = false, length = 5000)
     private String message;
 

@@ -11,53 +11,20 @@ import java.util.Optional;
 @Component
 public class MessageMapper {
 
-    public MessageDto toMessageDto(Message message) {
-        if (message == null) {
-            return null;
-        }
+    public MessageDto toDto(Message message) {
+        if (message == null) return null;
 
-        return new MessageDto(
-                message.getId(),
-                message.getConversation() != null ? message.getConversation().getId() : null,
-                message.getSender() != null ? message.getSender().getId() : null,
-                getSenderFullName(message.getSender()),
-                message.getMessageType(),
-                message.getMessage(),
-                message.getDeliveredAt(),
-                message.getCreatedAt()
-        );
+        return MessageDto.builder()
+                .id(message.getId())
+                .conversationId(message.getConversation().getId())
+                .senderId(message.getSender().getId())
+                .senderName(message.getSenderName())
+                .senderPhoto(message.getSenderPhoto())
+                .type(message.getMessageType())
+                .message(message.getMessage())
+                .deliveredAt(message.getDeliveredAt())
+                .createdAt(message.getCreatedAt())
+                .build();
     }
 
-    private MessageDto mapMessageToDto(Message message) {
-        return new MessageDto(
-                message.getId(),
-                Optional.ofNullable(message.getConversation())
-                        .map(Conversation::getId)
-                        .orElse(null),
-                Optional.ofNullable(message.getSender())
-                        .map(User::getId)
-                        .orElse(null),
-                getSenderFullName(message.getSender()),
-                message.getMessageType(),
-                message.getMessage(),
-                message.getDeliveredAt(),
-                message.getCreatedAt()
-        );
-    }
-
-    public String getSenderFullName(User sender) {
-        return Optional.ofNullable(sender)
-                .map(User::getProfile)
-                .map(profile -> {
-                    String firstName = Optional.ofNullable(profile.getFirstName()).orElse("");
-                    String lastName = Optional.ofNullable(profile.getLastName()).orElse("");
-                    String fullName = (firstName + " " + lastName).trim();
-                    return fullName.isEmpty() ? sender.getUsername() : fullName;
-                })
-                .orElseGet(() ->
-                        Optional.ofNullable(sender)
-                                .map(User::getUsername)
-                                .orElse("Unknown User")
-                );
-    }
 }

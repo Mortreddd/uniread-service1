@@ -3,13 +3,13 @@ package com.uniread.chat.service;
 import com.uniread.auth.domain.entities.CustomUserDetails;
 import com.uniread.chat.dto.request.ConversationFilter;
 import com.uniread.chat.dto.request.DirectConversationRequest;
-import com.uniread.chat.dto.request.ExistingConversationFilter;
 import com.uniread.chat.dto.response.*;
 import com.uniread.chat.domain.entities.Conversation;
-import com.uniread.chat.domain.entities.ParticipantRole;
 import com.uniread.chat.mappers.ConversationMapper;
 import com.uniread.common.exceptions.ResourceNotFoundException;
 import com.uniread.chat.repositories.ConversationRepository;
+import com.uniread.user.dto.response.UserDto;
+import com.uniread.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -19,7 +19,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -27,46 +26,39 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConversationService {
 
+    private final UserService userService;
     private final ConversationMapper conversationMapper;
     private final ConversationRepository conversationRepository;
     private final ParticipantService participantService;
 
     public Page<ConversationPreviewDto> getUserConversationsById(UUID userId, ConversationFilter filter) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "c.updatedAt");
-        Pageable pageable = PageRequest.of(filter.getPageNo(), filter.getPageSize(), sort);
-        return conversationRepository.findConversationsByParticipantId(userId, pageable);
-    }
-
-    @Transactional
-    public Conversation createGroupChat(String name, UUID creatorId, List<UUID> memberIds) {
-
-        var conversation = conversationRepository.save(
-                Conversation.builder()
-                .isGroup(true)
-                .avatarPhoto(null)
-                .name(name)
-                .build()
+        Pageable pageable = PageRequest.of(
+                filter.getPageNo(),
+                filter.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "lastMessageAt")
         );
 
-        participantService.createParticipant(conversation.getId(), creatorId, ParticipantRole.OWNER);
-        participantService.addParticipants(conversation.getId(), memberIds);
-
-
-        log.trace("New created conversation {} with name of {}", conversation.getId(), conversation.getName());
-
-        return conversation;
-
+        return conversationRepository.findUserConversations(userId, pageable)
+                .map(convo -> conversationMapper.toPreviewDto(convo, userId));
     }
 
-
-    public ConversationPreviewDto getConversationPreviewById(UUID conversationId, UUID senderId) {
-        return conversationRepository.findConvoDetailById(conversationId, senderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the preview for conversation"));
-    }
-
-    public ConversationDetailDto getConversationById(UUID conversationId, UUID receiverId) {
-        return conversationRepository.findUserConversationById(conversationId, receiverId)
+    public Conversation getConversationById(UUID conversationId) {
+        return conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the conversation"));
+    }
+
+    public Conversation getConversationWithParticipantsById(UUID conversationId) {
+        return conversationRepository.findWithParticipantsById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Unable to retrieve the conversation"));
+    }
+
+    public ConversationPreviewDto getConversationPreviewById(UUID conversationId, CustomUserDetails userDetails) {
+        return getConversationPreviewById(conversationId, userDetails.getId());
+    }
+    public ConversationPreviewDto getConversationPreviewById(UUID conversationId, UUID userId) {
+        var conversation = getConversationWithParticipantsById(conversationId);
+        return conversationMapper.toPreviewDto(conversation, userId);
+
     }
 
     @Transactional
@@ -74,51 +66,47 @@ public class ConversationService {
             CustomUserDetails userDetails,
             DirectConversationRequest request
     ) {
-        var currentUserId = userDetails.getId();
-        var receiverId = request.getReceiverId();
-        var conversation = conversationRepository.findDirectConversation(currentUserId, receiverId)
-                .orElseGet(() -> createDirectConversation(currentUserId, receiverId));
+        var creator = userService.getUserById(userDetails.getId());
+        var recipient = userService.getUserById(request.getReceiverId());
+        var conversation = conversationRepository.findDirectConversation(creator.getId(), recipient.getId())
+                .orElseGet(() -> createDirectConversation(creator, recipient));
 
         return conversationMapper.toDto(conversation);
     }
 
 
     @Transactional
-    public Conversation createDirectConversation(UUID creatorId, UUID receiverId) {
+    public Conversation createDirectConversation(UserDto creator, UserDto recipient) {
         var conv = conversationRepository.save(Conversation.builder().isGroup(false).build());
 
-
-        participantService.createParticipant(conv.getId(), creatorId);
-        participantService.createParticipant(conv.getId(), receiverId);
+        participantService.createParticipant(conv.getId(), creator);
+        participantService.createParticipant(conv.getId(), recipient);
 
         log.debug("Conversation {} has been created", conv.getId());
         return conv;
     }
 
-
-    @Transactional(readOnly = true)
-    public ConversationInfo getOneToOneConversation(UUID receiverId, ExistingConversationFilter filter, UUID currentUserId) {
-        Conversation conversation = conversationRepository.findOneOnOneConversation(currentUserId, receiverId, filter.getIsGroup())
-                .orElseThrow(() -> new ResourceNotFoundException("Conversation with user does not exist"));
-
-        return new ConversationInfo(conversation.getId());
-    }
-
-
     @Transactional
-    public void changeConversationLastMessage(ConversationPreviewDto conversation, MessageDto message) {
-        conversationRepository.updateConversationLastMessage(conversation.getConversationId(), message.getId());
+    public void markDeleteConversation(UUID conversationId, CustomUserDetails userDetails) {
+        participantService.markDeleted(conversationId, userDetails);
+
     }
 
     @Transactional
-    public Conversation createGroupConversation(UUID creatorId, List<UUID> memberIds) {
-        var convo = conversationRepository.save(Conversation.builder().isGroup(true).build());
-
-
-        participantService.createParticipant(convo.getId(), creatorId, ParticipantRole.ADMIN);
-        participantService.addParticipants(convo.getId(), memberIds);
-
-        return convo;
+    public void changeConversationLastMessage(
+            UUID conversationId,
+            MessageDto message,
+            String senderName,
+            UUID senderId
+    ) {
+        conversationRepository.updateConversationLastMessage(
+                conversationId,
+                message.getId(),
+                message.getMessage(),
+                message.getDeliveredAt(),
+                senderName,
+                senderId
+        );
     }
 
 }
