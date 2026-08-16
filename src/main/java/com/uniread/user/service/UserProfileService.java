@@ -3,7 +3,7 @@ package com.uniread.user.service;
 import com.uniread.auth.dto.response.GoogleUserInfoResponse;
 import com.uniread.common.exceptions.ResourceNotFoundException;
 import com.uniread.user.domain.entities.Gender;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import com.uniread.user.domain.entities.UserProfile;
 import com.uniread.user.repositories.UserProfileRepository;
 import jakarta.transaction.Transactional;

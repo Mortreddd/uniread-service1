@@ -1,6 +1,6 @@
 package com.uniread.notification.domain.entities;
 
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,9 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity

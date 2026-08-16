@@ -2,7 +2,7 @@ package com.uniread.social.domain.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.uniread.book.domain.entities.Paragraph;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

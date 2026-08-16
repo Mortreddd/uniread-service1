@@ -1,7 +1,7 @@
 package com.uniread.collaborator.domain.entities;
 
 import com.uniread.book.domain.entities.Book;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

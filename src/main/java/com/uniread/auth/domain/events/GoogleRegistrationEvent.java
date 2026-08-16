@@ -1,11 +1,9 @@
 package com.uniread.auth.domain.events;
 
 import com.uniread.auth.dto.response.GoogleUserInfoResponse;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-
-import java.util.UUID;
 
 @Getter
 public class GoogleRegistrationEvent extends ApplicationEvent {

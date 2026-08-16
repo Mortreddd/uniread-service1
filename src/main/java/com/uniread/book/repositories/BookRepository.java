@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Repository
 public interface BookRepository
-        extends JpaRepository<Book, UUID>, CrudRepository<Book, UUID>, JpaSpecificationExecutor<Book> {
+        extends JpaRepository<Book, UUID>, JpaSpecificationExecutor<Book> {
 
     @Query("""
     SELECT new com.uniread.book.dto.response.BookStatsDto(

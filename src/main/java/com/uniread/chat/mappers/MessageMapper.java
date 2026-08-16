@@ -1,12 +1,8 @@
 package com.uniread.chat.mappers;
 
-import com.uniread.chat.domain.entities.Conversation;
 import com.uniread.chat.dto.response.MessageDto;
 import com.uniread.chat.domain.entities.Message;
-import com.uniread.user.domain.entities.User;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @Component
 public class MessageMapper {

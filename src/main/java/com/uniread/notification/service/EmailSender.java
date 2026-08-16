@@ -1,10 +1,7 @@
 package com.uniread.notification.service;
 
-import com.uniread.notification.domain.entities.Notification;
 import com.uniread.notification.domain.entities.NotificationChannel;
 import com.uniread.notification.domain.entities.NotificationMessage;
-import com.uniread.notification.repositories.NotificationRepository;
-import com.uniread.user.domain.entities.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

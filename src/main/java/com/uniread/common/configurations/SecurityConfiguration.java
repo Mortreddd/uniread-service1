@@ -51,6 +51,7 @@ public class SecurityConfiguration {
             "/me/**",
     };
 
+    private final String adminPrefixEndpoint = "/admin/**";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -61,6 +62,7 @@ public class SecurityConfiguration {
                         authorize
                                 .requestMatchers(publicEndpoints).permitAll()
                                 .requestMatchers(securedEndpoints).authenticated()
+                                .requestMatchers(adminPrefixEndpoint).hasAnyRole("ADMIN", "ROOT_ACCESS")
                                 .anyRequest()
                                 .authenticated()
                 )

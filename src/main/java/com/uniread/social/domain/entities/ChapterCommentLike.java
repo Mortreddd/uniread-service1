@@ -1,6 +1,6 @@
 package com.uniread.social.domain.entities;
 
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;

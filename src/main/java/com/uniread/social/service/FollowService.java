@@ -7,7 +7,7 @@ import com.uniread.social.dto.response.FollowDto;
 import com.uniread.social.dto.response.FollowUserDto;
 import com.uniread.common.exceptions.ResourceNotFoundException;
 import com.uniread.social.domain.entities.Follow;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import com.uniread.social.exceptions.AlreadyFollowingUserException;
 import com.uniread.social.exceptions.UserNotFollowedException;
 import com.uniread.social.repositories.FollowRepository;

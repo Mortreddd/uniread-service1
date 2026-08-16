@@ -7,7 +7,7 @@ import com.uniread.chat.domain.entities.ParticipantRole;
 import com.uniread.chat.mappers.ParticipantMapper;
 import com.uniread.common.exceptions.DuplicateResourceException;
 import com.uniread.chat.repositories.ParticipantRepository;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import com.uniread.user.dto.response.UserDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

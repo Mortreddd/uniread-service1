@@ -15,8 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface MessageRepository extends JpaRepository<Message, UUID>,
-        CrudRepository<Message, UUID> {
+public interface MessageRepository extends JpaRepository<Message, UUID> {
 
     @Query(
         value = """

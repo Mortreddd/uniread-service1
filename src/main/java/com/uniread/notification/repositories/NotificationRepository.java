@@ -1,7 +1,7 @@
 package com.uniread.notification.repositories;
 
 import com.uniread.notification.domain.entities.Notification;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
