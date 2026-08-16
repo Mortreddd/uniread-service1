@@ -1,6 +1,6 @@
 package com.uniread.user.specifications;
 
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;

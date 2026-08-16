@@ -3,7 +3,7 @@ package com.uniread.user.listeners;
 import com.uniread.auth.domain.events.GoogleRegistrationEvent;
 import com.uniread.auth.domain.events.UserRegisteredEvent;
 import com.uniread.user.domain.entities.Gender;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import com.uniread.user.domain.entities.UserProfile;
 import com.uniread.user.repositories.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,9 +11,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import java.util.Map;
-import java.util.Set;
 
 @Component
 @RequiredArgsConstructor

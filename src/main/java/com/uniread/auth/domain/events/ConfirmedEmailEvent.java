@@ -1,6 +1,6 @@
 package com.uniread.auth.domain.events;
 
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

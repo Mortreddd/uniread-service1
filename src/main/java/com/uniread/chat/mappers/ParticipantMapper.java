@@ -2,7 +2,7 @@ package com.uniread.chat.mappers;
 
 import com.uniread.chat.dto.response.ParticipantDto;
 import com.uniread.chat.domain.entities.Participant;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

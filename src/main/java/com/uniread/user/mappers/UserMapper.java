@@ -2,7 +2,7 @@ package com.uniread.user.mappers;
 
 import com.uniread.user.dto.response.ProfileDetailsDto;
 import com.uniread.user.dto.response.UserDto;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import com.uniread.user.dto.response.UserSearchDto;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +37,6 @@ public class UserMapper {
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .role(user.getRole())
                 .emailVerifiedAt(user.getEmailVerifiedAt())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())

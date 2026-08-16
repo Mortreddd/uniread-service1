@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TagRepository
-        extends JpaRepository<Tag, Integer>, CrudRepository<Tag, Integer> {
+        extends JpaRepository<Tag, Integer>  {
 }

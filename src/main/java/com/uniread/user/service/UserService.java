@@ -3,14 +3,14 @@ package com.uniread.user.service;
 import com.uniread.auth.dto.request.UserRegistrationRequest;
 import com.uniread.common.dto.api.SuccessResponse;
 import com.uniread.common.exceptions.ValidationException;
-import com.uniread.user.domain.entities.Role;
+import com.uniread.user.domain.entities.RoleType;
 import com.uniread.user.domain.events.UpdateEmailEvent;
 import com.uniread.user.dto.request.UserFilter;
 import com.uniread.auth.dto.response.GoogleUserInfoResponse;
 import com.uniread.user.dto.response.CurrentUser;
 import com.uniread.user.dto.response.UserDto;
 import com.uniread.auth.domain.entities.CustomUserDetails;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import com.uniread.user.dto.response.UserSearchDto;
 import com.uniread.user.mappers.UserMapper;
 import com.uniread.common.exceptions.DuplicateResourceException;
@@ -32,8 +32,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.util.StringUtils;
 
-import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -93,6 +91,14 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + currentUserId));
 
         return buildCurrentUser(user);
+    }
+
+    public CurrentUser getCurrentUser(CustomUserDetails userDetails) {
+        var user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userDetails.getId()));
+
+
+        return buildCurrentUser(user, userDetails);
     }
 
     public Optional<User> getUserByEmail(String email) {
@@ -169,7 +175,6 @@ public class UserService {
                 .emailVerifiedAt(null)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .username(username)
-                .role(Role.USER)
                 .email(email)
                 .build();
         return userRepository.save(user);
@@ -210,11 +215,35 @@ public class UserService {
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .role(user.getRole())
+                .hasAdminAccess(false)
                 .emailVerified(user.getIsEmailVerified())
                 .profile(userProfile)
                 .build();
     }
+
+    private CurrentUser buildCurrentUser(User user, CustomUserDetails userDetails) {
+
+        var profile = user.getProfile();
+        var userProfile = CurrentUser.CurrentUserProfile.builder()
+                .displayName(profile.getDisplayName())
+                .firstName(profile.getFirstName())
+                .lastName(profile.getLastName())
+                .fullName(profile.getFirstName() + " " + profile.getLastName())
+                .avatarUrl(profile.getAvatarUrl())
+                .avatarPublicId(profile.getAvatarPublicId())
+                .gender(profile.getGender())
+                .build();
+
+        return CurrentUser.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .hasAdminAccess(!userDetails.getAuthorities().isEmpty())
+                .emailVerified(user.getIsEmailVerified())
+                .profile(userProfile)
+                .build();
+    }
+
     private String generateTemporaryUsername(String email) {
         String baseUsername = email.split("@")[0];
         String uniqueSuffix = UUID.randomUUID().toString().substring(0, 8);

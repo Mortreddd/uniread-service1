@@ -10,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface ChapterRepository
-        extends JpaRepository<Chapter, UUID>, CrudRepository<Chapter, UUID>, JpaSpecificationExecutor<Chapter> {
+        extends JpaRepository<Chapter, UUID>, JpaSpecificationExecutor<Chapter> {
 }

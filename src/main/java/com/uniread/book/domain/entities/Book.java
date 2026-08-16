@@ -5,7 +5,7 @@ import com.uniread.collaborator.domain.entities.CollaboratorRequest;
 import com.uniread.social.domain.entities.BookComment;
 import com.uniread.social.domain.entities.BookLike;
 import com.uniread.user.domain.entities.Library;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;

@@ -1,6 +1,6 @@
 package com.uniread.user.domain.entities;
 
-public enum Role {
+public enum RoleType {
     SUPER_ADMIN,
     ADMIN,
     USER

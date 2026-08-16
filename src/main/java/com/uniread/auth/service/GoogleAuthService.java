@@ -4,7 +4,7 @@ import com.uniread.auth.domain.events.GoogleRegistrationEvent;
 import com.uniread.auth.dto.response.GoogleUserInfoResponse;
 import com.uniread.auth.dto.response.LoginResponse;
 import com.uniread.user.service.UserService;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,7 +63,6 @@ public class GoogleAuthService implements OAuthService {
                         .id(user.getId())
                         .username(user.getUsername())
                         .email(user.getEmail())
-                        .role(user.getRole() != null ? user.getRole().name() : "USER")
                         .emailVerified(user.getIsEmailVerified())
                         .build())
                 .build();

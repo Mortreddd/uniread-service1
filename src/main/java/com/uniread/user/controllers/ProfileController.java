@@ -27,7 +27,7 @@ public class ProfileController {
     public ResponseEntity<CurrentUser> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         if(customUserDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
 
-        CurrentUser currentUser = userService.getCurrentUser(customUserDetails.getId());
+        CurrentUser currentUser = userService.getCurrentUser(customUserDetails);
         return ResponseEntity.ok()
                 .body(currentUser);
     }

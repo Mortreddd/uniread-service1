@@ -3,7 +3,7 @@ package com.uniread.social.repositories;
 import com.uniread.social.dto.response.AuthUserFollowDto;
 import com.uniread.social.dto.response.FollowUserDto;
 import com.uniread.social.domain.entities.Follow;
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;

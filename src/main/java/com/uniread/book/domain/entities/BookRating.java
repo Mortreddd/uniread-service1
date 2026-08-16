@@ -1,6 +1,6 @@
 package com.uniread.book.domain.entities;
 
-import com.uniread.user.domain.entities.User;
+import com.uniread.auth.domain.entities.User;
 import jakarta.persistence.*;
 import lombok.*;
 

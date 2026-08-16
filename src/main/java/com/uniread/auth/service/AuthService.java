@@ -56,7 +56,6 @@ public class AuthService {
             if(userDetails == null) throw new InvalidCredentialsException("Unable to process login credentials");
 
             var user = userService.getUserById(userDetails.getId());
-
             log.info("User logged in : {}", email);
 
             return buildLoginResponse(user);
