@@ -62,7 +62,6 @@ public class SecurityConfiguration {
                         authorize
                                 .requestMatchers(publicEndpoints).permitAll()
                                 .requestMatchers(securedEndpoints).authenticated()
-                                .requestMatchers(adminPrefixEndpoint).hasAnyRole("ADMIN", "ROOT_ACCESS")
                                 .anyRequest()
                                 .authenticated()
                 )

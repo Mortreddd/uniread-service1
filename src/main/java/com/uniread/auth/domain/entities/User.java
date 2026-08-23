@@ -1,15 +1,10 @@
 package com.uniread.auth.domain.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.uniread.user.domain.entities.RoleType;
 import com.uniread.user.domain.entities.UserProfile;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
 import java.util.*;
@@ -54,11 +49,8 @@ public class User {
     @OneToOne(mappedBy = "user")
     private UserProfile profile;
 
-    public Boolean getIsEmailVerified() {
+    public Boolean isEmailVerified() {
         return emailVerifiedAt != null;
-    }
-    public Boolean getIsBanned() {
-        return bannedAt != null;
     }
 
     @ManyToMany(fetch = FetchType.LAZY)

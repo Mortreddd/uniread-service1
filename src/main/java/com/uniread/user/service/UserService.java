@@ -3,7 +3,6 @@ package com.uniread.user.service;
 import com.uniread.auth.dto.request.UserRegistrationRequest;
 import com.uniread.common.dto.api.SuccessResponse;
 import com.uniread.common.exceptions.ValidationException;
-import com.uniread.user.domain.entities.RoleType;
 import com.uniread.user.domain.events.UpdateEmailEvent;
 import com.uniread.user.dto.request.UserFilter;
 import com.uniread.auth.dto.response.GoogleUserInfoResponse;
@@ -65,7 +64,7 @@ public class UserService {
                 Sort.by(direction, filter.getOrderBy())
         );
 
-        return userRepository.findAll(spec, pageable)
+        return userRepository.findAllWithProfile(spec, pageable)
                 .map(userMapper::toDto);
     }
 
@@ -216,7 +215,7 @@ public class UserService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .hasAdminAccess(false)
-                .emailVerified(user.getIsEmailVerified())
+                .emailVerified(user.isEmailVerified())
                 .profile(userProfile)
                 .build();
     }
@@ -239,7 +238,7 @@ public class UserService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .hasAdminAccess(!userDetails.getAuthorities().isEmpty())
-                .emailVerified(user.getIsEmailVerified())
+                .emailVerified(user.isEmailVerified())
                 .profile(userProfile)
                 .build();
     }

@@ -1,26 +1,17 @@
-package com.uniread.user.mappers;
+package com.uniread.admin.mapper;
 
-import com.uniread.user.dto.response.ProfileDetailsDto;
-import com.uniread.user.dto.response.UserDto;
+import com.uniread.admin.dto.response.UserMonitoringDto;
 import com.uniread.auth.domain.entities.User;
-import com.uniread.user.dto.response.UserSearchDto;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserMapper {
+@RequiredArgsConstructor
+public class AdminUserMapper {
 
-    /**
-     * The user is eager loaded a profile so it won't cause N + 1 query issue
-     * @param user
-     * @return UserDto
-     */
-    public UserDto toDto(User user) {
-        if (user == null) {
-            return null;
-        }
-
+    public UserMonitoringDto toUserMonitor(User user) {
         var profile = user.getProfile();
-        var profileDto = ProfileDetailsDto.builder()
+        var profileDto = UserMonitoringDto.UserProfileMonitor.builder()
                 .id(profile.getId())
                 .userId(user.getId())
                 .firstName(profile.getFirstName())
@@ -33,7 +24,7 @@ public class UserMapper {
                 .coverUrl(profile.getCoverUrl())
                 .coverPublicId(profile.getCoverPublicId())
                 .build();
-        return UserDto.builder()
+        return UserMonitoringDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
@@ -47,26 +38,5 @@ public class UserMapper {
                 // Profile fields
                 .profile(profileDto)
                 .build();
-    }
-
-    /**
-     * The user is eager loaded a profile so it won't cause N + 1 query issue
-     * @param user
-     * @return
-     */
-    public UserSearchDto toSearchDto(User user) {
-        if(user == null) return null;
-
-        var profile = user.getProfile();
-        return UserSearchDto.builder()
-                .id(user.getId())
-                .displayName(profile.getDisplayName())
-                .firstName(profile.getFirstName())
-                .lastName(profile.getLastName())
-                .avatarUrl(profile.getAvatarUrl())
-                .username(user.getUsername())
-                .isEmailVerified(user.isEmailVerified())
-                .build();
-
     }
 }
