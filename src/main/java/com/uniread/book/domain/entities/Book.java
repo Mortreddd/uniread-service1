@@ -1,22 +1,13 @@
 package com.uniread.book.domain.entities;
 
-import com.uniread.collaborator.domain.entities.Collaborator;
-import com.uniread.collaborator.domain.entities.CollaboratorRequest;
-import com.uniread.social.domain.entities.BookComment;
-import com.uniread.social.domain.entities.BookLike;
-import com.uniread.user.domain.entities.Library;
 import com.uniread.auth.domain.entities.User;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "books", indexes = {
@@ -36,15 +27,21 @@ public class Book {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "user_id")
-    @JsonBackReference
     private User user;
 
     private String title;
     private String coverPhoto;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
-    private Integer readCount;
-    private Boolean completed;
-    private Boolean matured;
+
+    @Builder.Default
+    private Integer readCount = 0;
+    @Builder.Default
+    private Boolean completed = false;
+    @Builder.Default
+    private Boolean matured = false;
 
     @Builder.Default
     private Long ratingCount = 0L;
@@ -54,12 +51,17 @@ public class Book {
     @Enumerated(EnumType.STRING)
     private BookStatus status;
 
+    @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "book_genres",
             joinColumns = { @JoinColumn(name = "book_id")},
-            inverseJoinColumns = { @JoinColumn(name = "genre_id")})
-    @JsonManagedReference
-    private List<Genre> genres;
+            inverseJoinColumns = { @JoinColumn(name = "genre_id") },
+            indexes = {
+                @Index(name = "idx_book_genres_book_id", columnList = "book_id"),
+                @Index(name = "idx_book_genres_genre_id", columnList = "genre_id")
+            }
+    )
+    private Set<Genre> genres = new HashSet<>();
 
     @CreationTimestamp
     private Instant createdAt;
@@ -75,28 +77,7 @@ public class Book {
 
     @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
-    @JsonManagedReference
     private List<Chapter> chapters = new ArrayList<>();
-
-    @Builder.Default
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book", cascade = CascadeType.REMOVE)
-    @JsonManagedReference
-    private List<BookComment> bookComments = new ArrayList<>();
-
-    @Builder.Default
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book", cascade = CascadeType.REMOVE)
-    @JsonManagedReference
-    private List<BookLike> bookLikes = new ArrayList<>();
-
-    @Builder.Default
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
-    @JsonManagedReference
-    private List<Collaborator> collaborators = new ArrayList<>();
-
-    @Builder.Default
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
-    @JsonManagedReference
-    private List<CollaboratorRequest> collaboratorRequests = new ArrayList<>();
 
     @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY)
@@ -104,13 +85,10 @@ public class Book {
             @JoinColumn(name = "book_id")
     }, inverseJoinColumns = {
             @JoinColumn(name = "tag_id")
+    }, indexes = {
+            @Index(name = "idx_book_tags_book_id", columnList = "book_id"),
+            @Index(name = "idx_book_tags_tag_id", columnList = "tag_id")
     })
-    @JsonManagedReference
-    private List<Tag> tags = new ArrayList<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<Library> libraries = new ArrayList<>();
+    private Set<Tag> tags = new HashSet<>();
 
 }

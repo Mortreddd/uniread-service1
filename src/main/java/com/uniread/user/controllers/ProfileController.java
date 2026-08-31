@@ -1,10 +1,12 @@
 package com.uniread.user.controllers;
 
 import com.uniread.auth.exceptions.InvalidTokenException;
-import com.uniread.user.dto.request.UpdateUserPhotoRequest;
+import com.uniread.user.dto.request.UpdateUserAvatarRequest;
+import com.uniread.user.dto.request.UpdateUserCoverRequest;
 import com.uniread.user.dto.request.UpdateUserProfileRequest;
 import com.uniread.user.dto.response.CurrentUser;
 import com.uniread.user.dto.response.ProfileDetailsDto;
+import com.uniread.user.dto.response.ProfilePhotoResponse;
 import com.uniread.user.dto.response.UserProfileDto;
 import com.uniread.user.service.ProfileService;
 import com.uniread.auth.domain.entities.CustomUserDetails;
@@ -42,23 +44,42 @@ public class ProfileController {
         return ResponseEntity.ok(profile);
     }
 
-    @PatchMapping(path = "/profile/avatar")
-    public ResponseEntity updateAvatarPhoto(
+    @PostMapping(path = "/profile/avatar")
+    public ResponseEntity<ProfilePhotoResponse> updateAvatarPhoto(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody UpdateUserPhotoRequest request
+            @Valid @ModelAttribute UpdateUserAvatarRequest request
     ) {
         if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
-        profileService.updateAvatarPhoto(userDetails, request.getSecureUrl(), request.getPublicId());
+        var response = profileService.updateAvatarPhoto(userDetails, request);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PostMapping(path = "/profile/cover")
+    public ResponseEntity<ProfilePhotoResponse> updateCoverPhoto(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody UpdateUserCoverRequest request
+    ) {
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
+        var response = profileService.updateCoverPhoto(userDetails, request);
+        return ResponseEntity.ok().body(response);
+    }
+
+
+    @DeleteMapping(path = "/profile/avatar")
+    public ResponseEntity deleteAvatarPhoto(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
+        profileService.deleteAvatar(userDetails);
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping(path = "/profile/cover")
-    public ResponseEntity updateCoverPhoto(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody UpdateUserPhotoRequest request
+    @DeleteMapping(path = "/profile/cover")
+    public ResponseEntity deleteCoverPhoto(
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
-        profileService.updateCoverPhoto(userDetails, request.getSecureUrl(), request.getPublicId());
+        profileService.deleteCover(userDetails);
         return ResponseEntity.ok().build();
     }
 

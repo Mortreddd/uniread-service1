@@ -1,20 +1,20 @@
-package com.uniread.book.dto.response;
+package com.uniread.admin.dto.response;
+
 
 import lombok.*;
 
 import java.time.Instant;
 import java.util.UUID;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@Builder
 @NoArgsConstructor
-public class GenreDto {
+@AllArgsConstructor
+@Setter
+@Getter
+@Builder
+public class TagDetailDto {
     private UUID id;
     private String name;
-    private Long bookCount;
-    private String description;
+    private Long usageCount;
     private Instant createdAt;
     private Instant updatedAt;
 }

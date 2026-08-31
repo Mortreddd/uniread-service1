@@ -16,11 +16,14 @@ public class GenreMapper {
             return null;
         }
 
-        return new GenreDto(
-                genre.getId(),
-                genre.getName(),
-                genre.getDescription()
-        );
+        return GenreDto.builder()
+                .id(genre.getId())
+                .name(genre.getName())
+                .bookCount(genre.getBookCount())
+                .description(genre.getDescription())
+                .createdAt(genre.getCreatedAt())
+                .updatedAt(genre.getUpdatedAt())
+                .build();
     }
 
     public List<GenreDto> toDtoList(List<Genre> genres) {

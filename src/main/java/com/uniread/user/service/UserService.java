@@ -89,7 +89,7 @@ public class UserService {
         var user = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + currentUserId));
 
-        return buildCurrentUser(user);
+        return userMapper.toCurrentUser(user);
     }
 
     public CurrentUser getCurrentUser(CustomUserDetails userDetails) {
@@ -97,7 +97,7 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userDetails.getId()));
 
 
-        return buildCurrentUser(user, userDetails);
+        return userMapper.toCurrentUser(user, userDetails);
     }
 
     public Optional<User> getUserByEmail(String email) {
@@ -197,51 +197,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    private CurrentUser buildCurrentUser(User user) {
 
-        var profile = user.getProfile();
-        var userProfile = CurrentUser.CurrentUserProfile.builder()
-                .displayName(profile.getDisplayName())
-                .firstName(profile.getFirstName())
-                .lastName(profile.getLastName())
-                .fullName(profile.getFirstName() + " " + profile.getLastName())
-                .avatarUrl(profile.getAvatarUrl())
-                .avatarPublicId(profile.getAvatarPublicId())
-                .gender(profile.getGender())
-                .build();
-
-        return CurrentUser.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .hasAdminAccess(false)
-                .emailVerified(user.isEmailVerified())
-                .profile(userProfile)
-                .build();
-    }
-
-    private CurrentUser buildCurrentUser(User user, CustomUserDetails userDetails) {
-
-        var profile = user.getProfile();
-        var userProfile = CurrentUser.CurrentUserProfile.builder()
-                .displayName(profile.getDisplayName())
-                .firstName(profile.getFirstName())
-                .lastName(profile.getLastName())
-                .fullName(profile.getFirstName() + " " + profile.getLastName())
-                .avatarUrl(profile.getAvatarUrl())
-                .avatarPublicId(profile.getAvatarPublicId())
-                .gender(profile.getGender())
-                .build();
-
-        return CurrentUser.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .hasAdminAccess(!userDetails.getAuthorities().isEmpty())
-                .emailVerified(user.isEmailVerified())
-                .profile(userProfile)
-                .build();
-    }
 
     private String generateTemporaryUsername(String email) {
         String baseUsername = email.split("@")[0];

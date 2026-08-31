@@ -1,4 +1,4 @@
-package com.uniread.admin.mapper;
+package com.uniread.admin.mappers;
 
 import com.uniread.admin.dto.response.UserMonitoringDto;
 import com.uniread.auth.domain.entities.User;

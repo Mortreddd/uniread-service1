@@ -21,6 +21,12 @@ spring:
       hibernate:
         format_sql: true
 
+
+cloudinary:
+  secure: true
+  folder: uniread
+  max-file-size: 10MB
+
 logging:
   level:
     org:

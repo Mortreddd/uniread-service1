@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -21,23 +22,14 @@ import java.util.List;
 public class Tag {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(unique = true)
     private String name;
 
     @Builder.Default
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    @JoinTable(name = "book_tags", joinColumns = {
-            @JoinColumn(name = "tag_id")
-    }, inverseJoinColumns = {
-            @JoinColumn(name = "book_id")
-    }, indexes = {
-            @Index(name = "idx_book_tags_book_id", columnList = "book_id"),
-            @Index(name = "idx_book_tags_tag_id", columnList = "tag_id")
-    })
-    private List<Book> books = new ArrayList<>();
+    private Long usageCount = 0L;
 
     @CreationTimestamp
     private Instant createdAt;

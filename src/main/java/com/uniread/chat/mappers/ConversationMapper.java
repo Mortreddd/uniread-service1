@@ -9,6 +9,7 @@ import com.uniread.chat.dto.response.MessageDto;
 import com.uniread.chat.domain.entities.Conversation;
 import com.uniread.chat.domain.entities.Message;
 import com.uniread.chat.domain.entities.Participant;
+import com.uniread.common.services.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ConversationMapper {
 
+    private final CloudinaryService cloudinaryService;
     private final MessageMapper messageMapper;
 
     public ConversationPreviewDto toPreviewDto(
@@ -28,6 +30,7 @@ public class ConversationMapper {
         var participants = conversation.getParticipants();
         return toPreviewDto(conversation, participants, currentUserId);
     }
+
     public ConversationPreviewDto toPreviewDto(
             Conversation conversation,
             List<Participant> participants,
@@ -52,11 +55,6 @@ public class ConversationMapper {
                 ? otherParticipant.getUser().getProfile().getDisplayName()
                 : null);
 
-        String conversationAvatar = conversation.getIsGroup()
-                ? conversation.getAvatarPhoto()
-                : (otherParticipant != null
-                ? otherParticipant.getUser().getProfile().getAvatarUrl()
-                : null);
 
         String conversationAvatarPublicId = conversation.getIsGroup()
                 ? conversation.getAvatarPublicId()
@@ -64,11 +62,12 @@ public class ConversationMapper {
                 ? otherParticipant.getUser().getProfile().getAvatarPublicId()
                 : null);
 
+        String conversationAvatar = cloudinaryService.generatePublicUrl(conversationAvatarPublicId);
+
         return ConversationPreviewDto.builder()
                 .conversationId(conversation.getId())
                 .name(conversationName)
                 .avatarUrl(conversationAvatar)
-                .avatarPublicId(conversationAvatarPublicId)
                 .unreadCount(currentParticipant != null ? currentParticipant.getUnreadCount() : 0L)
                 .hasNewMessage(currentParticipant != null && currentParticipant.getUnreadCount() > 0)
                 .isMuted(currentParticipant != null && currentParticipant.getMuted())

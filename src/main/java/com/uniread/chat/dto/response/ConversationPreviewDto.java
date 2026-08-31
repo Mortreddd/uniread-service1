@@ -17,7 +17,6 @@ public class ConversationPreviewDto {
     private UUID conversationId;
     private String name;
     private String avatarUrl;
-    private String avatarPublicId;
 
     private Long unreadCount;
     private Boolean hasNewMessage;
