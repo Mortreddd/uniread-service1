@@ -1,6 +1,8 @@
 package com.uniread.common.utils;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * Utility class for handling date and time operations.
@@ -14,5 +16,11 @@ public class DateUtil {
      */
     public static Instant now() {
         return Instant.now();
+    }
+
+    public static Instant parse(LocalDateTime time) {
+        if(time == null) return null;
+        return time.toInstant(ZoneOffset.UTC);
+
     }
 }

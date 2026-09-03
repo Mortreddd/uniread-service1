@@ -63,7 +63,7 @@ public class GoogleAuthService implements OAuthService {
                         .id(user.getId())
                         .username(user.getUsername())
                         .email(user.getEmail())
-                        .emailVerified(user.getIsEmailVerified())
+                        .emailVerified(user.isEmailVerified())
                         .build())
                 .build();
     }
