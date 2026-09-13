@@ -23,12 +23,16 @@ import java.util.UUID;
 @Slf4j
 public class ParticipantService {
 
-    private final ParticipantMapper participantMapper;
     private final ParticipantRepository participantRepository;
 
     @Transactional
     public void markParticipantAsRead(UUID conversationId, UUID userId) {
-        int rows = participantRepository.updateLastReadAtByConversationIdAndUserId(conversationId, userId);
+        participantRepository.updateLastReadAtByConversationIdAndUserId(conversationId, userId);
+    }
+
+    @Transactional
+    public void incrementUnreadForOthers(UUID conversationId, UUID authUserId) {
+        participantRepository.incrementUnreadForOthers(conversationId, authUserId);
     }
 
     @Transactional
@@ -58,7 +62,7 @@ public class ParticipantService {
                 .joinedAt(Instant.now())
                 .build();
 
-        var saved = participantRepository.save(participant);
+        participantRepository.save(participant);
         log.info("User {} has been added in conversation {} with role {}", user.getId(), conversationId, role);
     }
 

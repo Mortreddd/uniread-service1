@@ -31,8 +31,9 @@ public class BookDetailDto {
     private BookStatus status;
     private Boolean completed;
     private Boolean matured;
-    private List<GenreDto> genres;
+    private List<MiniGenreDto> genres;
     private Boolean isAddedToLibrary;
     private Instant createdAt;
+    private Instant updatedAt;
 
 }

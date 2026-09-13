@@ -39,9 +39,16 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
     );
 
     @Modifying
+    @Query(value = """
+            UPDATE participants SET unread_count = unread_count + 1
+            WHERE conversation_id = :conversationId AND user_id <> :authUserId
+            """, nativeQuery = true)
+    void incrementUnreadForOthers(@Param("conversationId") UUID conversationId, @Param("authUserId") UUID authUserId);
+
+    @Modifying
     @Query("UPDATE Participant p SET p.lastReadAt = CURRENT_TIMESTAMP, p.unreadCount = 0 " +
             "WHERE p.conversation.id = :conversationId AND p.user.id = :userId")
-    int updateLastReadAtByConversationIdAndUserId(
+    void updateLastReadAtByConversationIdAndUserId(
             @Param("conversationId") UUID conversationId,
             @Param("userId") UUID userId
     );

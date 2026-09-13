@@ -1,11 +1,11 @@
-package com.uniread.user.service;
+package com.uniread.book.service;
 
 import com.cloudinary.Transformation;
 import com.uniread.common.exceptions.ValidationException;
 import com.uniread.common.services.CloudinaryService;
+import com.uniread.common.services.ImageValidator;
 import com.uniread.common.services.PrivateImageService;
 import com.uniread.common.services.PublicImageService;
-import com.uniread.common.utils.DateUtil;
 import com.uniread.common.utils.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,55 +21,38 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserProfilePhotoService implements PublicImageService, PrivateImageService {
+public class BookCoverService implements PublicImageService, PrivateImageService, ImageValidator {
+
 
     private final CloudinaryService cloudinaryService;
 
-    private static final String AVATAR_FOLDER = "uniread/avatars/%s_%s";
-    private static final String COVER_FOLDER = "uniread/covers/%s_%s";
+    private static final String BOOK_FOLDER = "uniread/books/%s_%s";
     private static final int MAX_IMAGE_SIZE = 10 * 1024 * 1024;
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
 
 
-    public void deleteAvatar(String publicId) {
-        cloudinaryService.delete(publicId);
-    }
-
-    public void deleteCoverPhoto(String publicId) {
+    public void deleteCover(String publicId) {
         cloudinaryService.delete(publicId);
     }
 
     /**
      * Delete old avatar and upload new one
      */
-    public Map<String, Object> replaceAvatar(MultipartFile file, UUID userId, String oldPublicId) {
-        var uploadResult = uploadProfileImage(file, userId);
+    public Map<String, Object> replaceAvatar(MultipartFile file, UUID bookId, String oldPublicId) {
+        var uploadResult = uploadCoverPhoto(file, bookId);
 
         if (oldPublicId != null && !oldPublicId.isEmpty()) {
-            deleteAvatar(oldPublicId);
+            deleteCover(oldPublicId);
         }
 
         return uploadResult;
     }
 
-    /**
-     * Delete old cover photo and upload new one
-     */
-    public Map<String, Object> replaceCover(MultipartFile file, UUID userId, String oldPublicId) {
-        var uploadResult = uploadCoverPhoto(file, userId);
-
-        if (oldPublicId != null && !oldPublicId.isEmpty()) {
-            deleteCoverPhoto(oldPublicId);
-        }
-
-        return uploadResult;
-    }
-
-    public Map<String, Object> uploadCoverPhoto(MultipartFile file, UUID userId) {
+    public Map<String, Object> uploadCoverPhoto(MultipartFile file, UUID bookId) {
         validateFile(file);
 
         try {
-            String publicId = String.format(COVER_FOLDER, userId, UUID.randomUUID());
+            String publicId = String.format(BOOK_FOLDER, bookId, UUID.randomUUID());
 
             Map<String, Object> uploadOptions = new HashMap<>();
             uploadOptions.put("public_id", publicId);
@@ -77,7 +60,7 @@ public class UserProfilePhotoService implements PublicImageService, PrivateImage
             uploadOptions.put("invalidate", true);
 
             uploadOptions.put("transformation", new Transformation<>()
-                    .width(1200).height(1000).crop("fill")
+                    .width(600).height(900).crop("fill")
                     .gravity("face")
                     .quality("auto:best")
                     .fetchFormat("webp")
@@ -89,49 +72,18 @@ public class UserProfilePhotoService implements PublicImageService, PrivateImage
 
             String publicIdResult = uploadResult.get("public_id").toString();
 
-            log.info("Avatar uploaded successfully for user {}: {}", userId, publicIdResult);
+            log.info("Book cover uploaded successfully for book {}: {}", bookId, publicIdResult);
             return uploadOptions;
 
         } catch (IOException e) {
-            log.error("Failed to upload avatar for user {}: {}", userId, e.getMessage());
-            throw new RuntimeException("Failed to upload avatar", e);
+            log.error("Failed to upload book cover for book {}: {}", bookId, e.getMessage());
+            throw new RuntimeException("Failed to upload book cover", e);
         }
     }
 
-    public Map<String, Object> uploadProfileImage(MultipartFile file, UUID userId) {
-        validateFile(file);
 
-        try {
-            String publicId = String.format(AVATAR_FOLDER, userId, UUID.randomUUID());
-
-            Map<String, Object> uploadOptions = new HashMap<>();
-            uploadOptions.put("public_id", publicId);
-            uploadOptions.put("overwrite", true);
-            uploadOptions.put("invalidate", true);
-
-            uploadOptions.put("transformation", new Transformation<>()
-                    .width(400).height(400).crop("fill")
-                    .gravity("face")
-                    .quality("auto:best")
-                    .fetchFormat("webp")
-                    .chain()
-                    .effect("sharpen")
-            );
-
-            Map uploadResult = cloudinaryService.upload(file.getBytes(), uploadOptions);
-
-            String publicIdResult = uploadResult.get("public_id").toString();
-
-            log.info("Cover Photo uploaded successfully for user {}: {}", userId, publicIdResult);
-            return uploadOptions;
-
-        } catch (IOException e) {
-            log.error("Failed to upload cover photo for user {}: {}", userId, e.getMessage());
-            throw new RuntimeException("Failed to upload avatar", e);
-        }
-    }
-
-    private void validateFile(MultipartFile file) {
+    @Override
+    public void validateFile(MultipartFile file) {
         if (file.getSize() > MAX_IMAGE_SIZE) {
             throw new ValidationException("Image size exceeds maximum allowed (10MB)");
         }

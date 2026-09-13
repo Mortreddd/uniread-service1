@@ -1,6 +1,5 @@
 package com.uniread.notification.dto.response;
 
-import com.uniread.book.dto.response.AuthorDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -13,7 +12,6 @@ public class NotificationDto {
 
     private UUID id;
 
-    private AuthorDto user;
 
     private String title;
 

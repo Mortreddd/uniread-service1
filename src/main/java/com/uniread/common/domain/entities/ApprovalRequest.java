@@ -28,4 +28,6 @@ public abstract class ApprovalRequest {
     private User requester;
     private ApprovalRequestType requestType;
     private ApprovalRequestStatus requestStatus;
+
+
 }

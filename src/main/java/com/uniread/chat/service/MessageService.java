@@ -1,5 +1,6 @@
 package com.uniread.chat.service;
 
+import com.uniread.auth.domain.entities.CustomUserDetails;
 import com.uniread.chat.dto.request.ConversationMessageFilter;
 import com.uniread.chat.dto.request.NewMessageRequest;
 import com.uniread.chat.dto.response.MessageDto;
@@ -7,6 +8,7 @@ import com.uniread.chat.domain.entities.Conversation;
 import com.uniread.chat.domain.entities.Message;
 import com.uniread.chat.domain.entities.MessageStatus;
 import com.uniread.auth.domain.entities.User;
+import com.uniread.chat.dto.response.TotalUnreadMessage;
 import com.uniread.chat.mappers.MessageMapper;
 import com.uniread.chat.repositories.MessageRepository;
 import com.uniread.user.dto.response.CurrentUser;
@@ -58,4 +60,8 @@ public class MessageService {
         return messageMapper.toDto(messageRepository.save(message));
     }
 
+    public TotalUnreadMessage getTotalUnreadMessages(CustomUserDetails userDetails) {
+        var unreadMessagesCount = messageRepository.countTotalUnread(userDetails.getId());
+        return new TotalUnreadMessage(unreadMessagesCount);
+    }
 }

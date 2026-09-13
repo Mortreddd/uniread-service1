@@ -7,8 +7,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.time.Instant;
 import java.util.UUID;
 
+@Data
 @Table(name = "book_approval_requests")
 @Entity
 @NoArgsConstructor
@@ -18,16 +20,18 @@ public class BookApprovalRequest extends ApprovalRequest {
 
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "user_id")
-    @JsonBackReference
-    private User user;
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "book_id")
+    private Book book;
 
-    private String title;
-    private String coverPhoto;
-    private String description;
-    private Integer readCount;
-    private Boolean completed;
-    private Boolean matured;
+    private String reason;
 
+    private Instant reviewedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reviewer_id")
+    private User reviewer;
+
+    private String reviewerUsername;
+    private String reviewerDisplayName;
 }

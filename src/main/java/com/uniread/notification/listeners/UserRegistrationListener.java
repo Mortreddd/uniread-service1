@@ -3,6 +3,7 @@ package com.uniread.notification.listeners;
 import com.uniread.auth.domain.events.GoogleRegistrationEvent;
 import com.uniread.auth.domain.events.NewVerifiedUserEvent;
 import com.uniread.auth.domain.events.UserRegisteredEvent;
+import com.uniread.auth.domain.events.VerifyAccountEvent;
 import com.uniread.notification.domain.entities.NotificationChannel;
 import com.uniread.notification.domain.entities.NotificationMessage;
 import com.uniread.notification.domain.entities.NotificationType;
@@ -69,6 +70,12 @@ public class UserRegistrationListener {
                 .build();
 
         emailService.broadcast(message);
+
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onVerifyAccount(VerifyAccountEvent event) {
 
     }
 
