@@ -11,6 +11,7 @@ import java.util.Map;
 @Setter
 @Builder
 public class ErrorResponse {
+    private String code;
     private Instant timestamp;
     private Integer status;
     private String error;

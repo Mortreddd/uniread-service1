@@ -3,7 +3,9 @@ package com.uniread.auth.service;
 import com.uniread.auth.domain.entities.VerificationToken;
 import com.uniread.auth.domain.events.NewVerifiedUserEvent;
 import com.uniread.auth.domain.events.UserRegisteredEvent;
+import com.uniread.auth.domain.events.VerifyAccountEvent;
 import com.uniread.auth.dto.request.UserRegistrationRequest;
+import com.uniread.auth.dto.request.VerifyAccountRequest;
 import com.uniread.auth.dto.response.LoginResponse;
 import com.uniread.auth.repositories.VerificationTokenRepository;
 import com.uniread.common.dto.api.SuccessResponse;
@@ -89,7 +91,32 @@ public class AuthService {
     }
 
     @Transactional
-    public SuccessResponse confirmEmail(String token) {
+    public SuccessResponse verifyAccount(VerifyAccountRequest request) {
+
+        var user = userService.getUserByEmail(request.getEmail());
+
+
+        if(user.isEmpty()) {
+            throw new ValidationException("The email does not exist");
+        }
+
+        var foundUser = user.get();
+        var event = new VerifyAccountEvent(
+                foundUser.getId(),
+                foundUser.getEmail(),
+                foundUser.getUsername()
+        );
+
+        publisher.publishEvent(event);
+
+        return SuccessResponse.builder()
+                .code(HttpStatus.OK.value())
+                .message("Successfully sent verification email")
+                .build();
+    }
+
+    @Transactional
+    public LoginResponse confirmEmail(String token) {
         var vt = verificationRepository.findById(token)
                 .orElseThrow(() -> new ValidationException("Invalid token"));
 
@@ -115,10 +142,8 @@ public class AuthService {
 
         publisher.publishEvent(event);
 
-        return SuccessResponse.builder()
-                .code(HttpStatus.OK.value())
-                .message("Successfully verified email")
-                .build();
+        return buildLoginResponse(user);
+
     }
 
     @Transactional(readOnly = true)

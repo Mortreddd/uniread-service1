@@ -10,7 +10,6 @@ import com.uniread.chat.service.MessageService;
 import com.uniread.auth.domain.entities.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +22,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping(path = "/conversations")
 @RequiredArgsConstructor
-public class ConversationController {
+public class ChatController {
 
     private final MessageService messageService;
     private final ConversationService conversationService;
@@ -75,7 +74,6 @@ public class ConversationController {
         conversationService.markDeleteConversation(conversationId, userDetails);
         return ResponseEntity.ok().build();
     }
-
     /**
      * * Get all the messages on selected conversation
      * @param conversationId
@@ -95,4 +93,7 @@ public class ConversationController {
         return ResponseEntity.ok()
                 .body(messages);
     }
+
+
+
 }

@@ -25,6 +25,10 @@ public class GenreService {
 
     }
 
+    public List<Genre> getGenresByIds(List<UUID> ids) {
+        return repository.findAllById(ids);
+    }
+
     public List<GenreDto> mapToDto(List<Genre> genres) {
         return genres.stream().map(mapper::toDto).toList();
     }

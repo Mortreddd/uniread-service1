@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Repository
 public interface GenreRepository
-        extends JpaRepository<Genre, Integer> {
+        extends JpaRepository<Genre, UUID> {
     List<Genre> findByBooksId(UUID bookId);
+
 }

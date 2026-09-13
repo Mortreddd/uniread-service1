@@ -50,7 +50,7 @@ public class ChatService {
         broadcaster.broadcastToConversation(conversationPayload, message);
         broadcaster.broadcastToParticipants(conversationPayload, participants);
         markParticipantAsRead(conversationId, senderId);
-
+        participantService.incrementUnreadForOthers(conversationId, senderId);
     }
 
     public void markParticipantAsRead(UUID conversationId, UUID readerId) {

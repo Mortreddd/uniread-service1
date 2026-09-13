@@ -51,4 +51,12 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
             Pageable pageable,
             @Param("userId") UUID userId
     );
+
+    @Query(value = """
+    SELECT COALESCE(SUM(p.unread_count), 0)
+    FROM participants p
+    WHERE p.user_id = :userId
+    """,
+            nativeQuery = true)
+    long countTotalUnread(@Param("userId") UUID userId);
 }

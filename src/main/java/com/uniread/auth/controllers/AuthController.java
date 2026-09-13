@@ -1,9 +1,6 @@
 package com.uniread.auth.controllers;
 
-import com.uniread.auth.dto.request.ForgotPasswordRequest;
-import com.uniread.auth.dto.request.LoginRequest;
-import com.uniread.auth.dto.request.UserRegistrationRequest;
-import com.uniread.auth.dto.request.VerifyEmailRequest;
+import com.uniread.auth.dto.request.*;
 import com.uniread.auth.dto.response.LoginResponse;
 import com.uniread.auth.service.AuthCookieService;
 import com.uniread.auth.service.AuthService;
@@ -37,11 +34,21 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/verify-account")
+    public ResponseEntity verifyAccount(
+            @Valid @RequestBody VerifyAccountRequest request
+    ) {
+
+        var response = authService.verifyAccount(request);
+        return ResponseEntity.ok(response);
+    }
     @PostMapping("/verify-email")
     public ResponseEntity confirmEmail(
-            @Valid @RequestBody VerifyEmailRequest request
+            @Valid @RequestBody VerifyEmailRequest request,
+            HttpServletResponse httpServletResponse
     ) {
         var response = authService.confirmEmail(request.getToken());
+        cookieService.setAuthCookies(httpServletResponse, response);
         return ResponseEntity.ok().body(response);
     }
 

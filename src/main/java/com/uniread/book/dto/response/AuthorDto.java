@@ -13,6 +13,5 @@ public class AuthorDto {
     private String username;
     private String firstName;
     private String lastName;
-    private Gender gender;
     private String avatarUrl;
 }

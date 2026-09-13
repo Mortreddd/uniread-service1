@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.domain.Persistable;
 
 import java.time.Instant;
 import java.util.*;
@@ -19,10 +20,9 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Book {
+public class Book implements Persistable<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
@@ -30,7 +30,8 @@ public class Book {
     private User user;
 
     private String title;
-    private String coverPhoto;
+    private String coverUrl;
+    private String coverPublicId;
 
     @Lob
     @Column(columnDefinition = "TEXT")
@@ -39,9 +40,14 @@ public class Book {
     @Builder.Default
     private Integer readCount = 0;
     @Builder.Default
+    private Integer chaptersCount = 0;
+
+    @Builder.Default
     private Boolean completed = false;
     @Builder.Default
     private Boolean matured = false;
+    @Builder.Default
+    private Boolean isCollaborate = false;
 
     @Builder.Default
     private Long ratingCount = 0L;
@@ -76,8 +82,12 @@ public class Book {
     private Instant publishedAt;
 
     @Builder.Default
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
+    @OneToMany(mappedBy = "book")
     private List<Chapter> chapters = new ArrayList<>();
+
+    @Transient
+    @Builder.Default
+    private boolean isNew = true;
 
     @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY)
@@ -91,4 +101,19 @@ public class Book {
     })
     private Set<Tag> tags = new HashSet<>();
 
+    @Override
+    public UUID getId() {
+        return id;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+
+    @PostPersist
+    @PostLoad
+    private void markNotNew() {
+        this.isNew = false;
+    }
 }

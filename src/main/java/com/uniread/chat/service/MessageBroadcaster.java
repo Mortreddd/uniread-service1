@@ -5,6 +5,8 @@ import com.uniread.chat.dto.response.ConversationDetailDto;
 import com.uniread.chat.dto.response.ConversationPreviewDto;
 import com.uniread.chat.dto.response.MessageDto;
 import com.uniread.chat.dto.response.ParticipantDto;
+import com.uniread.common.domain.events.WebSocketEvent;
+import com.uniread.common.domain.events.WebSocketEventType;
 import com.uniread.common.utils.DateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,17 +31,32 @@ public class MessageBroadcaster {
         ConversationPreviewDto conversation,
         List<Participant> participants
     ) {
-        participants.forEach((p) -> sendToUser(p.getUser().getId(), CHATS_QUEUE, conversation));
+        var event = new WebSocketEvent<>(
+                WebSocketEventType.CHAT_UPDATED.name(),
+                conversation
+        );
+        participants.forEach((p) ->
+                sendToUser(p.getUser().getId(), CHATS_QUEUE, event)
+        );
     }
     public void broadcastToConversation(
             ConversationPreviewDto conversation,
             MessageDto message
     ) {
         String topic = String.format(CHATS_ON_READ_TOPIC, conversation.getConversationId());
-        send(topic, message);
+        var event = new WebSocketEvent<>(
+                WebSocketEventType.MESSAGE_RECEIVED.name(),
+                message
+        );
+        send(topic, event);
     }
 
-    public void broadcastTypingIndicator(UUID conversationId, UUID userId, String avatarPhoto, Boolean isTyping) {
+    public void broadcastTypingIndicator(
+            UUID conversationId,
+            UUID userId,
+            String avatarPhoto,
+            Boolean isTyping
+    ) {
         String topic = String.format("/topic/chats.%s.typing", conversationId);
         Map<String, Object> typingEvent = Map.of(
                 "userId", userId,
@@ -47,7 +64,13 @@ public class MessageBroadcaster {
                 "avatarPhoto", avatarPhoto,
                 "timestamp", DateUtil.now()
         );
-        messagingTemplate.convertAndSend(topic, typingEvent);
+
+        var event = new WebSocketEvent<>(
+                WebSocketEventType.TYPING_STARTED.name(),
+                typingEvent
+        );
+
+        messagingTemplate.convertAndSend(topic, event);
     }
 
     public void broadcastNewParticipantReader(UUID conversationId, UUID readerId, String avatarPhoto) {

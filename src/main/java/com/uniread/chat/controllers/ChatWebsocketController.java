@@ -56,16 +56,4 @@ public class ChatWebsocketController {
         chatService.insertNewMessage(request, conversationId, authUserId);
 
     }
-
-    /*@SubscribeMapping("/chat.{conversationId}")
-    public void newConversa(
-            @DestinationVariable(value = "conversationId") UUID conversationId,
-            @Payload NewMessageRequest request,
-            Principal principal
-    ) {
-        if(principal == null || request == null) return;
-        var authUserId = UUID.fromString(principal.getName());
-
-        chatService.insertNewOneToOneConversationMessage(request, conversationId, authUserId);
-    }*/
 }
