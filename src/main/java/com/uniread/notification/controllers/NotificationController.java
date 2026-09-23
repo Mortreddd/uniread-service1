@@ -1,7 +1,9 @@
 package com.uniread.notification.controllers;
 
+import com.uniread.auth.exceptions.InvalidTokenException;
 import com.uniread.notification.dto.request.NotificationFilter;
 import com.uniread.notification.dto.response.NotificationDto;
+import com.uniread.notification.dto.response.TotalUnreadNotification;
 import com.uniread.notification.service.NotificationService;
 import com.uniread.auth.domain.entities.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -27,5 +29,15 @@ public class NotificationController {
     )  {
 
         return ResponseEntity.ok().body(null);
+    }
+
+    @GetMapping("/unread-count")
+    public ResponseEntity<TotalUnreadNotification> getUnreadNotificationCount(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
+
+        var unreadCount = notificationService.getUnreadCount(userDetails);
+        return ResponseEntity.ok(unreadCount);
     }
 }
