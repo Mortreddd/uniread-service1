@@ -7,6 +7,7 @@ import com.uniread.user.dto.response.UserBookDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
 @Component
@@ -24,7 +25,7 @@ public class UserBookMapper {
                         .name(genre.getName())
                         .build()
                 )
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         var bookCoverUrl = cloudinaryService.generatePublicUrl(book.getCoverPublicId());
 

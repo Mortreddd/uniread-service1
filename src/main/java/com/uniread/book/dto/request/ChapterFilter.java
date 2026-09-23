@@ -17,7 +17,7 @@ public class ChapterFilter {
     private String query;
     private ChapterStatus status;
     private String sortBy = "asc";
-    private String orderBy = "creaedAt";
+    private String orderBy = "createdAt";
     private Instant startDate;
     private Instant endDate;
     private Instant deletedAt;

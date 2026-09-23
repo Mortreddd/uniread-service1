@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -33,8 +30,8 @@ public class PersonalBookService {
 
         Page<UUID> bookIds = personalBookRepository.findBooksByUser(userDetails.getId(), pageable);
 
-        if(bookIds.isEmpty()) {
-            return Page.empty();
+        if (bookIds.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
         List<Book> bookWithGenres = personalBookRepository.findAllWithGenreByIds(bookIds.getContent());

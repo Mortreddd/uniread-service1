@@ -51,6 +51,7 @@ public class Chapter {
     private Instant createdAt;
 
     @UpdateTimestamp
+
     private Instant updatedAt;
 
     private Instant deletedAt;
