@@ -19,13 +19,9 @@ public class NotificationStreamService {
 
     private final Map<UUID, Set<SseEmitter>> emitters = new ConcurrentHashMap<>();
 
-
     public void send(UUID userId, Object payload) {
         var userEmitters = emitters.getOrDefault(userId, new HashSet<>());
-
-        if(userEmitters == null) {
-            emitters.remove(userId);
-        }
+        if (userEmitters == null || userEmitters.isEmpty()) return;
 
         for(var emitter : userEmitters) {
             try {
@@ -47,16 +43,17 @@ public class NotificationStreamService {
     public SseEmitter subscribe(CustomUserDetails userDetails) {
         var emitter = new SseEmitter(30 * 60 * 1000L);
 
-        emitters.computeIfAbsent(userDetails.getId(), id -> ConcurrentHashMap.newKeySet());
+        Set<SseEmitter> userEmitters = emitters.computeIfAbsent(
+                userDetails.getId(),
+                id -> ConcurrentHashMap.newKeySet()
+        );
 
+        userEmitters.add(emitter);
         Runnable removeEmitter = () -> {
-            Set<SseEmitter> userEmitters = emitters.get(userDetails.getId());
-
-            if(userEmitters != null) {
-                userEmitters.remove(emitter);
-
-                if(userEmitters.isEmpty()) emitters.remove(userDetails.getId());
-
+            Set<SseEmitter> current = emitters.get(userDetails.getId());
+            if (current != null) {
+                current.remove(emitter);
+                if (current.isEmpty()) emitters.remove(userDetails.getId());
             }
         };
 

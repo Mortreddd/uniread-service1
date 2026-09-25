@@ -15,7 +15,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/notifications")
-public class NotificationStreamController {
+public class
+NotificationStreamController {
 
     private final NotificationStreamService streamService;
 
@@ -28,15 +29,4 @@ public class NotificationStreamController {
         return streamService.subscribe(userDetails);
     }
 
-
-    @GetMapping(value = "/test")
-    public ResponseEntity<Void> testStream(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
-
-        var payload = String.format("Hello from: %s", userDetails.getId().toString());
-        streamService.send(userDetails.getId(), payload);
-        return ResponseEntity.ok().build();
-    }
 }

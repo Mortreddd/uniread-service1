@@ -14,8 +14,6 @@ public class NotificationFilter {
     private Integer pageNo = 0;
     private Integer pageSize = 10;
     private String query;
-    private String sortBy = "asc";
-    private String orderBy = "createdAt";
     private Instant startDate;
     private Instant endDate;
     

@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 /**
  * Api Endpoint - /api/v1/notifications
  */
@@ -27,8 +29,30 @@ public class NotificationController {
             @ModelAttribute NotificationFilter filter,
             @AuthenticationPrincipal CustomUserDetails userDetails
     )  {
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
 
-        return ResponseEntity.ok().body(null);
+        var notifications = notificationService.getUserNotifications(filter, userDetails);
+        return ResponseEntity.ok().body(notifications);
+    }
+
+    @PostMapping("/read")
+    public ResponseEntity<Void> markReadNotifications(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
+
+        notificationService.markReadNotification(userDetails);
+        return ResponseEntity.ok().build();
+    }
+    @PutMapping("/{notificationId}/clicked")
+    public ResponseEntity<Void> clickedNotification(
+            @PathVariable("notificationId")UUID notificationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
+
+        notificationService.updatedClickedNotification(notificationId, userDetails);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/unread-count")
