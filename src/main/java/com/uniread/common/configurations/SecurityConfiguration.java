@@ -36,7 +36,9 @@ public class SecurityConfiguration {
             "/ws/**",
             "/auth/**",
             "/profile/**",
-            "/books/**",
+            "/books",
+            "/books/*",
+            "/books/*/volumes",
             "/authors/**",
             "/genres/**",
             "/users/**",
@@ -49,6 +51,8 @@ public class SecurityConfiguration {
     private final String[] securedEndpoints = new String[]{
             "/messages/**",
             "/me/**",
+            "/admin/**"
+
     };
 
     private final String adminPrefixEndpoint = "/admin/**";

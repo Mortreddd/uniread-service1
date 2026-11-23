@@ -4,6 +4,7 @@ import com.uniread.auth.domain.entities.CustomUserDetails;
 import com.uniread.chat.domain.entities.Conversation;
 import com.uniread.chat.domain.entities.Participant;
 import com.uniread.chat.domain.entities.ParticipantRole;
+import com.uniread.chat.dto.request.MuteConversationRequest;
 import com.uniread.chat.mappers.ParticipantMapper;
 import com.uniread.common.exceptions.DuplicateResourceException;
 import com.uniread.chat.repositories.ParticipantRepository;
@@ -85,6 +86,23 @@ public class ParticipantService {
 
 
         participantRepository.saveAll(participants);
+    }
+
+    @Transactional
+    public void markMuted(
+            UUID conversationId,
+            CustomUserDetails userDetails,
+            Boolean muted,
+            Instant mutedUntil
+    ) {
+        validateMember(conversationId, userDetails.getId());
+
+        participantRepository.updateMutedUtilByConversationId(
+                conversationId,
+                userDetails.getId(),
+                muted,
+                mutedUntil
+        );
     }
 
     @Transactional

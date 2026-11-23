@@ -1,5 +1,6 @@
 package com.uniread.auth.service;
 
+import com.uniread.auth.dto.response.LoginResponse;
 import com.uniread.user.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -8,13 +9,12 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.time.Instant;
+import java.util.*;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
@@ -28,35 +28,44 @@ public class JsonWebTokenService {
     @Value("${security.jwt.refreshToken.expiration}")
     private Integer refreshTokenExpiration;
 
-    private final UserService userService;
-
-    public String generateAccessToken(UUID userId, String emailAddress){
+    public String generateAccessToken(UUID userId, LoginResponse loginResponse){
         Map<String, Object> claims = new HashMap<>();
-        return createAccessToken(claims, userId, emailAddress);
+        return createAccessToken(claims, loginResponse);
     }
 
-    public String generateRefreshToken(UUID userId, String emailAddress) {
+    public String generateRefreshToken(UUID userId, LoginResponse loginResponse) {
         Map<String, Object> claims = new HashMap<>();
-        return createRefreshToken(claims,userId, emailAddress);
+        return createRefreshToken(claims, loginResponse);
     }
 
-    private String createRefreshToken(Map<String, Object> claims, UUID userId, String emailAddress) {
+    private String createRefreshToken(Map<String, Object> claims, LoginResponse loginResponse) {
         long expiration = refreshTokenExpiration;
-        return createToken(claims, userId, emailAddress, expiration);
+        return createToken(claims, loginResponse, "refresh", expiration);
     }
 
-    private String createAccessToken(Map<String, Object> claims, UUID userId, String emailAddress) {
+    private String createAccessToken(Map<String, Object> claims, LoginResponse loginResponse) {
         long expiration = accessTokenExpiration;
-        return createToken(claims, userId, emailAddress, expiration);
+        return createToken(claims, loginResponse, "access", expiration);
     }
 
-    private String createToken(Map<String, Object> claims, UUID userId, String emailAddress, Long expiration){
-        return Jwts
-                .builder()
+    private String createToken(Map<String, Object> claims, LoginResponse loginResponse, String type, long expiration) {
+        claims.put("id", loginResponse.getId());
+        claims.put("email", loginResponse.getEmail());
+        claims.put("username", loginResponse.getUsername());
+        claims.put("displayName", loginResponse.getDisplayName());
+        claims.put("roles", loginResponse.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList());
+        claims.put("emailVerifiedAt", instantToString(loginResponse.getEmailVerifiedAt()));
+        claims.put("bannedAt", instantToString(loginResponse.getBannedAt()));
+        claims.put("deletedAt", instantToString(loginResponse.getDeletedAt()));
+        claims.put("unbannedAt", instantToString(loginResponse.getUnbannedAt()));
+        // optionally: emailVerifiedAt, bannedAt, etc. if downstream needs them
+        return Jwts.builder()
                 .claims(claims)
-                .subject(userId.toString())
-                .claim("email", emailAddress)
-                .issuedAt(new Date(System.currentTimeMillis()))
+                .subject(loginResponse.getId().toString())
+                .claim("type", type)
+                .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignKey())
                 .compact();
@@ -69,10 +78,6 @@ public class JsonWebTokenService {
 
     public UUID extractUserId(String token) {
         return UUID.fromString(extractClaim(token, Claims::getSubject));
-    }
-
-    public String extractEmailAddress(String token) {
-        return (String) extractClaim(token, claims -> claims.get("email"));
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimResolver){
@@ -93,13 +98,22 @@ public class JsonWebTokenService {
                 .getPayload();
     }
 
-    public Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    public boolean isTokenExpired(String token) {
+        try {
+            return extractExpiration(token).before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true;
+        }
     }
 
-    public boolean validateToken(String token, UUID userId) throws ExpiredJwtException {
-        final UUID extractedUserId = extractUserId(token);
-        return extractedUserId.toString().equals(userId.toString()) && !isTokenExpired(token);
+    public boolean isAccessToken(String token)  {
+        return "access".equals(extractClaim(token, c -> c.get("type", String.class)));
     }
-    
+    public boolean isRefreshToken(String token) {
+        return "refresh".equals(extractClaim(token, c -> c.get("type", String.class)));
+    }
+
+    private String instantToString(Instant instant) {
+        return instant != null ? instant.toString() : null;
+    }
 }

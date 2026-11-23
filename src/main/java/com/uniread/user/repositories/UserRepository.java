@@ -48,10 +48,15 @@ public interface UserRepository
     @Query("UPDATE User SET email = :email, emailVerifiedAt = NULL WHERE id = :userId")
     void updateEmail(@Param("userId") UUID userId, @Param("email") String email);
 
-    Optional<User> findByEmail(String email);
+    @EntityGraph(attributePaths = {"roles", "roles.permissions", "profile"})
+    @Query("SELECT u FROM User u WHERE u.email = :email")
+    Optional<User> findByEmail(@Param("email") String email);
+
+    @EntityGraph(attributePaths = {"roles", "roles.permissions", "profile"})
+    @Query("SELECT u FROM User u WHERE u.email = :email OR u.username = :username")
     Optional<User> findByEmailOrUsername(String email, String username);
 
-    @EntityGraph(attributePaths = {"roles", "roles.permissions"})
+    @EntityGraph(attributePaths = {"roles", "roles.permissions", "profile"})
     @Query("SELECT u FROM User u WHERE u.id = :userId")
     Optional<User> findCurrentUserDetailsById(@Param("userId") UUID userId);
 

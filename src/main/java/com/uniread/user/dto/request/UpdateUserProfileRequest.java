@@ -27,7 +27,7 @@ public class UpdateUserProfileRequest {
             regexp = "^\\p{L}+(['-]\\p{L}+)*$",
             message = "First name contains invalid characters"
     )
-    @Size(max = 50)
+    @Size(max = 50, message = "First name must be at most 50 characters")
     private String firstName;
 
     @NotBlank(message = "Last name is required")
@@ -35,7 +35,7 @@ public class UpdateUserProfileRequest {
             regexp = "^[\\p{L}]+(['-][\\p{L}]+)*$",
             message = "Last name contains invalid characters"
     )
-    @Size(max = 50)
+    @Size(max = 50, message = "Last name must be at most 50 characters")
     private String lastName;
 
     private Gender gender;

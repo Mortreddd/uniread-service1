@@ -3,6 +3,7 @@ package com.uniread.chat.service;
 import com.uniread.auth.domain.entities.CustomUserDetails;
 import com.uniread.chat.dto.request.ConversationFilter;
 import com.uniread.chat.dto.request.DirectConversationRequest;
+import com.uniread.chat.dto.request.MuteConversationRequest;
 import com.uniread.chat.dto.response.*;
 import com.uniread.chat.domain.entities.Conversation;
 import com.uniread.chat.mappers.ConversationMapper;
@@ -84,6 +85,30 @@ public class ConversationService {
 
         log.debug("Conversation {} has been created", conv.getId());
         return conv;
+    }
+
+    @Transactional
+    public void markUnmutedConversation(
+            UUID conversationId,
+            CustomUserDetails userDetails
+    ) {
+        participantService.markMuted(conversationId, userDetails, false, null);
+    }
+
+    @Transactional
+    public void markMutedConversation(
+            UUID conversationId,
+            MuteConversationRequest request,
+            CustomUserDetails userDetails
+    ) {
+
+        var mutedUntil = request.getMutedUntil();
+        participantService.markMuted(
+                conversationId,
+                userDetails,
+                true,
+                mutedUntil
+        );
     }
 
     @Transactional

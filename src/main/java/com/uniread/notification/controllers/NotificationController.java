@@ -1,5 +1,6 @@
 package com.uniread.notification.controllers;
 
+import com.uniread.auth.core.RateLimited;
 import com.uniread.auth.exceptions.InvalidTokenException;
 import com.uniread.notification.dto.request.NotificationFilter;
 import com.uniread.notification.dto.response.NotificationDto;
@@ -24,6 +25,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
+    @RateLimited
     @GetMapping
     public ResponseEntity<Page<NotificationDto>> getUserNotification(
             @ModelAttribute NotificationFilter filter,
@@ -35,6 +37,7 @@ public class NotificationController {
         return ResponseEntity.ok().body(notifications);
     }
 
+    @RateLimited
     @PostMapping("/read")
     public ResponseEntity<Void> markReadNotifications(
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -44,6 +47,8 @@ public class NotificationController {
         notificationService.markReadNotification(userDetails);
         return ResponseEntity.ok().build();
     }
+
+    @RateLimited
     @PutMapping("/{notificationId}/clicked")
     public ResponseEntity<Void> clickedNotification(
             @PathVariable("notificationId")UUID notificationId,
@@ -55,6 +60,7 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
+    @RateLimited
     @GetMapping("/unread-count")
     public ResponseEntity<TotalUnreadNotification> getUnreadNotificationCount(
             @AuthenticationPrincipal CustomUserDetails userDetails

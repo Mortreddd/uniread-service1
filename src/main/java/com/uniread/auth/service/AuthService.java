@@ -1,18 +1,24 @@
 package com.uniread.auth.service;
 
 import com.uniread.auth.domain.entities.VerificationToken;
+import com.uniread.auth.domain.events.ForgotPasswordEvent;
 import com.uniread.auth.domain.events.NewVerifiedUserEvent;
 import com.uniread.auth.domain.events.UserRegisteredEvent;
 import com.uniread.auth.domain.events.VerifyAccountEvent;
+import com.uniread.auth.dto.request.ChangePasswordRequest;
+import com.uniread.auth.dto.request.LoginRequest;
 import com.uniread.auth.dto.request.UserRegistrationRequest;
 import com.uniread.auth.dto.request.VerifyAccountRequest;
 import com.uniread.auth.dto.response.LoginResponse;
+import com.uniread.auth.mappers.AuthResponseMapper;
 import com.uniread.auth.repositories.VerificationTokenRepository;
 import com.uniread.common.dto.api.SuccessResponse;
 import com.uniread.common.exceptions.DuplicateResourceException;
 import com.uniread.common.exceptions.ValidationException;
 import com.uniread.common.utils.DateUtil;
+import com.uniread.user.dto.response.UserDetail;
 import com.uniread.user.dto.response.UserDto;
+import com.uniread.user.service.CustomUserDetailsService;
 import com.uniread.user.service.UserService;
 import com.uniread.auth.domain.entities.CustomUserDetails;
 import com.uniread.auth.exceptions.InvalidCredentialsException;
@@ -31,40 +37,43 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final VerificationTokenRepository verificationRepository;
+    private final VerificationTokenService verificationTokenService;
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
+    private final CustomUserDetailsService userDetailsService;
     private final JsonWebTokenService jsonWebTokenService;
     private final ApplicationEventPublisher publisher;
+    private final AuthResponseMapper mapper;
 
     @Value("${client.url}")
     private String clientUrl;
 
-    @Transactional(readOnly = true)
-    public LoginResponse loginUser(String email, String password) {
+    public LoginResponse loginUser(LoginRequest request) {
         try {
-            log.info("Login attempt for email: {}", email);
+            log.info("Login attempt for email: {}", request.getEmail());
 
             var authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, password)
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
-            var userDetails = (CustomUserDetails) authentication.getPrincipal();
-            if(userDetails == null) throw new InvalidCredentialsException("Unable to process login credentials");
+            var user = (CustomUserDetails) authentication.getPrincipal();
+            if(user == null) throw new InvalidCredentialsException("Unable to process login credentials");
 
-            var user = userService.getUserById(userDetails.getId());
-            log.info("User logged in : {}", email);
-
-            return buildLoginResponse(user);
+            return mapper.toLoginResponse(user);
 
         } catch (BadCredentialsException | InternalAuthenticationServiceException e) {
-            log.warn("Failed login attempt for email: {}", email);
+            log.warn("Failed login attempt for email: {}", request.getEmail());
             throw new InvalidCredentialsException("Invalid email or password");
+        } catch (Exception e) {
+            log.error("Failed to login", e);
+            throw new RuntimeException("Unable to process login");
         }
     }
 
@@ -93,18 +102,17 @@ public class AuthService {
     @Transactional
     public SuccessResponse verifyAccount(VerifyAccountRequest request) {
 
-        var user = userService.getUserByEmail(request.getEmail());
+        var user = (CustomUserDetails) userDetailsService.loadUserByEmail(request.getEmail());
 
 
-        if(user.isEmpty()) {
+        if(user == null) {
             throw new ValidationException("The email does not exist");
         }
 
-        var foundUser = user.get();
         var event = new VerifyAccountEvent(
-                foundUser.getId(),
-                foundUser.getEmail(),
-                foundUser.getUsername()
+                user.getId(),
+                user.getEmail(),
+                user.getUsername()
         );
 
         publisher.publishEvent(event);
@@ -117,22 +125,11 @@ public class AuthService {
 
     @Transactional
     public LoginResponse confirmEmail(String token) {
-        var vt = verificationRepository.findById(token)
-                .orElseThrow(() -> new ValidationException("Invalid token"));
 
-        if (vt.isUsed()) {
-            throw new ValidationException("Token already used");
-        }
-
-        if (vt.isExpired()) {
-            throw new ValidationException("Token expired");
-        }
-
-        var user = userService.getUserById(vt.getUserId());
+        var vt = verificationTokenService.getVerificationToken(token);
+        var user = (CustomUserDetails) userDetailsService.loadUserById(vt.getUserId());
         userService.markEmailVerified(vt.getUserId());
-        vt.markAsUsed();
-
-        verificationRepository.save(vt);
+        verificationTokenService.markUsed(vt);
 
         var event = new NewVerifiedUserEvent(
                 vt.getUserId(),
@@ -142,7 +139,7 @@ public class AuthService {
 
         publisher.publishEvent(event);
 
-        return buildLoginResponse(user);
+        return mapper.toLoginResponse(user);
 
     }
 
@@ -159,11 +156,11 @@ public class AuthService {
 
         try {
             var userId = jsonWebTokenService.extractUserId(refreshToken);
-            UserDto user = userService.getUserById(userId);
+            var user = (CustomUserDetails) userDetailsService.loadUserById(userId);
 
             log.debug("Token refreshed successfully for user: {}", user.getEmail());
 
-            return buildLoginResponse(user);
+            return mapper.toLoginResponse(user);
 
         } catch (Exception e) {
             log.error("Error refreshing token", e);
@@ -172,29 +169,32 @@ public class AuthService {
     }
 
     @Transactional
-    public void initiatePasswordReset(String email) {
+    public SuccessResponse initiatePasswordReset(String username) {
+        var user = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
+        publisher.publishEvent(new ForgotPasswordEvent(user.getId(), user.getEmail(), user.getDisplayName()));
+        return SuccessResponse.builder()
+                .code(HttpStatus.OK.value())
+                .message("Successfully sent verification email for reset password")
+                .build();
         // Implementation for password reset
         // Generate token, save to database, send email
     }
 
     @Transactional
-    public void resetPassword(String token, String newPassword) {
+    public SuccessResponse resetPassword(ChangePasswordRequest request) {
+        var vt = verificationTokenService.getVerificationToken(request.getToken());
+
+        verificationTokenService.validateToken(vt);
+        validateChangePassword(request);
+        verificationTokenService.markUsed(vt);
+
+        userService.changePassword(vt.getUserId(), request.getPassword());
+        return SuccessResponse.builder()
+                .code(HttpStatus.OK.value())
+                .message("Successfully changed password")
+                .build();
         // Implementation for password reset
         // Validate token, update password
-    }
-
-    private LoginResponse buildLoginResponse(UserDto user) {
-        return LoginResponse.builder()
-                .success(true)
-                .message("Login successful")
-                .user(LoginResponse.UserInfo.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .email(user.getEmail())
-                        .role(user.getRole() != null ? user.getRole().name() : "USER")
-                        .emailVerified(user.getIsEmailVerified())
-                        .build())
-                .build();
     }
 
     private void validateUserRegistration(UserRegistrationRequest request) {
@@ -206,6 +206,18 @@ public class AuthService {
 
         if(userService.isUsernameExists(request.getUsername())) {
             throw new DuplicateResourceException("Username already exists");
+        }
+    }
+
+    private void validateChangePassword(ChangePasswordRequest request) {
+        if(request == null) throw new IllegalArgumentException("Unable to process this request");
+
+        if(request.getToken().isBlank()) {
+            throw new ValidationException("Unable to process the request");
+        }
+
+        if(!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new ValidationException("Password and Confirm Password do not match");
         }
 
     }

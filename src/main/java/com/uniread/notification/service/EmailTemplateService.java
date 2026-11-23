@@ -23,7 +23,6 @@ public class EmailTemplateService {
 
             String template = type.getDefaultTemplate();
 
-
             log.info("Rendering template: {}", template);
 
             return templateEngine.process(template, context);

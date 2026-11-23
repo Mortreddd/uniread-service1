@@ -22,6 +22,7 @@ public class BookService {
 
     private final ApplicationEventPublisher publisher;
     private final BookCoverService coverService;
+    private final BookValidator bookValidator;
     private final GenreService genreService;
     private final BookRepository repository;
 
@@ -30,7 +31,7 @@ public class BookService {
         CustomUserDetails userDetails,
         CreateBookRequest request
     ) {
-        validateBookCreate(request);
+        bookValidator.validateBookCreate(request);
 
         var bookId = UUID.randomUUID();
 
@@ -57,29 +58,5 @@ public class BookService {
 
     }
 
-    public void validateBookCreate(CreateBookRequest request) {
-        if(request == null) {
-            throw new ValidationException("Unable to proceed with the request");
-        }
 
-        if(request.getCover() == null) {
-            throw new ValidationException("Book cover is required");
-        }
-
-        if(request.getTitle().isBlank()) {
-            throw new ValidationException("Title of the book is required");
-        }
-
-        if(request.getDescription().isBlank()) {
-            throw new ValidationException("Synopsis of the book is required");
-        }
-
-        if(request.getGenres() == null || request.getGenres().isEmpty()) {
-            throw new ValidationException("Book genre must contain at least 1 genre");
-        }
-
-        if(request.getMatured() == null) {
-            throw new ValidationException("Book mature content must not be null");
-        }
-    }
 }

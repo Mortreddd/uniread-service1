@@ -1,10 +1,11 @@
 package com.uniread.user.service;
 
+import com.uniread.auth.dto.request.ChangePasswordRequest;
 import com.uniread.auth.dto.request.UserRegistrationRequest;
 import com.uniread.common.dto.api.SuccessResponse;
 import com.uniread.common.exceptions.ValidationException;
 import com.uniread.user.domain.events.UpdateEmailEvent;
-import com.uniread.user.dto.request.UserFilter;
+import com.uniread.user.dto.request.PublicUserFilter;
 import com.uniread.auth.dto.response.GoogleUserInfoResponse;
 import com.uniread.user.dto.response.CurrentUser;
 import com.uniread.user.dto.response.UserDto;
@@ -47,7 +48,7 @@ public class UserService {
     private final ApplicationEventPublisher publisher;
 
     @Transactional(readOnly = true)
-    public Page<UserDto> getUsers(CustomUserDetails userDetails, UserFilter filter) {
+    public Page<UserDto> getUsers(CustomUserDetails userDetails, PublicUserFilter filter) {
         UUID authUserId = userDetails != null ? userDetails.getId() : null;
 
         Specification<User> spec = Specification.where(UserSpecification.hasQuery(filter.getQuery()))
@@ -68,7 +69,7 @@ public class UserService {
                 .map(userMapper::toDto);
     }
 
-    public Page<UserSearchDto> searchUsers(CustomUserDetails userDetails, UserFilter filter) {
+    public Page<UserSearchDto> searchUsers(CustomUserDetails userDetails, PublicUserFilter filter) {
         Sort.Direction direction = "desc".equalsIgnoreCase(filter.getSortBy())
                 ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(
@@ -102,11 +103,6 @@ public class UserService {
 
     public Optional<User> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
-    }
-
-    public User getUserByEmailOrThrow(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
     }
 
     public boolean isEmailExists(String email) {
@@ -181,6 +177,15 @@ public class UserService {
     }
 
     @Transactional
+    public void changePassword(UUID userId, String password) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Unable to find user"));
+
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+    }
+
+    @Transactional
     public void markEmailVerified(UUID userId) {
         userRepository.markUserAsVerified(userId, DateUtil.now());
     }
@@ -196,8 +201,6 @@ public class UserService {
 
         return userRepository.save(user);
     }
-
-
 
     private String generateTemporaryUsername(String email) {
         String baseUsername = email.split("@")[0];

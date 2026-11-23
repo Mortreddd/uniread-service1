@@ -24,8 +24,8 @@ public class AuthCookieService {
     private final CookieConfigProperties cookieConfig;
 
     public void setAuthCookies(HttpServletResponse response, LoginResponse loginResponse) {
-        String accessToken = jsonWebTokenService.generateAccessToken(loginResponse.getUser().getId(), loginResponse.getUser().getEmail());
-        String refreshToken = jsonWebTokenService.generateRefreshToken(loginResponse.getUser().getId(), loginResponse.getUser().getEmail());
+        String accessToken = jsonWebTokenService.generateAccessToken(loginResponse.getId(), loginResponse);
+        String refreshToken = jsonWebTokenService.generateRefreshToken(loginResponse.getId(), loginResponse);
 
         ResponseCookie accessTokenCookie = createAccessTokenCookie(accessToken);
         ResponseCookie refreshTokenCookie = createRefreshTokenCookie(refreshToken);

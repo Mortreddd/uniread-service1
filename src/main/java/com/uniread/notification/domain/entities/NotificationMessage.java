@@ -16,4 +16,5 @@ public class NotificationMessage {
     private NotificationTargetType targetType;
     private Map<String, Object> variables;
     private Set<NotificationChannel> channels;
+    private String message;
 }

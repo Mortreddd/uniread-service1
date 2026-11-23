@@ -38,6 +38,8 @@ public class Book implements Persistable<UUID> {
     private String description;
 
     @Builder.Default
+    private Integer volumesCount = 0;
+    @Builder.Default
     private Integer readCount = 0;
     @Builder.Default
     private Integer chaptersCount = 0;
@@ -83,7 +85,7 @@ public class Book implements Persistable<UUID> {
 
     @Builder.Default
     @OneToMany(mappedBy = "book")
-    private List<Chapter> chapters = new ArrayList<>();
+    private List<Volume> chapters = new ArrayList<>();
 
     @Transient
     @Builder.Default
@@ -116,4 +118,10 @@ public class Book implements Persistable<UUID> {
     private void markNotNew() {
         this.isNew = false;
     }
+
+    public boolean isPublished() {
+        return status == BookStatus.PUBLISHED;
+    }
+
+
 }

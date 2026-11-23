@@ -14,7 +14,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,7 +27,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
         var user = userRepository.findByEmailOrUsername(usernameOrEmail, usernameOrEmail)
                 .orElseThrow(() -> {
@@ -41,7 +39,13 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     }
 
-    @Transactional(readOnly = true)
+    public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        return toUserDetails(user);
+    }
+
     public UserDetails loadUserById(UUID userId) throws UsernameNotFoundException {
         var user = userRepository.findCurrentUserDetailsById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -71,19 +75,18 @@ public class CustomUserDetailsService implements UserDetailsService {
             }
         }
 
-        return new CustomUserDetails(
-                user.getId(),
-                user.getEmail(),
-                user.getPassword(),
-                user.getUsername(),
-                user.getEmailVerifiedAt(),
-                user.getCreatedAt(),
-                user.getUpdatedAt(),
-                user.getBannedAt(),
-                user.getUnbannedAt(),
-                user.getDeletedAt(),
-                authorities
-        );
+        return CustomUserDetails.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .displayName(user.getProfile() != null ? user.getProfile().getDisplayName() : "Empty Profile")
+                .password(user.getPassword())
+                .emailVerifiedAt(user.getEmailVerifiedAt())
+                .bannedAt(user.getBannedAt())
+                .unbannedAt(user.getUnbannedAt())
+                .deletedAt(user.getDeletedAt())
+                .authorities(authorities)
+                .build();
     }
 
 }

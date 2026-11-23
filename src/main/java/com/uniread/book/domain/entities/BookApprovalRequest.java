@@ -1,37 +1,26 @@
 package com.uniread.book.domain.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.uniread.auth.domain.entities.User;
 import com.uniread.common.domain.entities.ApprovalRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import java.time.Instant;
-import java.util.UUID;
-
-@Data
-@Table(name = "book_approval_requests")
+@Getter
+@Setter
+@Table(name = "book_approval_requests", indexes = {
+        @Index(name = "idx_book_approval_requests_book_id", columnList = "book_id"),
+        @Index(name = "idx_book_approval_requests_reviewer_id", columnList = "reviewer_id"),
+        @Index(name = "idx_book_approval_requests_requester_id", columnList = "requester_id"),
+})
 @Entity
 @NoArgsConstructor
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 public class BookApprovalRequest extends ApprovalRequest {
 
-    private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "book_id")
     private Book book;
 
-    private String reason;
-
-    private Instant reviewedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reviewer_id")
-    private User reviewer;
-
-    private String reviewerUsername;
-    private String reviewerDisplayName;
 }

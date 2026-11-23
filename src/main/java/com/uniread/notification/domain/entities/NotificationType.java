@@ -8,8 +8,9 @@ public enum NotificationType {
     EMAIL_CONFIRMATION("Email Confirmation", "Please confirm your account by verifying your email", "auth/email_confirmation"),
     EMAIL_UPDATE_CONFIRMATION("Update Email Confirmation", "Please confirm your update by verifying your email", "auth/update_email_confirmation"),
     WELCOME("Welcome to Uniread", "Thanks for joining Uniread", "welcome"),
+    FORGOT_PASSWORD("Password Reset Request", "Confirmation for reset password", "auth/forgot_password"),
     // Follow related
-    NEW_FOLLOWER("New Follower", "Someone started following you", ""),
+    NEW_FOLLOWER("New Follower", "Someone started following you", "social/new_follower"),
     FOLLOW_REQUEST_ACCEPTED("Follow Request Accepted", "Your follow request was accepted", ""),
 
     // Book related

@@ -58,15 +58,4 @@ public class NotificationService {
         repository.updatedClickedNotification(notificationId);
     }
 
-    @Transactional
-    public void notify(NotificationMessage message) {
-
-        for(var sender : senders) {
-            if(message.getChannels().contains(sender.getChannel())) {
-                sender.send(message);
-            }
-        }
-
-    }
-
 }

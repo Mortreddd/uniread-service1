@@ -21,10 +21,8 @@ public class OAuthCookieService {
 
     public void setAuthCookies(HttpServletResponse response, LoginResponse loginResponse) {
 
-        var user = loginResponse.getUser();
-
-        String accessTokenJwt = jsonWebTokenService.generateAccessToken(user.getId(), user.getEmail());
-        String refreshToken = jsonWebTokenService.generateRefreshToken(user.getId(), user.getEmail());
+        String accessTokenJwt = jsonWebTokenService.generateAccessToken(loginResponse.getId(), loginResponse);
+        String refreshToken = jsonWebTokenService.generateRefreshToken(loginResponse.getId(), loginResponse);
 
 
         ResponseCookie accessTokenCookie = createAccessTokenCookie(accessTokenJwt);

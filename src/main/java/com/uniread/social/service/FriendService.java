@@ -22,6 +22,6 @@ public class FriendService {
     }
 
     public Boolean areFriends(UUID user1, UUID user2) {
-        return followRepository.existsAsFriends(user1, user2);
+        return followRepository.existsAsMutual(user1, user2);
     }
 }

@@ -5,6 +5,7 @@ import com.uniread.auth.dto.response.LoginResponse;
 import com.uniread.auth.service.AuthCookieService;
 import com.uniread.auth.service.AuthService;
 import com.uniread.auth.exceptions.InvalidTokenException;
+import com.uniread.common.dto.api.SuccessResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -28,7 +29,7 @@ public class AuthController {
             HttpServletResponse httpServletResponse
     ) {
 
-        var response = authService.loginUser(loginRequest.getEmail(), loginRequest.getPassword());
+        var response = authService.loginUser(loginRequest);
         cookieService.setAuthCookies(httpServletResponse, response);
 
         return ResponseEntity.ok(response);
@@ -74,15 +75,23 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity logout(HttpServletResponse httpServletResponse) {
+    public ResponseEntity<Void> logout(HttpServletResponse httpServletResponse) {
         cookieService.clearAuthCookies(httpServletResponse);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        log.info("Password reset requested for email: {}", request.getEmail());
-        authService.initiatePasswordReset(request.getEmail());
-        return ResponseEntity.ok().build();
+    public ResponseEntity<SuccessResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        log.info("Password reset requested for username: {}", request.getUsername());
+        var response = authService.initiatePasswordReset(request.getUsername());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<SuccessResponse> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request
+    ) {
+        var response = authService.resetPassword(request);
+        return ResponseEntity.ok(response);
     }
 }

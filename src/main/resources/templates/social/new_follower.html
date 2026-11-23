@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Follower on Uniread</title>
+</head>
+<body style="margin:0;padding:20px;background-color:#491232;font-family:Arial,sans-serif;">
+<div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;">
+    <div style="padding:30px 20px;">
+        <h2 style="color:#491232;margin-top:0;">You have a new follower 🎉</h2>
+
+        <p>Hello <span th:text="${displayName}">User</span>,</p>
+
+        <p><strong th:text="${followerName}">Follower</strong> started following you on Uniread.</p>
+
+        <p>Check out their profile and see what they're reading.</p>
+
+        <div style="text-align:center;">
+            <a th:href="${homeLink}"
+               style="display:inline-block;padding:12px 24px;background-color:#491232;color:#ffffff;
+                      text-decoration:none;border-radius:4px;font-weight:bold;">
+                View
+            </a>
+        </div>
+
+        <p style="font-size:13px;color:#666;margin-top:24px;">
+            You're receiving this because you have follower notifications enabled.
+            You can manage your preferences in your account settings.
+        </p>
+    </div>
+
+    <div style="text-align:center;padding:20px;color:#666;font-size:12px;border-top:1px solid #eee;">
+        <p>&copy; <span th:text="${#dates.year(#dates.createNow())}">2024</span> Uniread. All rights reserved.</p>
+        <p>This is an automated message, please do not reply.</p>
+    </div>
+</div>
+</body>
+</html>

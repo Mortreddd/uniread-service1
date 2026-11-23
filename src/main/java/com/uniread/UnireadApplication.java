@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @EnableCaching
 @EnableRetry
-@EnableAsync
 public class UnireadApplication {
 
 	public static void main(String[] args) {

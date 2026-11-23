@@ -1,7 +1,6 @@
 package com.uniread.auth.dto.request;
 
 import com.uniread.user.domain.entities.Gender;
-import com.uniread.auth.security.validations.constraints.UniqueUsername;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.Getter;

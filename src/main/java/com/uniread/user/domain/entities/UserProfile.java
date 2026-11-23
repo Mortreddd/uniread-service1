@@ -53,4 +53,11 @@ public class UserProfile {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    @Builder.Default
+    private Integer followerCount = 0;
+    @Builder.Default
+    private Integer followingCount = 0;
+    @Builder.Default
+    private Integer publishedStoriesCount = 0;
+
 }

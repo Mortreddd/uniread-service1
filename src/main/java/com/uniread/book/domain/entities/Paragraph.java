@@ -30,10 +30,11 @@ public class Paragraph {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "chapter_id")
-    @JsonBackReference
     private Chapter chapter;
 
     private String type;
+
+    public String assetPublicId;
 
     private String alignment;
 

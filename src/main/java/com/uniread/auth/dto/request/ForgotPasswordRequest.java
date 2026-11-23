@@ -1,15 +1,18 @@
 package com.uniread.auth.dto.request;
 
 
-import com.uniread.auth.security.validations.constraints.EmailExists;
-import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@NoArgsConstructor
+@Getter
+@Setter
 final public class ForgotPasswordRequest {
 
-    @Email(message = "Invalid email")
-    @EmailExists
-    private String email;
+    @NotBlank
+    private String username;
 
 }

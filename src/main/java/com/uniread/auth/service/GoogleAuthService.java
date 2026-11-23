@@ -1,16 +1,23 @@
 package com.uniread.auth.service;
 
+import com.uniread.auth.domain.entities.CustomUserDetails;
 import com.uniread.auth.domain.events.GoogleRegistrationEvent;
 import com.uniread.auth.dto.response.GoogleUserInfoResponse;
 import com.uniread.auth.dto.response.LoginResponse;
+import com.uniread.auth.mappers.AuthResponseMapper;
+import com.uniread.user.service.CustomUserDetailsService;
 import com.uniread.user.service.UserService;
 import com.uniread.auth.domain.entities.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,8 +27,10 @@ public class GoogleAuthService implements OAuthService {
     @Value("${client.url}")
     private String clientUrl;
     private final UserService userService;
+    private final CustomUserDetailsService userDetailsService;
     private final ApplicationEventPublisher publisher;
     private final TokenValidationService tokenValidationService;
+    private final AuthResponseMapper mapper;
 
     @Transactional
     @Override
@@ -29,19 +38,18 @@ public class GoogleAuthService implements OAuthService {
         var userInfo = tokenValidationService.validateGoogleToken(accessToken);
         validateGoogleUserInfo(userInfo);
 
-        var existingUser = userService.getUserByEmail(userInfo.getEmail());
-
-        User user;
-        if(existingUser.isPresent()) {
-            user = existingUser.get();
+        var existingUser = (CustomUserDetails) userDetailsService.loadUserByEmail(userInfo.getEmail());
+        log.info("Generating google token for user: {}", userInfo.getEmail());
+        if(existingUser != null) {
+            return mapper.toLoginResponse(existingUser);
         } else {
-            user = userService.createGoogleUser(userInfo);
+            var user = userService.createGoogleUser(userInfo);
             publisher.publishEvent(new GoogleRegistrationEvent(this, user, userInfo));
+
+            return mapper.toLoginResponse(user);
         }
 
-        log.info("Generated google token for user: {}", user.getEmail());
 
-        return buildLoginResponse(user);
     }
     private void validateGoogleUserInfo(GoogleUserInfoResponse userInfo) {
         if (userInfo == null) {
@@ -55,16 +63,5 @@ public class GoogleAuthService implements OAuthService {
         }
     }
 
-    private LoginResponse buildLoginResponse(User user) {
-        return LoginResponse.builder()
-                .success(true)
-                .message("Login successful")
-                .user(LoginResponse.UserInfo.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .email(user.getEmail())
-                        .emailVerified(user.isEmailVerified())
-                        .build())
-                .build();
-    }
+
 }

@@ -1,23 +1,25 @@
 package com.uniread.book.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.uniread.book.domain.entities.ChapterStatus;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 
 @NoArgsConstructor
 @Getter
 @Setter
+@AllArgsConstructor
+@Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ChapterFilter {
 
+    @Builder.Default
     private Integer pageNo = 0;
-    private Integer pageSize = 10;
+    @Builder.Default
+    private Integer pageSize = 20;
     private String query;
     private ChapterStatus status;
-    private String sortBy = "asc";
-    private String orderBy = "createdAt";
     private Instant startDate;
     private Instant endDate;
     private Instant deletedAt;

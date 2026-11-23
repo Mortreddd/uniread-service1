@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,6 +29,17 @@ public interface ParticipantRepository extends JpaRepository<Participant, UUID> 
 
     Boolean existsByConversationIdAndUserIdIn(UUID conversationId, List<UUID> userIds);
 
+    @Modifying
+    @Query(value = """
+        UPDATE participants SET muted = :muted, muted_until = :mutedUntil
+        WHERE conversation_id = :conversationId AND user_id = :userId
+    """, nativeQuery = true)
+    void updateMutedUtilByConversationId(
+            @Param("conversationId") UUID conversationId,
+            @Param("userId") UUID userId,
+            @Param("muted") Boolean muted,
+            @Param("mutedUntil") Instant mutedUntil
+    );
     @Modifying
     @Query(value = """
         UPDATE participants SET deleted_at = CURRENT_TIMESTAMP, unread_count = 0

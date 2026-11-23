@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface BookRepository
         extends JpaRepository<Book, UUID>, JpaSpecificationExecutor<Book> {
+
+    boolean existsByIdAndUserId(UUID bookId, UUID userId);
 }

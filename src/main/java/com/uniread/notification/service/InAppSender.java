@@ -1,12 +1,10 @@
 package com.uniread.notification.service;
 
-import com.uniread.notification.domain.entities.Notification;
 import com.uniread.notification.domain.entities.NotificationChannel;
 import com.uniread.notification.domain.entities.NotificationMessage;
-import com.uniread.notification.repositories.NotificationRepository;
-import com.uniread.auth.domain.entities.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -14,21 +12,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class InAppSender implements NotificationSender {
 
-    private final NotificationRepository notificationRepository;
+    private final ServerSentStreamService streamService;
 
     @Override
     public void send(NotificationMessage message) {
-        notificationRepository.save(
-                Notification.builder()
-                        .user(User.builder().id(message.getUserId()).build())
-                        .title(message.getType().getDefaultTitle())
-                        .description(message.getType().getDefaultDescription())
-                        .metadata(message.getVariables())
-                        .type(message.getType())
-                        .targetType(message.getTargetType())
-                        .build()
-        );
 
+        streamService.subscribe(message.getUserId());
+        streamService.send(message.getUserId(), message);
 
         log.info("InAppSender received notification message: {}", message);
 

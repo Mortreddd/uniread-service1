@@ -7,7 +7,8 @@ import com.uniread.auth.domain.events.VerifyAccountEvent;
 import com.uniread.notification.domain.entities.NotificationChannel;
 import com.uniread.notification.domain.entities.NotificationMessage;
 import com.uniread.notification.domain.entities.NotificationType;
-import com.uniread.notification.service.EmailService;
+import com.uniread.notification.service.AuthEmailService;
+import com.uniread.notification.service.Broadcaster;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -21,12 +22,13 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class UserRegistrationListener {
 
-    private final EmailService emailService;
+    private final Broadcaster broadcaster;
+    private final AuthEmailService authEmailService;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onRegister(UserRegisteredEvent event) {
-        emailService.sendEmailConfirmation(
+        authEmailService.sendEmailConfirmation(
                 event.getUserId(),
                 event.getRequest().getEmail(),
                 event.getRequest().getUsername(),
@@ -34,7 +36,6 @@ public class UserRegistrationListener {
         );
     }
 
-    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onRegisterGoogle(GoogleRegistrationEvent event) {
         var user = event.getUser();
@@ -50,10 +51,9 @@ public class UserRegistrationListener {
                 .channels(Set.of(NotificationChannel.EMAIL))
                 .build();
 
-        emailService.broadcast(message);
+        broadcaster.broadcast(message);
     }
 
-    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onVerify(NewVerifiedUserEvent event) {
 
@@ -69,7 +69,7 @@ public class UserRegistrationListener {
                 .channels(Set.of(NotificationChannel.EMAIL))
                 .build();
 
-        emailService.broadcast(message);
+        broadcaster.broadcast(message);
 
     }
 

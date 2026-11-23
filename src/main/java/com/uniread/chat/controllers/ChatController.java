@@ -4,6 +4,7 @@ import com.uniread.auth.exceptions.InvalidTokenException;
 import com.uniread.chat.dto.request.ConversationFilter;
 import com.uniread.chat.dto.request.ConversationMessageFilter;
 import com.uniread.chat.dto.request.DirectConversationRequest;
+import com.uniread.chat.dto.request.MuteConversationRequest;
 import com.uniread.chat.dto.response.*;
 import com.uniread.chat.service.ConversationService;
 import com.uniread.chat.service.MessageService;
@@ -53,6 +54,27 @@ public class ChatController {
         if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
         return ResponseEntity.ok()
                 .body(conversationService.getConversationPreviewById(conversationId, userDetails));
+    }
+
+    @PutMapping(path = "/{conversationId}/mute")
+    public ResponseEntity muteConversation(
+            @PathVariable("conversationId") UUID conversationId,
+            @RequestBody MuteConversationRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
+        conversationService.markMutedConversation(conversationId, request, userDetails);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping(path = "/{conversationId}/unmute")
+    public ResponseEntity unmuteConversation(
+            @PathVariable("conversationId") UUID conversationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        if(userDetails == null) throw new InvalidTokenException("Session is expired, required to logged in");
+        conversationService.markUnmutedConversation(conversationId, userDetails);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping(path = "/direct")

@@ -12,6 +12,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -22,6 +23,7 @@ public class EmailSender implements NotificationSender {
     private final JavaMailSender mailSender;
     private final EmailTemplateService templateService;
 
+    @Async
     @Retryable(
             retryFor = {MailSendException.class, NullPointerException.class},
             backoff = @Backoff(delay = 1000, multiplier = 2.0)
